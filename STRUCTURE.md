@@ -104,8 +104,8 @@ is drift.
 
 Drift never stops a build. Run `npm run check:drift` to turn drift into a failure.
 
-Only exported functions are parsed. `code/test/` is never mirrored. `prompts/.xsrcignore`
-lists the paths that need no mirror.
+Only exported functions are parsed. `code/test/` is never mirrored. `**/*.d.ts` files and any path
+listed in `prompts/.xsrcignore` are excluded from the mirror requirement.
 
 ## Commands
 
