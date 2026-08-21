@@ -2787,7 +2787,7 @@ export async function parseCode(srcDir: string, ignoreGlobs: string[]): Promise<
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `npm --workspace visualize run test`
-Expected: PASS, 15 tests.
+Expected: PASS, 17 tests.
 
 If the nested-arrow test fails, the cause is `getDescendantsOfKind` reaching into the nested function — that is the wanted behavior, and the test asserts it. If the same-file test fails, check that `getExportedDeclarations` returns the declaration in the same source file.
 
@@ -3095,7 +3095,7 @@ export function buildGraph(prompts: PromptPass, code: CodePass): Graph {
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `npm --workspace visualize run test`
-Expected: PASS, 24 tests.
+Expected: PASS, 26 tests.
 
 - [ ] **Step 5: Write `visualize/scripts/build-graph.ts`**
 
@@ -3858,7 +3858,7 @@ export function App({ graph = loadGraph() }: { graph?: Graph }) {
 - [ ] **Step 7: Run the tests to verify they pass**
 
 Run: `npm --workspace visualize run test`
-Expected: PASS, 30 tests.
+Expected: PASS, 32 tests.
 
 - [ ] **Step 8: Look at the canvas**
 
@@ -4032,7 +4032,7 @@ Expected: success.
 - [ ] **Step 2: Run every test**
 
 Run: `npm test`
-Expected: the `code` suite passes 31 tests, the `visualize` suite passes 30 tests.
+Expected: the `code` suite passes 31 tests, the `visualize` suite passes 32 tests.
 
 - [ ] **Step 3: Run the typechecks**
 
