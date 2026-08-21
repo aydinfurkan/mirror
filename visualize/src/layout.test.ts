@@ -39,54 +39,95 @@ describe('layout', () => {
     expect(result.map((n) => n.id)).toHaveLength(new Set(result.map((n) => n.id)).size);
   });
 
-  it("sizes a container to contain every child's box in the container's own coordinate space", () => {
+  // Two disconnected containers, side by side, are the fixture for both
+  // coordinate tests below. This matters: with a single container spanning
+  // the whole graph, dagre normalizes the layout so that container's own
+  // absolute origin lands at ~(0, 0) — subtracting "the parent's origin"
+  // from a child then subtracts approximately zero, so a layout() that
+  // forgot to relativize children at all (left them in absolute dagre
+  // coordinates) would produce numerically indistinguishable output and
+  // the test would pass for the wrong reason. With two side-by-side
+  // containers, dagre must place the second one away from the origin, so
+  // "child.x is small" and "child.x is the container's absolute x" are
+  // actually different claims, and a broken layout() cannot pass by
+  // accident. Do not simplify this back to one container.
+  function twoContainerFixture(): { nodes: GraphNode[]; edges: GraphEdge[] } {
     const nodes: GraphNode[] = [
       node({ id: 'fileA', kind: 'file' }),
       node({ id: 'fileA#fn1', parent: 'fileA' }),
       node({ id: 'fileA#fn2', parent: 'fileA' }),
       node({ id: 'fileA#fn3', parent: 'fileA' }),
+      node({ id: 'fileB', kind: 'file' }),
+      node({ id: 'fileB#fn1', parent: 'fileB' }),
+      node({ id: 'fileB#fn2', parent: 'fileB' }),
     ];
     const edges: GraphEdge[] = [
-      edge('fn1->fn2', 'fileA#fn1', 'fileA#fn2'),
-      edge('fn2->fn3', 'fileA#fn2', 'fileA#fn3'),
+      edge('a1->a2', 'fileA#fn1', 'fileA#fn2'),
+      edge('a2->a3', 'fileA#fn2', 'fileA#fn3'),
+      edge('b1->b2', 'fileB#fn1', 'fileB#fn2'),
     ];
+    return { nodes, edges };
+  }
 
+  it("sizes each container to contain every child's box in the container's own coordinate space", () => {
+    const { nodes, edges } = twoContainerFixture();
     const result = layout(nodes, edges);
-    const container = result.find((n) => n.id === 'fileA');
-    const children = result.filter((n) => n.parent === 'fileA');
 
-    expect(container).toBeDefined();
-    expect(children).toHaveLength(3);
+    for (const containerId of ['fileA', 'fileB']) {
+      const container = result.find((n) => n.id === containerId)!;
+      const children = result.filter((n) => n.parent === containerId);
 
-    for (const child of children) {
-      // Child coordinates are relative to the container's own top-left corner.
-      expect(child.x).toBeGreaterThanOrEqual(-EPS);
-      expect(child.y).toBeGreaterThanOrEqual(-EPS);
-      expect(child.x + child.width).toBeLessThanOrEqual(container!.width + EPS);
-      expect(child.y + child.height).toBeLessThanOrEqual(container!.height + EPS);
+      expect(container).toBeDefined();
+      expect(children.length).toBeGreaterThan(0);
+
+      for (const child of children) {
+        // Child coordinates are relative to the container's own top-left corner.
+        expect(child.x).toBeGreaterThanOrEqual(-EPS);
+        expect(child.y).toBeGreaterThanOrEqual(-EPS);
+        expect(child.x + child.width).toBeLessThanOrEqual(container.width + EPS);
+        expect(child.y + child.height).toBeLessThanOrEqual(container.height + EPS);
+      }
     }
   });
 
-  it("returns each child's x/y relative to its parent, reproducing an absolute position inside the parent's box", () => {
-    const nodes: GraphNode[] = [
-      node({ id: 'fileA', kind: 'file' }),
-      node({ id: 'fileA#fn1', parent: 'fileA' }),
-      node({ id: 'fileA#fn2', parent: 'fileA' }),
-    ];
-    const edges: GraphEdge[] = [edge('fn1->fn2', 'fileA#fn1', 'fileA#fn2')];
-
+  it("returns each child's x/y relative to its parent, not in absolute dagre coordinates", () => {
+    const { nodes, edges } = twoContainerFixture();
     const result = layout(nodes, edges);
-    const container = result.find((n) => n.id === 'fileA')!;
-    const children = result.filter((n) => n.parent === 'fileA');
 
-    for (const child of children) {
-      const absoluteX = container.x + child.x;
-      const absoluteY = container.y + child.y;
+    const fileA = result.find((n) => n.id === 'fileA')!;
+    const fileB = result.find((n) => n.id === 'fileB')!;
 
-      expect(absoluteX).toBeGreaterThanOrEqual(container.x - EPS);
-      expect(absoluteX + child.width).toBeLessThanOrEqual(container.x + container.width + EPS);
-      expect(absoluteY).toBeGreaterThanOrEqual(container.y - EPS);
-      expect(absoluteY + child.height).toBeLessThanOrEqual(container.y + container.height + EPS);
+    // Confirm the fixture actually achieves what it is for: with two
+    // side-by-side, disconnected containers, dagre cannot place both at
+    // the graph origin, so at least one of them must land away from
+    // (0, 0). If this assertion ever starts failing, the fixture itself
+    // has become degenerate (e.g. a future dagre version centres both
+    // containers on the origin) and the assertions below would no longer
+    // prove anything — fix the fixture before touching layout.ts.
+    const offOrigin = Math.abs(fileB.x) > 100 || Math.abs(fileB.y) > 100 ? fileB : fileA;
+    expect(Math.max(Math.abs(offOrigin.x), Math.abs(offOrigin.y))).toBeGreaterThan(100);
+
+    for (const child of result.filter((n) => n.parent === offOrigin.id)) {
+      // Relative to its own container, a child must sit inside [0, width] x
+      // [0, height]. If layout() left children in absolute dagre
+      // coordinates instead of subtracting the parent's origin, a child of
+      // the off-origin container would land far outside this range (its
+      // absolute position is offset by the container's own non-zero x/y),
+      // so this range check only passes for coordinates that are genuinely
+      // parent-relative.
+      expect(child.x).toBeGreaterThanOrEqual(-EPS);
+      expect(child.y).toBeGreaterThanOrEqual(-EPS);
+      expect(child.x + child.width).toBeLessThanOrEqual(offOrigin.width + EPS);
+      expect(child.y + child.height).toBeLessThanOrEqual(offOrigin.height + EPS);
+
+      // And converting back to absolute coordinates (parent origin + child
+      // offset) must land inside the parent's own absolute box.
+      const absoluteX = offOrigin.x + child.x;
+      const absoluteY = offOrigin.y + child.y;
+      expect(absoluteX).toBeGreaterThanOrEqual(offOrigin.x - EPS);
+      expect(absoluteX + child.width).toBeLessThanOrEqual(offOrigin.x + offOrigin.width + EPS);
+      expect(absoluteY).toBeGreaterThanOrEqual(offOrigin.y - EPS);
+      expect(absoluteY + child.height).toBeLessThanOrEqual(offOrigin.y + offOrigin.height + EPS);
     }
   });
 
