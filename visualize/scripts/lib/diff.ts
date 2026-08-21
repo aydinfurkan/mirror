@@ -122,7 +122,12 @@ export function buildGraph(prompts: PromptPass, code: CodePass): Graph {
     edges.push(e);
   }
 
-  // 6. Resolve every edge target. Drop what does not resolve.
+  // 6. Resolve every edge target against the final node set. Drop what does not resolve.
+  // A dropped edge takes any drift it carries away with it, and that is deliberate.
+  // The canvas can only draw an edge between two nodes that exist, and `broken-ref`
+  // already states the whole problem: a declared call cannot be "absent from the code"
+  // in any useful sense when its target is not a node at all. Reporting `call-drift`
+  // as well would describe one mistake twice.
   const resolved: GraphEdge[] = [];
   for (const e of edges) {
     if (byId.has(e.target) && byId.has(e.source)) {

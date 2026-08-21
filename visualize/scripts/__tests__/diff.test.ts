@@ -101,6 +101,19 @@ describe('buildGraph', () => {
     expect(graph.edges.some((e) => e.target === 'BR-0099')).toBe(false);
   });
 
+  it('drops the call-drift on an edge whose target resolves to no node, keeping only broken-ref', async () => {
+    const graph = await graphOf(async (root) => {
+      await patchFile(
+        `${root}/prompts/xsrc/app.md`,
+        'calls: [greet#greet]',
+        'calls: [greet#greet, greet#bogus]',
+      );
+    });
+    expect(driftKinds(graph)).toEqual(['app#run:broken-ref']);
+    expect(graph.driftSummary['call-drift']).toBe(0);
+    expect(graph.edges.some((e) => e.target === 'greet#bogus')).toBe(false);
+  });
+
   it('stamps the build time', async () => {
     const graph = await graphOf();
     expect(() => new Date(graph.generatedAt).toISOString()).not.toThrow();
