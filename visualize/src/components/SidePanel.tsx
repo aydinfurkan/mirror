@@ -4,6 +4,17 @@ export function relatedOf(graph: Graph, id: string) {
   return graph.edges.filter((edge) => edge.source === id || edge.target === id);
 }
 
+/**
+ * Show one frontmatter value as text.
+ * Join a list with commas. Print an object as JSON. A bare String() would show
+ * "[object Object]" and tell the reader nothing.
+ */
+export function renderFieldValue(value: unknown): string {
+  if (Array.isArray(value)) return value.join(', ');
+  if (typeof value === 'object' && value !== null) return JSON.stringify(value);
+  return String(value);
+}
+
 interface Props {
   graph: Graph;
   node: GraphNode;
@@ -44,7 +55,7 @@ export function SidePanel({ graph, node, onJump, onClose }: Props) {
           .map(([key, value]) => (
             <div key={key}>
               <dt>{key}</dt>
-              <dd>{Array.isArray(value) ? value.join(', ') : String(value)}</dd>
+              <dd>{renderFieldValue(value)}</dd>
             </div>
           ))}
       </dl>
