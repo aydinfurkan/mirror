@@ -47,6 +47,12 @@ describe('parsePrompts', () => {
     expect(nodes.find((n) => n.id === 'BR-0001')?.body).toContain('Greet the user by name.');
   });
 
+  it('normalizes an unquoted YAML date to a calendar-date string', async () => {
+    const { promptsDir } = await makeRepo();
+    const { nodes } = await parsePrompts(promptsDir);
+    expect(nodes.find((n) => n.id === 'ADR-0001')?.data.date).toBe('2026-08-21');
+  });
+
   it('emits the declared edges with their kinds and tabs', async () => {
     const { promptsDir } = await makeRepo();
     const { edges } = await parsePrompts(promptsDir);

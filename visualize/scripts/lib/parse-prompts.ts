@@ -37,14 +37,22 @@ async function listMarkdown(dir: string): Promise<string[]> {
 }
 
 function requireString(value: unknown, field: string, where: string): string {
-  // gray-matter's YAML parser turns an unquoted date scalar (e.g. `date: 2026-08-21`)
-  // into a native Date, not a string. Normalize it back to an ISO calendar date so
-  // frontmatter authors do not have to quote dates.
-  const normalized = value instanceof Date ? value.toISOString().slice(0, 10) : value;
-  if (typeof normalized !== 'string' || normalized.trim() === '') {
+  if (typeof value !== 'string' || value.trim() === '') {
     throw new Error(`${where}: the field "${field}" must be a non-empty string.`);
   }
-  return normalized;
+  return value;
+}
+
+/**
+ * YAML turns an unquoted date scalar such as `date: 2026-08-21` into a native Date.
+ * Accept both that and a quoted string, and return the calendar date. An author of a
+ * prompt must not have to quote a date, and `graph.json` must not carry a time part.
+ */
+function requireDateString(value: unknown, where: string): string {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.toISOString().slice(0, 10);
+  }
+  return requireString(value, 'date', where);
 }
 
 function asList(value: unknown, field: string, where: string): string[] {
@@ -81,6 +89,10 @@ export async function parsePrompts(promptsDir: string): Promise<PromptPass> {
         throw new Error(`${where}: the id "${id}" must start with "${expectedPrefix}".`);
       }
       requireString(data.status, 'status', where);
+      // Normalize before the spread below copies the frontmatter onto the node.
+      if (kind === 'technical') {
+        data.date = requireDateString(data.date, where);
+      }
       nodes.push({
         id,
         kind,
@@ -100,7 +112,6 @@ export async function parsePrompts(promptsDir: string): Promise<PromptPass> {
           edges.push(edge(id, fn, 'implemented_by', 'cross'));
         }
       } else {
-        requireString(data.date, 'date', where);
         for (const br of asList(data.driven_by, 'driven_by', where)) {
           edges.push(edge(id, br, 'driven_by', 'cross'));
         }
