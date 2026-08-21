@@ -4008,7 +4008,7 @@ Expected: success.
 - [ ] **Step 2: Run every test**
 
 Run: `npm test`
-Expected: the `code` suite passes 30 tests, the `visualize` suite passes 30 tests.
+Expected: the `code` suite passes 31 tests, the `visualize` suite passes 30 tests.
 
 - [ ] **Step 3: Run the typechecks**
 
