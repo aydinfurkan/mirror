@@ -3065,7 +3065,12 @@ export function buildGraph(prompts: PromptPass, code: CodePass): Graph {
     edges.push(e);
   }
 
-  // 6. Resolve every edge target. Drop what does not resolve.
+  // 6. Resolve every edge target against the final node set. Drop what does not resolve.
+  // A dropped edge takes any drift it carries away with it, and that is deliberate.
+  // The canvas can only draw an edge between two nodes that exist, and `broken-ref`
+  // already states the whole problem: a declared call cannot be "absent from the code"
+  // in any useful sense when its target is not a node at all. Reporting `call-drift`
+  // as well would describe one mistake twice.
   const resolved: GraphEdge[] = [];
   for (const e of edges) {
     if (byId.has(e.target) && byId.has(e.source)) {
@@ -3114,12 +3119,21 @@ interface Options {
   check: boolean;
 }
 
+/** Read the value that follows a flag. Refuse a flag that has no value. */
+function requireValue(argv: string[], index: number, flag: string): string {
+  const value = argv[index];
+  if (value === undefined || value.startsWith('--')) {
+    throw new Error(`The flag ${flag} needs a path.`);
+  }
+  return value;
+}
+
 function parseArgs(argv: string[], defaults: Options): Options {
   const options = { ...defaults };
   for (let i = 0; i < argv.length; i += 1) {
     if (argv[i] === '--check') options.check = true;
-    else if (argv[i] === '--repo') options.repo = path.resolve(String(argv[++i]));
-    else if (argv[i] === '--out') options.out = path.resolve(String(argv[++i]));
+    else if (argv[i] === '--repo') options.repo = path.resolve(requireValue(argv, ++i, '--repo'));
+    else if (argv[i] === '--out') options.out = path.resolve(requireValue(argv, ++i, '--out'));
   }
   return options;
 }
