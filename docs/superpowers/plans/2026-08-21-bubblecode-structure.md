@@ -4051,7 +4051,8 @@ Write a new ADR **only when the feature makes a decision that no existing ADR co
 new ADR needs a real alternative that you rejected. When no new decision exists, cite the
 existing ADRs in the xsrc prompts and say so.
 
-**Show the new ADR, or say that no new ADR is needed. Wait for approval.**
+**Show the new ADR, or say that no new ADR is needed. Wait for approval. Do not continue
+without it.**
 
 ## Step 3 — Propose the implementation plan
 
@@ -4062,14 +4063,16 @@ Write a short plan in chat, not in a file:
 - Every new call edge, in the form `<file id>#<function> -> <file id>#<function>`.
 - Every test file to create or to change.
 
-**Wait for approval.**
+**Wait for approval. Do not continue without it.**
 
 ## Step 4 — Write the prompts
 
 For each affected file, create or update `prompts/xsrc/<file id>.md`:
 
-- Add a `functions` entry for every new exported function, with `name`, `input`, `output`,
-  `responsibility`, and `calls`.
+- Add a `functions` entry for every new exported function. `name`, `input`, `output`, and
+  `responsibility` are required. Add `calls` only when the function calls an exported
+  function in `code/src`. Use `calls: []` when it calls none. Never invent a call edge to
+  fill the field.
 - Add the business rule ids to `implements` and the decision ids to `decisions`.
 - Declare a `calls` entry only for a call to an exported function in `code/src`. A method
   call on an injected object is not a call edge.
