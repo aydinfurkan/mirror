@@ -1328,8 +1328,8 @@ Refuse to complete a bubble that is already done.
 
 ## Rationale
 
-A user must see which work is finished. A second completion would overwrite the first
-completion time and lose history.
+A user must see which work is finished. A second completion overwrites the first
+completion time. The system then loses the history.
 
 ## Acceptance criteria
 
@@ -1382,7 +1382,8 @@ supersedes: []
 ## Context
 
 BubbleCode contains an API, a graph builder, and a React canvas. The graph builder must
-read the source of the API and find its exported functions and its call sites.
+read the source of the API. It must find the exported functions. It must find the call
+sites.
 
 ## Decision
 
@@ -1392,15 +1393,15 @@ three parts together with npm workspaces. Run the tests with vitest.
 ## Consequences
 
 - One toolchain covers every part of the repository.
-- The graph builder uses `ts-morph`, which understands the same source it parses.
+- The graph builder uses `ts-morph`. `ts-morph` understands the same source that it parses.
 - The code parser supports TypeScript only. A second source language needs a new parser.
 
 ## Alternatives considered
 
 - **Python for the API.** The graph builder would need a second parser and a second test
-  runner. Two toolchains cost more than they return here.
-- **Go for the API.** Go packages map cleanly onto folders, but the canvas stays TypeScript,
-  so the repository still needs two toolchains.
+  runner. Two toolchains add cost. They give no benefit here.
+- **Go for the API.** Go packages map cleanly onto folders. The canvas stays
+  TypeScript. The repository then needs two toolchains.
 ```
 
 - [ ] **Step 6: Write `prompts/technical/ADR-0002-in-memory-repository.md`**
@@ -1430,12 +1431,12 @@ process memory. Run the container with no database service.
 
 - The tests run fast and need no fixtures.
 - The service restarts empty. The test application keeps no data.
-- A real store can replace the implementation later, because the domain depends on the port.
+- The domain depends on the port. A real store can replace the implementation later.
 
 ## Alternatives considered
 
 - **PostgreSQL through Docker Compose.** This adds a real store, migrations, and a slow test
-  suite, and it proves nothing about the prompt-to-code link.
+  suite. It proves nothing about the prompt-to-code link.
 - **A file-backed store.** This adds serialization code and gives no benefit over memory.
 ```
 
