@@ -2049,8 +2049,10 @@ export async function readIgnoreGlobs(promptsDir: string): Promise<string[]> {
       .split('\n')
       .map((line) => line.trim())
       .filter((line) => line.length > 0 && !line.startsWith('#'));
-  } catch {
-    return [];
+  } catch (error) {
+    // An absent .xsrcignore is legitimate. Every source file then needs a mirror.
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return [];
+    throw error;
   }
 }
 
@@ -2331,22 +2333,28 @@ interface FunctionEntry {
   calls: string[];
 }
 
+/**
+ * List every Markdown file under one prompt folder.
+ * The three prompt folders are required. A missing folder is a configuration error,
+ * not an empty result. A drift report built on silence would look clean.
+ */
 async function listMarkdown(dir: string): Promise<string[]> {
   const found: string[] = [];
   async function walk(current: string): Promise<void> {
-    let entries;
-    try {
-      entries = await readdir(current, { withFileTypes: true });
-    } catch {
-      return;
-    }
+    const entries = await readdir(current, { withFileTypes: true });
     for (const entry of entries) {
       const full = path.join(current, entry.name);
       if (entry.isDirectory()) await walk(full);
       else if (entry.name.endsWith('.md')) found.push(full);
     }
   }
-  await walk(dir);
+  try {
+    await walk(dir);
+  } catch (cause) {
+    throw new Error(`Cannot read the prompt folder ${toPosix(dir)}. Create the folder.`, {
+      cause,
+    });
+  }
   return found.sort();
 }
 
