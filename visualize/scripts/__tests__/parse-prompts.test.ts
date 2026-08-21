@@ -1,3 +1,4 @@
+import { rm } from 'node:fs/promises';
 import { afterAll, describe, expect, it } from 'vitest';
 import { parsePrompts } from '../lib/parse-prompts.js';
 import { cleanupRepos, makeRepo } from './helpers.js';
@@ -86,5 +87,12 @@ describe('parsePrompts', () => {
       );
     });
     await expect(parsePrompts(promptsDir)).rejects.toThrow(/responsibility/);
+  });
+
+  it('refuses to parse when a prompt folder is missing', async () => {
+    const { promptsDir } = await makeRepo(async (root) => {
+      await rm(`${root}/prompts/xsrc`, { recursive: true, force: true });
+    });
+    await expect(parsePrompts(promptsDir)).rejects.toThrow(/prompt folder/);
   });
 });

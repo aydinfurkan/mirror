@@ -33,8 +33,10 @@ export async function readIgnoreGlobs(promptsDir: string): Promise<string[]> {
       .split('\n')
       .map((line) => line.trim())
       .filter((line) => line.length > 0 && !line.startsWith('#'));
-  } catch {
-    return [];
+  } catch (error) {
+    // An absent .xsrcignore is legitimate. Every source file then needs a mirror.
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return [];
+    throw error;
   }
 }
 
