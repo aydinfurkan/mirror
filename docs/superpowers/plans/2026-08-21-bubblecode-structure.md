@@ -94,7 +94,7 @@
   "scripts": {
     "graph": "npm --workspace visualize run graph",
     "check:drift": "npm --workspace visualize run graph -- --check",
-    "test": "npm --workspace code run test && npm --workspace visualize run test",
+    "test": "npm run graph && npm --workspace code run test && npm --workspace visualize run test",
     "dev:api": "npm --workspace code run dev",
     "dev:viz": "npm run graph && npm --workspace visualize run dev"
   }
@@ -217,7 +217,7 @@ lists the paths that need no mirror.
 | ---------------------- | --------------------------------------------------------- |
 | `npm run graph`        | Build `visualize/src/generated/graph.json`.                |
 | `npm run check:drift`  | Build the graph. Fail if the graph contains drift.         |
-| `npm test`             | Run every test.                                            |
+| `npm test`             | Build the graph, then run every test.                      |
 | `npm run dev:api`      | Start the API in watch mode.                               |
 | `npm run dev:viz`      | Build the graph, then start the canvas.                    |
 
@@ -3536,8 +3536,10 @@ describe('App', () => {
   it('shows the drift counts in the banner', () => {
     render(<App graph={graph} />);
     const banner = screen.getByTestId('drift-banner');
-    expect(within(banner).getByText(/orphan-function/)).toBeInTheDocument();
-    expect(within(banner).getByText(/1/)).toBeInTheDocument();
+    // Assert on the banner's whole text: "1" appears in both the total and the chip,
+    // so getByText(/1/) would match two elements and throw.
+    expect(banner).toHaveTextContent('orphan-function');
+    expect(banner).toHaveTextContent('1 drift');
   });
 
   it('opens the side panel with the prompt body when a node is selected', async () => {
@@ -4032,10 +4034,12 @@ Expected: both succeed.
 - [ ] **Step 7: Confirm the graph has the shape the spec promises**
 
 ```bash
-node -e "const g=require('./visualize/src/generated/graph.json');
+node --input-type=module -e "
+import { readFileSync } from 'node:fs';
+const g = JSON.parse(readFileSync('./visualize/src/generated/graph.json', 'utf8'));
 console.log('nodes', g.nodes.length, 'edges', g.edges.length);
-console.log('tabs', [...new Set(g.nodes.map(n=>n.tab))].sort().join(','));
-console.log('calls', g.edges.filter(e=>e.kind==='calls').length);
+console.log('tabs', [...new Set(g.nodes.map(n => n.tab))].sort().join(','));
+console.log('calls', g.edges.filter(e => e.kind === 'calls').length);
 console.log('drift', JSON.stringify(g.driftSummary));"
 ```
 Expected: all three tabs present, at least ten `calls` edges, and every drift count zero.
