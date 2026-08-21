@@ -5,7 +5,7 @@ import {
   listBubblesByOwner,
   type ServiceDeps,
 } from '../../domain/bubble.service.js';
-import { sendJson, sendServiceError } from '../http.js';
+import { sendJson, sendServiceError, sendUnexpectedError } from '../http.js';
 import { parseCreateBubbleBody } from './bubbles.schema.js';
 
 export async function postBubble(
@@ -54,12 +54,12 @@ export async function getBubblesByOwner(
 
 export function registerBubbleRoutes(router: Router, deps: ServiceDeps): void {
   router.post('/bubbles', (req, res) => {
-    void postBubble(deps, req, res);
+    postBubble(deps, req, res).catch(() => sendUnexpectedError(res));
   });
   router.post('/bubbles/:id/complete', (req, res) => {
-    void postBubbleComplete(deps, req, res);
+    postBubbleComplete(deps, req, res).catch(() => sendUnexpectedError(res));
   });
   router.get('/owners/:ownerId/bubbles', (req, res) => {
-    void getBubblesByOwner(deps, req, res);
+    getBubblesByOwner(deps, req, res).catch(() => sendUnexpectedError(res));
   });
 }

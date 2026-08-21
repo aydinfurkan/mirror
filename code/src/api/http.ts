@@ -14,3 +14,13 @@ export function sendJson(res: Response, status: number, body: unknown): void {
 export function sendServiceError(res: Response, error: ServiceError): void {
   sendJson(res, STATUS_BY_CODE[error.code], { error });
 }
+
+export function sendUnexpectedError(res: Response): void {
+  sendJson(res, 500, {
+    error: {
+      code: 'unexpected',
+      field: 'server',
+      message: 'The server failed to handle the request.',
+    },
+  });
+}

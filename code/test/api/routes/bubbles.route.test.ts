@@ -90,3 +90,25 @@ describe('GET /health', () => {
     expect(res.body).toEqual({ status: 'ok' });
   });
 });
+
+describe('unexpected failures', () => {
+  it('answers with 500 when the repository throws', async () => {
+    const exploding = createServer({
+      ...deps,
+      repo: {
+        async save() {
+          throw new Error('disk on fire');
+        },
+        async findById() {
+          throw new Error('disk on fire');
+        },
+        async findByOwner() {
+          throw new Error('disk on fire');
+        },
+      },
+    });
+    const res = await request(exploding).get('/owners/u1/bubbles');
+    expect(res.status).toBe(500);
+    expect(res.body.error.code).toBe('unexpected');
+  });
+});
