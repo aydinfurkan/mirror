@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Canvas } from './components/Canvas.js';
+import { DriftBanner } from './components/DriftBanner.js';
+import { SidePanel } from './components/SidePanel.js';
 import { TabBar } from './components/TabBar.js';
 import { loadGraph, selectForTab } from './graph/load.js';
 import type { Graph, TabName } from './graph/types.js';
@@ -7,9 +9,26 @@ import type { Graph, TabName } from './graph/types.js';
 export function App({ graph = loadGraph() }: { graph?: Graph }) {
   const [tab, setTab] = useState<TabName>('business');
   const [showCross, setShowCross] = useState(false);
+  const [driftOnly, setDriftOnly] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const view = useMemo(() => selectForTab(graph, tab, showCross), [graph, tab, showCross]);
+  const view = useMemo(() => {
+    const picked = selectForTab(graph, tab, showCross);
+    if (!driftOnly) return picked;
+    const nodes = picked.nodes.filter((n) => n.drift.length > 0);
+    const ids = new Set(nodes.map((n) => n.id));
+    return { nodes, edges: picked.edges.filter((e) => ids.has(e.source) && ids.has(e.target)) };
+  }, [graph, tab, showCross, driftOnly]);
+
+  const selected = graph.nodes.find((n) => n.id === selectedId) ?? null;
+
+  function jump(id: string): void {
+    const target = graph.nodes.find((n) => n.id === id);
+    if (!target) return;
+    setTab(target.tab);
+    setDriftOnly(false);
+    setSelectedId(id);
+  }
 
   return (
     <div className="app">
@@ -19,12 +38,27 @@ export function App({ graph = loadGraph() }: { graph?: Graph }) {
         showCross={showCross}
         onShowCrossChange={setShowCross}
       />
-      <Canvas
-        nodes={view.nodes}
-        edges={view.edges}
-        selectedId={selectedId}
-        onSelect={setSelectedId}
+      <DriftBanner
+        summary={graph.driftSummary}
+        driftOnly={driftOnly}
+        onDriftOnlyChange={setDriftOnly}
       />
+      <div className="app__body">
+        <Canvas
+          nodes={view.nodes}
+          edges={view.edges}
+          selectedId={selectedId}
+          onSelect={setSelectedId}
+        />
+        {selected && (
+          <SidePanel
+            graph={graph}
+            node={selected}
+            onJump={jump}
+            onClose={() => setSelectedId(null)}
+          />
+        )}
+      </div>
     </div>
   );
 }
