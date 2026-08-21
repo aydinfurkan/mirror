@@ -10,7 +10,7 @@ BubbleCode separates *intent* from *implementation*. Intent lives in `prompts/` 
 
 Three invariants define the project:
 
-1. Every source file under `code/src/` has exactly one mirror prompt under `prompts/xsrc/`.
+1. Every source file under `code/src/` has exactly one mirror prompt under `prompts/xsrc/`, and every exported function in that file has one entry in that prompt.
 2. The prompt is the declared truth. The code is the actual truth. Any gap is *drift*, and drift is visible rather than silent.
 3. The visualizer reads prompts only. It never renders source code.
 
@@ -140,7 +140,9 @@ Every function entry requires `input`, `output`, and `responsibility`. This is t
 
 **Stage 1 — prompts pass.** Read every file under `prompts/`. Parse the frontmatter with `gray-matter`. Validate it against the schemas in section 4 with `zod`. Emit nodes for each rule, decision, xsrc file, and function. Emit edges for `relates_to`, `driven_by`, `supersedes`, `implements`, `decisions`, `implemented_by`, and `calls`.
 
-**Stage 2 — code pass.** Walk `code/src/**/*.ts` with `ts-morph`. For each file, collect its exported function declarations. For each function, collect the identifiers it calls that resolve to an exported function in the same file or in another `code/src` file. This produces the *actual* function set and the *actual* call edges.
+**Stage 2 — code pass.** Walk `code/src/**/*.ts` with `ts-morph`. For each file, collect its **exported** function declarations. For each function, collect the identifiers it calls that resolve to an exported function in the same file or in another `code/src` file. This produces the *actual* function set and the *actual* call edges.
+
+The parser ignores functions that a file does not export. Prompts document the contract between files, so a private helper needs no prompt entry and can change without a prompt edit. The parser also ignores `code/test/`: tests derive from the acceptance criteria of a business rule, which is already a prompt.
 
 **Stage 3 — diff.** Compare stage 1 against stage 2. Attach a `drift[]` array to the affected nodes and edges.
 
@@ -151,8 +153,11 @@ Every function entry requires `input`, `output`, and `responsibility`. This is t
 | `missing-function` | A function exists in code but not in the prompt. | file node |
 | `orphan-function` | A function exists in the prompt but not in code. | function node |
 | `call-drift` | A declared call edge is absent in code, or an actual call edge is not declared. | edge |
+| `broken-ref` | A frontmatter reference names an id that no node matches. | referring node |
 
-Every drift entry carries `kind`, a human-readable `message`, and the `id` it concerns. Drift never aborts the build: `npm run graph` always writes a complete `graph.json` so the canvas can render the problem. Only `npm run check:drift` turns drift into a non-zero exit code.
+Every drift entry carries `kind`, a human-readable `message`, and the `id` it concerns. Nothing aborts the build. `npm run graph` always writes a complete `graph.json`, so the canvas can render every problem, including a typo in a reference. Only `npm run check:drift` turns drift into a non-zero exit code.
+
+A `broken-ref` produces no edge, because the edge has no target to point at. The builder attaches the drift entry to the node that made the reference and records the unresolved id in the message.
 
 The mirror requirement excludes files matching `code/src/**/*.d.ts`, `index.ts` barrel files, and any glob listed in `prompts/.xsrcignore`.
 
@@ -190,12 +195,11 @@ The mirror requirement excludes files matching `code/src/**/*.d.ts`, `index.ts` 
     "orphan-prompt": 0,
     "missing-function": 0,
     "orphan-function": 0,
-    "call-drift": 0
+    "call-drift": 0,
+    "broken-ref": 0
   }
 }
 ```
-
-An edge whose target does not resolve to a known node is a build error, not drift. A broken reference is a typo, not a disagreement between the prompt and the code.
 
 ## 6. Visualizer
 
@@ -206,6 +210,8 @@ Three tabs read one dataset, filtered by the `tab` field:
 - **business** — business rule nodes, `relates_to` edges.
 - **technical** — decision nodes, `driven_by` and `supersedes` edges.
 - **xsrc** — function nodes grouped inside file container nodes, `calls` edges between them.
+
+A **show implementations** switch controls the cross-layer edges. The switch is off by default, which keeps each tab readable as its own view. Turn the switch on to pull the linked nodes of the other tabs into the current view, so you can trace a business rule down to the functions that implement it. The side panel jump-links work in both states.
 
 Layout uses `dagre` for a deterministic top-down arrangement. The application computes node positions at render time and never stores them, so the graph needs no manual maintenance.
 
@@ -265,7 +271,7 @@ The three gates exist because each stage constrains the next. A skipped gate pro
 
 | Area | Approach |
 | --- | --- |
-| Graph builder | Test-first, against fixture directories under `visualize/scripts/__tests__/fixtures/`. One fixture per drift kind, plus a clean fixture that must report zero drift. This is the riskiest component and gets the most coverage. |
+| Graph builder | Test-first, against fixture directories under `visualize/scripts/__tests__/fixtures/`. One fixture per drift kind, one fixture that proves the parser ignores private functions, and a clean fixture that must report zero drift. This is the riskiest component and gets the most coverage. |
 | Test application | Test-driven, vitest. Unit tests per layer, plus one route-level integration test per business rule. |
 | Visualizer | A small number of render tests: the tab switch, the side panel, and the drift banner. No exhaustive component coverage. |
 
