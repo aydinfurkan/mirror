@@ -3177,7 +3177,9 @@ Expected: a line reporting the node count, the edge count, and `0 drift`. If it 
 Run: `npm run check:drift; echo "exit=$?"`
 Expected: `exit=0`.
 
-Then run: `npm run check:drift -- --repo .` after temporarily deleting `prompts/xsrc/main.md`, confirm a non-zero exit and a `missing-prompt` line, then restore the file with `git checkout prompts/xsrc/main.md`.
+Then temporarily delete `prompts/xsrc/main.md`, run `npm run check:drift` again, confirm a non-zero exit and a `missing-prompt` line, and restore the file with `git checkout prompts/xsrc/main.md`.
+
+Do not pass `--repo .` here. `npm --workspace` runs the script with `visualize/` as the working directory, so `path.resolve('.')` would point at the workspace rather than the repository root. The default is already the repository root, computed from the script's own location, so the flag is unnecessary. Pass `--repo` only with an explicit path to a different repository.
 
 - [ ] **Step 8: Commit**
 
