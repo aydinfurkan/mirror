@@ -13,8 +13,8 @@ Refuse to complete a bubble that is already done.
 
 ## Rationale
 
-A user must see which work is finished. A second completion would overwrite the first
-completion time and lose history.
+A user must see which work is finished. A second completion overwrites the first
+completion time. The system then loses the history.
 
 ## Acceptance criteria
 

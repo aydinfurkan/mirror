@@ -22,10 +22,10 @@ process memory. Run the container with no database service.
 
 - The tests run fast and need no fixtures.
 - The service restarts empty. The test application keeps no data.
-- A real store can replace the implementation later, because the domain depends on the port.
+- The domain depends on the port. A real store can replace the implementation later.
 
 ## Alternatives considered
 
 - **PostgreSQL through Docker Compose.** This adds a real store, migrations, and a slow test
-  suite, and it proves nothing about the prompt-to-code link.
+  suite. It proves nothing about the prompt-to-code link.
 - **A file-backed store.** This adds serialization code and gives no benefit over memory.
