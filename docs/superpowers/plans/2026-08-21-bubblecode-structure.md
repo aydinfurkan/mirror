@@ -1913,7 +1913,7 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test-setup.ts'],
-    include: ['scripts/**/*.test.ts', 'src/**/*.test.tsx'],
+    include: ['scripts/**/*.test.ts', 'src/**/*.test.ts', 'src/**/*.test.tsx'],
   },
 });
 ```
@@ -3270,31 +3270,85 @@ export const NODE_HEIGHT = 64;
 export interface PositionedNode extends GraphNode {
   x: number;
   y: number;
+  width: number;
+  height: number;
 }
 
+/**
+ * Lay out a graph top-down with dagre. Function nodes that name a file node
+ * as their `parent` are nested inside that file as a dagre compound-graph
+ * cluster, so the xsrc tab renders file containers around their functions
+ * instead of a flat list. A node only becomes a container when some other
+ * node actually points to it via `parent` — an empty file stays a plain leaf.
+ */
 export function layout(nodes: GraphNode[], edges: GraphEdge[]): PositionedNode[] {
-  const g = new dagre.graphlib.Graph();
+  const g = new dagre.graphlib.Graph({ compound: true });
   g.setGraph({ rankdir: 'TB', nodesep: 40, ranksep: 90 });
   g.setDefaultEdgeLabel(() => ({}));
 
-  for (const node of nodes) {
-    g.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
-  }
   const ids = new Set(nodes.map((n) => n.id));
+  const containerIds = new Set<string>();
+  for (const node of nodes) {
+    if (node.parent !== null && ids.has(node.parent)) containerIds.add(node.parent);
+  }
+
+  for (const node of nodes) {
+    if (containerIds.has(node.id)) {
+      g.setNode(node.id, {});
+    } else {
+      g.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
+    }
+  }
+  for (const node of nodes) {
+    if (node.parent !== null && containerIds.has(node.parent)) {
+      g.setParent(node.id, node.parent);
+    }
+  }
   for (const edge of edges) {
     if (ids.has(edge.source) && ids.has(edge.target)) g.setEdge(edge.source, edge.target);
   }
 
   dagre.layout(g);
 
-  return nodes.map((node) => {
+  const containers = nodes.filter((n) => containerIds.has(n.id));
+  const rest = nodes.filter((n) => !containerIds.has(n.id));
+
+  const positioned: PositionedNode[] = [];
+
+  for (const node of containers) {
     const placed = g.node(node.id);
-    return {
+    const width = placed?.width ?? NODE_WIDTH;
+    const height = placed?.height ?? NODE_HEIGHT;
+    positioned.push({
       ...node,
-      x: (placed?.x ?? 0) - NODE_WIDTH / 2,
-      y: (placed?.y ?? 0) - NODE_HEIGHT / 2,
-    };
-  });
+      x: (placed?.x ?? 0) - width / 2,
+      y: (placed?.y ?? 0) - height / 2,
+      width,
+      height,
+    });
+  }
+
+  for (const node of rest) {
+    const placed = g.node(node.id);
+    const width = placed?.width ?? NODE_WIDTH;
+    const height = placed?.height ?? NODE_HEIGHT;
+    let x = (placed?.x ?? 0) - width / 2;
+    let y = (placed?.y ?? 0) - height / 2;
+
+    if (node.parent !== null && containerIds.has(node.parent)) {
+      const parentPlaced = g.node(node.parent);
+      if (parentPlaced) {
+        const parentWidth = parentPlaced.width ?? NODE_WIDTH;
+        const parentHeight = parentPlaced.height ?? NODE_HEIGHT;
+        x -= parentPlaced.x - parentWidth / 2;
+        y -= parentPlaced.y - parentHeight / 2;
+      }
+    }
+
+    positioned.push({ ...node, x, y, width, height });
+  }
+
+  return positioned;
 }
 ```
 
@@ -3344,7 +3398,14 @@ export function TabBar({ tab, onTabChange, showCross, onShowCrossChange }: Props
 - [ ] **Step 4: Write `visualize/src/components/Canvas.tsx`**
 
 ```tsx
-import { Background, Controls, ReactFlow, type Edge, type Node } from '@xyflow/react';
+import {
+  Background,
+  Controls,
+  ReactFlow,
+  type Edge,
+  type Node,
+  type NodeProps,
+} from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useMemo } from 'react';
 import type { GraphEdge, GraphNode } from '../graph/types.js';
@@ -3357,23 +3418,51 @@ interface Props {
   onSelect: (id: string) => void;
 }
 
+/**
+ * React Flow's built-in `group` node type renders nothing (it is meant to be
+ * a plain resize/drag surface), so a file container needs its own renderer
+ * to keep the file name visible at the top of the cluster.
+ */
+function FileGroupNode({ data }: NodeProps) {
+  const label = typeof data.label === 'string' ? data.label : '';
+  return <div className="node-group__label">{label}</div>;
+}
+
+const nodeTypes = { group: FileGroupNode };
+
 export function Canvas({ nodes, edges, selectedId, onSelect }: Props) {
-  const flowNodes: Node[] = useMemo(
-    () =>
-      layout(nodes, edges).map((node) => ({
+  const flowNodes: Node[] = useMemo(() => {
+    const ids = new Set(nodes.map((n) => n.id));
+    const containerIds = new Set<string>();
+    for (const node of nodes) {
+      if (node.parent !== null && ids.has(node.parent)) containerIds.add(node.parent);
+    }
+
+    return layout(nodes, edges).map((node) => {
+      const isContainer = containerIds.has(node.id);
+      const className = [
+        `node node--${node.kind}`,
+        isContainer ? 'node--container' : '',
+        node.drift.length > 0 ? 'node--drift' : '',
+        node.id === selectedId ? 'node--selected' : '',
+      ]
+        .filter(Boolean)
+        .join(' ');
+
+      return {
         id: node.id,
         position: { x: node.x, y: node.y },
         data: { label: `${node.title}${node.drift.length > 0 ? '  ⚠' : ''}` },
-        className: [
-          `node node--${node.kind}`,
-          node.drift.length > 0 ? 'node--drift' : '',
-          node.id === selectedId ? 'node--selected' : '',
-        ]
-          .filter(Boolean)
-          .join(' '),
-      })),
-    [nodes, edges, selectedId],
-  );
+        className,
+        ...(isContainer
+          ? { type: 'group', style: { width: node.width, height: node.height } }
+          : {}),
+        ...(node.parent !== null && containerIds.has(node.parent)
+          ? { parentId: node.parent, extent: 'parent' as const }
+          : {}),
+      };
+    });
+  }, [nodes, edges, selectedId]);
 
   const flowEdges: Edge[] = useMemo(
     () =>
@@ -3393,6 +3482,7 @@ export function Canvas({ nodes, edges, selectedId, onSelect }: Props) {
       <ReactFlow
         nodes={flowNodes}
         edges={flowEdges}
+        nodeTypes={nodeTypes}
         onNodeClick={(_event, node) => onSelect(node.id)}
         fitView
         proOptions={{ hideAttribution: true }}
