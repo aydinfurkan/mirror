@@ -1667,10 +1667,16 @@ functions:
     output: "Write the matching HTTP status and an error body to the response. Return nothing."
     responsibility: "Map a service error code to an HTTP status. Send the error as JSON."
     calls: [api/http#sendJson]
+  - name: sendUnexpectedError
+    input: "Accept a response."
+    output: "Write HTTP 500 with an error body to the response. Return nothing."
+    responsibility: "Answer a request that failed for a reason the domain does not describe."
+    calls: [api/http#sendJson]
 ---
 ## Notes
 
-Map `validation` to 400. Map `not-found` to 404. Map `conflict` to 409.
+Map `validation` to 400. Map `not-found` to 404. Map `conflict` to 409. Map every other
+failure to 500.
 ```
 
 `prompts/xsrc/api/routes/bubbles.schema.md`:
@@ -1722,13 +1728,14 @@ functions:
   - name: registerBubbleRoutes
     input: "Accept an Express router and the service dependencies."
     output: "Bind three routes onto the router. Return nothing."
-    responsibility: "Bind each HTTP route to its handler. Pass the dependencies to the handler."
-    calls: [api/routes/bubbles.route#postBubble, api/routes/bubbles.route#postBubbleComplete, api/routes/bubbles.route#getBubblesByOwner]
+    responsibility: "Bind each HTTP route to its handler. Pass the dependencies to the handler. Answer with HTTP 500 when a handler fails unexpectedly."
+    calls: [api/routes/bubbles.route#postBubble, api/routes/bubbles.route#postBubbleComplete, api/routes/bubbles.route#getBubblesByOwner, api/http#sendUnexpectedError]
 ---
 ## Notes
 
 Keep each handler an exported function. Bind the handler with a thin arrow function, so the
-graph builder sees the call.
+graph builder sees the call. Attach a catch to each handler call. A handler that rejects must
+not leave the request without an answer.
 ```
 
 - [ ] **Step 6: Write the two entry-point mirrors**
