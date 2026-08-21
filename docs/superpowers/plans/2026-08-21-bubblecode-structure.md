@@ -3874,7 +3874,7 @@ export function App({ graph = loadGraph() }: { graph?: Graph }) {
 - [ ] **Step 7: Run the tests to verify they pass**
 
 Run: `npm --workspace visualize run test`
-Expected: PASS, 32 tests.
+Expected: PASS, 33 tests.
 
 - [ ] **Step 8: Look at the canvas**
 
@@ -4048,7 +4048,7 @@ Expected: success.
 - [ ] **Step 2: Run every test**
 
 Run: `npm test`
-Expected: the `code` suite passes 31 tests, the `visualize` suite passes 32 tests.
+Expected: the `code` suite passes 31 tests, the `visualize` suite passes 33 tests.
 
 - [ ] **Step 3: Run the typechecks**
 
