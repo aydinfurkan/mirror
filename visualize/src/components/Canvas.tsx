@@ -1,6 +1,7 @@
 import {
   Background,
   Controls,
+  Position,
   ReactFlow,
   type Edge,
   type Node,
@@ -55,6 +56,11 @@ export function Canvas({ nodes, edges, selectedId, onSelect }: Props) {
         position: { x: node.x, y: node.y },
         data: { label: `${node.title}${node.drift.length > 0 ? '  ⚠' : ''}` },
         className,
+        // The layout runs left to right, so a box takes its input on the left edge and
+        // gives its output on the right edge. The default top and bottom handles would
+        // send every line back around the box.
+        targetPosition: Position.Left,
+        sourcePosition: Position.Right,
         ...(isContainer
           ? { type: 'group', style: { width: node.width, height: node.height } }
           : {}),
