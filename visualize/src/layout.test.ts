@@ -156,6 +156,17 @@ describe('layout', () => {
     expect(indexOf('fileB')).toBeLessThan(indexOf('fileB#fn2'));
   });
 
+  it('places the target of an edge to the right of its source, not below it', () => {
+    const nodes: GraphNode[] = [node({ id: 'caller' }), node({ id: 'callee' })];
+    const placed = layout(nodes, [edge('caller->callee', 'caller', 'callee')]);
+    const caller = placed.find((n) => n.id === 'caller')!;
+    const callee = placed.find((n) => n.id === 'callee')!;
+
+    // Left to right: the rank advances along x, and both nodes share one row.
+    expect(callee.x).toBeGreaterThan(caller.x + NODE_WIDTH);
+    expect(Math.abs(callee.y - caller.y)).toBeLessThan(EPS);
+  });
+
   it('gives a node with no parent and no edges a valid position', () => {
     const nodes: GraphNode[] = [node({ id: 'solo', kind: 'business', tab: 'business' })];
     const result = layout(nodes, []);

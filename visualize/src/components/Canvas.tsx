@@ -8,6 +8,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useMemo } from 'react';
+import { edgeLabel } from '../graph/labels.js';
 import type { GraphEdge, GraphNode } from '../graph/types.js';
 import { layout } from '../layout.js';
 
@@ -70,7 +71,7 @@ export function Canvas({ nodes, edges, selectedId, onSelect }: Props) {
         id: edge.id,
         source: edge.source,
         target: edge.target,
-        label: edge.kind,
+        label: edgeLabel(edge.kind),
         animated: edge.kind === 'calls',
         className: edge.drift.length > 0 ? 'edge edge--drift' : 'edge',
       })),

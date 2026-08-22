@@ -12,15 +12,17 @@ export interface PositionedNode extends GraphNode {
 }
 
 /**
- * Lay out a graph top-down with dagre. Function nodes that name a file node
- * as their `parent` are nested inside that file as a dagre compound-graph
- * cluster, so the xsrc tab renders file containers around their functions
- * instead of a flat list. A node only becomes a container when some other
+ * Lay out a graph left to right with dagre. A call flows along x, so a caller sits left of
+ * the function that it calls, and a wide screen holds a longer chain.
+ *
+ * Function nodes that name a file node as their `parent` are nested inside that
+ * file as a dagre compound-graph cluster, so the xsrc tab renders file containers
+ * around their functions instead of a flat list. A node only becomes a container when some other
  * node actually points to it via `parent` — an empty file stays a plain leaf.
  */
 export function layout(nodes: GraphNode[], edges: GraphEdge[]): PositionedNode[] {
   const g = new dagre.graphlib.Graph({ compound: true });
-  g.setGraph({ rankdir: 'TB', nodesep: 40, ranksep: 90 });
+  g.setGraph({ rankdir: 'LR', nodesep: 40, ranksep: 90 });
   g.setDefaultEdgeLabel(() => ({}));
 
   const ids = new Set(nodes.map((n) => n.id));
