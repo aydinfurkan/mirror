@@ -4,9 +4,11 @@ interface Props {
   summary: Record<DriftKind, number>;
   driftOnly: boolean;
   onDriftOnlyChange: (value: boolean) => void;
+  /** The filter hides canvas nodes. A document tab draws no canvas, so it hides the filter. */
+  showFilter: boolean;
 }
 
-export function DriftBanner({ summary, driftOnly, onDriftOnlyChange }: Props) {
+export function DriftBanner({ summary, driftOnly, onDriftOnlyChange, showFilter }: Props) {
   const total = DRIFT_KINDS.reduce((sum, kind) => sum + summary[kind], 0);
   return (
     <div className={total > 0 ? 'banner banner--warn' : 'banner'} data-testid="drift-banner">
@@ -22,9 +24,11 @@ export function DriftBanner({ summary, driftOnly, onDriftOnlyChange }: Props) {
               {kind} <strong>{summary[kind]}</strong>
             </span>
           ))}
-          <button onClick={() => onDriftOnlyChange(!driftOnly)}>
-            {driftOnly ? 'show everything' : 'show drift only'}
-          </button>
+          {showFilter && (
+            <button onClick={() => onDriftOnlyChange(!driftOnly)}>
+              {driftOnly ? 'show everything' : 'show drift only'}
+            </button>
+          )}
         </>
       )}
     </div>

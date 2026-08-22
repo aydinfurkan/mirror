@@ -7,9 +7,17 @@ interface Props {
   onTabChange: (tab: TabName) => void;
   showCross: boolean;
   onShowCrossChange: (value: boolean) => void;
+  /** The switch filters canvas nodes. A document tab draws no canvas, so it hides the switch. */
+  showCrossToggle: boolean;
 }
 
-export function TabBar({ tab, onTabChange, showCross, onShowCrossChange }: Props) {
+export function TabBar({
+  tab,
+  onTabChange,
+  showCross,
+  onShowCrossChange,
+  showCrossToggle,
+}: Props) {
   return (
     <nav className="tabbar">
       <div role="tablist" aria-label="Prompt kinds">
@@ -25,14 +33,16 @@ export function TabBar({ tab, onTabChange, showCross, onShowCrossChange }: Props
           </button>
         ))}
       </div>
-      <label className="cross-toggle">
-        <input
-          type="checkbox"
-          checked={showCross}
-          onChange={(event) => onShowCrossChange(event.target.checked)}
-        />
-        show implementations
-      </label>
+      {showCrossToggle && (
+        <label className="cross-toggle">
+          <input
+            type="checkbox"
+            checked={showCross}
+            onChange={(event) => onShowCrossChange(event.target.checked)}
+          />
+          show implementations
+        </label>
+      )}
     </nav>
   );
 }
