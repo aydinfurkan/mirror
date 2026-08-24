@@ -1,0 +1,3 @@
+# Globs under code/src that need no mirror prompt in prompts/xsrc.
+# One glob per line. Lines that start with # are comments.
+**/index.ts
