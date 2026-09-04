@@ -1,22 +1,33 @@
-# BubbleCode Structure
+# Mirror Structure
 
-BubbleCode keeps intent and implementation in separate folders, and links them with a
+Mirror keeps intent and implementation in separate folders, and links them with a
 generated graph.
 
-- `prompts/` holds intent. A human reads it.
+- `.mirror/docs/` holds intent. A human reads it.
 - `code/` holds implementation. A machine runs it.
-- `visualize/` builds the graph that links the two, and draws it on a canvas.
+- `.mirror/visualize/` builds the graph that links the two, and draws it on a canvas.
+
+## Configuration
+
+`.mirror/config.json` holds every project-specific value.
+
+| Key   | Meaning                                                      | Default    |
+| ----- | ------------------------------------------------------------ | ---------- |
+| `src` | Source root, repository-relative. The graph builder reads it. | `code/src` |
+
+Every path in this document that says `code/src` means the `src` value. An absent
+`config.json` keeps the default.
 
 ## The three prompt folders
 
 | Folder              | Holds                    | Filename              |
 | ------------------- | ------------------------ | --------------------- |
-| `prompts/business`  | Business rules           | `BR-####-<slug>.md`   |
-| `prompts/technical` | Technical decisions      | `ADR-####-<slug>.md`  |
-| `prompts/xsrc`      | One mirror per code file | `<path under code/src>.md` |
+| `.mirror/docs/business`  | Business rules           | `BR-####-<slug>.md`   |
+| `.mirror/docs/technical` | Technical decisions      | `ADR-####-<slug>.md`  |
+| `.mirror/docs/xsrc`      | One mirror per code file | `<path under code/src>.md` |
 
-`prompts/xsrc` clones the shape of `code/src`. The file `code/src/domain/bubble.service.ts`
-has the mirror `prompts/xsrc/domain/bubble.service.md`. The mirror describes every exported
+`.mirror/docs/xsrc` clones the shape of `code/src`. The file `code/src/domain/bubble.service.ts`
+has the mirror `.mirror/docs/xsrc/domain/bubble.service.md`. The mirror describes every exported
 function with four parts: the name, the input, the output, and the responsibility.
 
 ## Identifiers
@@ -34,7 +45,7 @@ the folder.
 
 ## Frontmatter schemas
 
-### Business rules: `prompts/business/BR-####-<slug>.md`
+### Business rules: `.mirror/docs/business/BR-####-<slug>.md`
 
 ```yaml
 ---
@@ -50,7 +61,7 @@ implemented_by: [domain/bubble.service#completeBubble]  # optional, function ids
 ## Acceptance criteria
 ```
 
-### Technical decisions: `prompts/technical/ADR-####-<slug>.md`
+### Technical decisions: `.mirror/docs/technical/ADR-####-<slug>.md`
 
 ```yaml
 ---
@@ -69,7 +80,7 @@ supersedes: []                                     # optional, ADR ids
 ## Alternatives considered
 ```
 
-### Code mirrors: `prompts/xsrc/<source file id>.md`
+### Code mirrors: `.mirror/docs/xsrc/<source file id>.md`
 
 ```yaml
 ---
@@ -102,22 +113,48 @@ is drift.
 | `call-drift`       | A declared call is absent in code, or an actual call is undeclared. |
 | `broken-ref`       | A reference names an id that no node matches.                |
 
-Drift never stops a build. Run `npm run check:drift` to turn drift into a failure.
+Drift never stops a build. Run `pnpm -C .mirror/visualize check:drift` to turn drift into a failure.
 
 Only exported functions are parsed. `code/test/` is never mirrored. `**/*.d.ts` files and any path
-listed in `prompts/.xsrcignore` are excluded from the mirror requirement.
+listed in `.mirror/docs/.xsrcignore` are excluded from the mirror requirement.
 
 ## Commands
 
-| Command                | Effect                                                    |
-| ---------------------- | --------------------------------------------------------- |
-| `npm run graph`        | Build `visualize/src/generated/graph.json`.                |
-| `npm run check:drift`  | Build the graph. Fail if the graph contains drift.         |
-| `npm test`             | Build the graph, then run every test.                      |
-| `npm run dev:api`      | Start the API in watch mode.                               |
-| `npm run dev:viz`      | Build the graph, then start the canvas.                    |
+Run every command from the repository root.
+
+| Command                                  | Effect                                             |
+| ---------------------------------------- | -------------------------------------------------- |
+| `pnpm -C .mirror/visualize graph`        | Build `.mirror/visualize/src/generated/graph.json`. |
+| `pnpm -C .mirror/visualize check:drift`  | Build the graph. Fail if the graph contains drift.  |
+| `pnpm -C .mirror/visualize test`         | Run the canvas and graph-builder tests.             |
+| `pnpm -C .mirror/visualize dev`          | Build the graph, then start the canvas.             |
+| `npm -C code run dev`                    | Start the API in watch mode.                        |
+| `npm -C code run test`                   | Run the API tests.                                  |
+
+There is no package at the repository root. Each part installs its own dependencies.
+
+## Use Mirror in another project
+
+Copy `.mirror/` into the other repository, then:
+
+1. Delete the content of `.mirror/docs/business/`, `.mirror/docs/technical/`, and
+   `.mirror/docs/xsrc/`. Keep the folders and `.mirror/docs/.xsrcignore`.
+2. Set `src` in `.mirror/config.json`.
+3. Create `AGENTS.md` at the repository root with one line: read `.mirror/AGENTS.md`.
+4. Add `.mirror/visualize/src/generated/` to `.gitignore`.
+5. Run `pnpm -C .mirror/visualize install`, then `pnpm -C .mirror/visualize graph`.
+
+The graph builder parses TypeScript only. It uses ts-morph and reads `**/*.ts` under `src`.
+A project in another language needs a new parser in `.mirror/visualize/scripts/lib/parse-code.ts`.
 
 ## Adding a feature
 
-Use the `/add-feature` skill. It asks for the business rule, then the technical decision,
-then it writes the prompts, the tests, and the code, in that order.
+Work in this order. Never reverse it.
+
+1. Write the business rule in `.mirror/docs/business/`.
+2. Write a technical decision in `.mirror/docs/technical/`, but only when no existing decision
+   covers the feature.
+3. Write or update the xsrc prompts for every file you will touch.
+4. Write the failing tests.
+5. Write the code that passes them.
+6. Run `pnpm -C .mirror/visualize check:drift`. It must report `0 drift`.

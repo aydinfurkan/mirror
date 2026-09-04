@@ -14,7 +14,7 @@ function drift(kind: DriftKind, id: string, message: string): Drift {
   return { kind, id, message };
 }
 
-export function buildGraph(prompts: PromptPass, code: CodePass): Graph {
+export function buildGraph(prompts: PromptPass, code: CodePass, srcRoot = 'code/src'): Graph {
   const nodes: GraphNode[] = prompts.nodes.map((n) => ({ ...n, drift: [...n.drift] }));
   const edges: GraphEdge[] = prompts.edges.map((e) => ({ ...e, drift: [...e.drift] }));
   const byId = new Map(nodes.map((n) => [n.id, n]));
@@ -33,10 +33,10 @@ export function buildGraph(prompts: PromptPass, code: CodePass): Graph {
       title: fileId,
       tab: 'xsrc',
       parent: null,
-      data: { mirrors: `code/src/${fileId}.ts` },
+      data: { mirrors: `${srcRoot}/${fileId}.ts` },
       body: '',
       drift: [
-        drift('missing-prompt', xsrcIdFromFileId(fileId), `Write a mirror prompt for code/src/${fileId}.ts.`),
+        drift('missing-prompt', xsrcIdFromFileId(fileId), `Write a mirror prompt for ${srcRoot}/${fileId}.ts.`),
       ],
     };
     nodes.push(node);
@@ -85,7 +85,7 @@ export function buildGraph(prompts: PromptPass, code: CodePass): Graph {
       byId
         .get(functionId(fileId, name))
         ?.drift.push(
-          drift('orphan-function', functionId(fileId, name), `Find no exported function ${name} in code/src/${fileId}.ts.`),
+          drift('orphan-function', functionId(fileId, name), `Find no exported function ${name} in ${srcRoot}/${fileId}.ts.`),
         );
     }
   }

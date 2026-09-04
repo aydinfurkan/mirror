@@ -12,13 +12,13 @@ const created: string[] = [];
 export async function makeRepo(
   mutate?: (dir: string) => Promise<void>,
 ): Promise<{ root: string; promptsDir: string; srcDir: string }> {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'bubblecode-'));
+  const root = await mkdtemp(path.join(os.tmpdir(), 'mirror-'));
   created.push(root);
   await cp(CLEAN_FIXTURE, root, { recursive: true });
   if (mutate) await mutate(root);
   return {
     root,
-    promptsDir: path.join(root, 'prompts'),
+    promptsDir: path.join(root, 'docs'),
     srcDir: path.join(root, 'code', 'src'),
   };
 }
