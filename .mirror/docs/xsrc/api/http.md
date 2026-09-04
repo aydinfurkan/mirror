@@ -14,12 +14,12 @@ functions:
     input: "Accept a response and a service error."
     output: "Write the matching HTTP status and an error body to the response. Return nothing."
     responsibility: "Map a service error code to an HTTP status. Send the error as JSON."
-    calls: [api/http#sendJson]
+    calls: [xsrc/api/http#sendJson]
   - name: sendUnexpectedError
     input: "Accept a response."
     output: "Write HTTP 500 with an error body to the response. Return nothing."
     responsibility: "Answer a request that failed for a reason the domain does not describe."
-    calls: [api/http#sendJson]
+    calls: [xsrc/api/http#sendJson]
 ---
 ## Notes
 

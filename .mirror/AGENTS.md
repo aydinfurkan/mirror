@@ -10,12 +10,12 @@
 | Document                                     | Read                                        |
 | -------------------------------------------- | ------------------------------------------- |
 | [.mirror/STRUCTURE.md](STRUCTURE.md)         | Before you touch `.mirror/docs/` or the source root |
-| [.mirror/config.json](config.json)           | To find the source root and the project commands |
+| [.mirror/config.json](config.json)           | To find the source roots and the project commands |
 
 ## The one rule that matters
 
-Write the prompt before you write the code. Every file under the source root has a mirror
-prompt in `.mirror/docs/xsrc/`. Run `pnpm -C .mirror/visualize check:drift` before you report
+Write the prompt before you write the code. Every file under a source root has a mirror
+prompt in `.mirror/docs/<that root's tab>/`. Run `pnpm -C .mirror/visualize check:drift` before you report
 that you are done.
 
 ## Adding a feature

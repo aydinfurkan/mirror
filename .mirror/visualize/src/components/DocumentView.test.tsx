@@ -17,6 +17,7 @@ function node(partial: Partial<GraphNode> & Pick<GraphNode, 'id' | 'kind' | 'tab
 
 const graph: Graph = {
   generatedAt: '2026-08-22T00:00:00.000Z',
+  tabs: ['xsrc'],
   nodes: [
     node({ id: 'BR-0002', kind: 'business', tab: 'business', title: 'Second rule',
       data: { status: 'active' }, body: '## Rule\n\nKeep the title short.' }),

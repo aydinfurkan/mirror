@@ -6,6 +6,7 @@ import type { Graph } from './graph/types.js';
 
 const graph: Graph = {
   generatedAt: '2026-08-21T00:00:00.000Z',
+  tabs: ['xsrc'],
   nodes: [
     { id: 'BR-0001', kind: 'business', title: 'Greeting', tab: 'business', parent: null,
       data: { status: 'active' }, body: '## Rule\n\nGreet the user by name.', drift: [] },

@@ -9,22 +9,22 @@ functions:
     input: "Accept the service dependencies, an HTTP request, and an HTTP response."
     output: "Write HTTP 201 with the new bubble. Write HTTP 400 with a validation error."
     responsibility: "Parse the request body. Call createBubble. Map the result to an HTTP response."
-    calls: [api/routes/bubbles.schema#parseCreateBubbleBody, domain/bubble.service#createBubble, api/http#sendJson, api/http#sendServiceError]
+    calls: [xsrc/api/routes/bubbles.schema#parseCreateBubbleBody, xsrc/domain/bubble.service#createBubble, xsrc/api/http#sendJson, xsrc/api/http#sendServiceError]
   - name: postBubbleComplete
     input: "Accept the service dependencies, an HTTP request, and an HTTP response."
     output: "Write HTTP 200 with the completed bubble. Write HTTP 404 or HTTP 409 with an error."
     responsibility: "Read the bubble id from the path. Call completeBubble. Map the result to an HTTP response."
-    calls: [domain/bubble.service#completeBubble, api/http#sendJson, api/http#sendServiceError]
+    calls: [xsrc/domain/bubble.service#completeBubble, xsrc/api/http#sendJson, xsrc/api/http#sendServiceError]
   - name: getBubblesByOwner
     input: "Accept the service dependencies, an HTTP request, and an HTTP response."
     output: "Write HTTP 200 with the bubbles of the owner, newest first."
     responsibility: "Read the owner id from the path. Call listBubblesByOwner. Map the result to an HTTP response."
-    calls: [domain/bubble.service#listBubblesByOwner, api/http#sendJson, api/http#sendServiceError]
+    calls: [xsrc/domain/bubble.service#listBubblesByOwner, xsrc/api/http#sendJson, xsrc/api/http#sendServiceError]
   - name: registerBubbleRoutes
     input: "Accept an Express router and the service dependencies."
     output: "Bind three routes onto the router. Return nothing."
     responsibility: "Bind each HTTP route to its handler. Pass the dependencies to the handler. Answer with HTTP 500 when a handler fails unexpectedly."
-    calls: [api/routes/bubbles.route#postBubble, api/routes/bubbles.route#postBubbleComplete, api/routes/bubbles.route#getBubblesByOwner, api/http#sendUnexpectedError]
+    calls: [xsrc/api/routes/bubbles.route#postBubble, xsrc/api/routes/bubbles.route#postBubbleComplete, xsrc/api/routes/bubbles.route#getBubblesByOwner, xsrc/api/http#sendUnexpectedError]
 ---
 ## Notes
 

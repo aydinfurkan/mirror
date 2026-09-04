@@ -1,9 +1,9 @@
 import type { TabName } from '../graph/types.js';
 
-const TABS: TabName[] = ['business', 'technical', 'xsrc'];
-
 interface Props {
   tab: TabName;
+  /** The source-root tabs that follow business and technical. */
+  srcTabs: string[];
   onTabChange: (tab: TabName) => void;
   showCross: boolean;
   onShowCrossChange: (value: boolean) => void;
@@ -13,6 +13,7 @@ interface Props {
 
 export function TabBar({
   tab,
+  srcTabs,
   onTabChange,
   showCross,
   onShowCrossChange,
@@ -21,7 +22,7 @@ export function TabBar({
   return (
     <nav className="tabbar">
       <div role="tablist" aria-label="Prompt kinds">
-        {TABS.map((name) => (
+        {['business', 'technical', ...srcTabs].map((name) => (
           <button
             key={name}
             role="tab"

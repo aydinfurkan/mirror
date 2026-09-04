@@ -4,7 +4,7 @@ type: business
 title: Owner bubble list
 status: active
 relates_to: [BR-0001]
-implemented_by: [domain/bubble.service#listBubblesByOwner, domain/bubble.rules#sortNewestFirst]
+implemented_by: [xsrc/domain/bubble.service#listBubblesByOwner, xsrc/domain/bubble.rules#sortNewestFirst]
 ---
 ## Rule
 

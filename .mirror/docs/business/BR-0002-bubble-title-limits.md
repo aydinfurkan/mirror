@@ -4,7 +4,7 @@ type: business
 title: Bubble title limits
 status: active
 relates_to: [BR-0001]
-implemented_by: [domain/bubble.rules#validateTitle]
+implemented_by: [xsrc/domain/bubble.rules#validateTitle]
 ---
 ## Rule
 

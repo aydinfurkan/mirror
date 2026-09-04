@@ -8,25 +8,25 @@ afterAll(cleanupRepos);
 
 async function parseFixture(mutate?: (dir: string) => Promise<void>) {
   const { promptsDir, srcDir } = await makeRepo(mutate);
-  return parseCode(srcDir, await readIgnoreGlobs(promptsDir));
+  return parseCode({ xsrc: srcDir }, await readIgnoreGlobs(promptsDir));
 }
 
 describe('parseCode', () => {
   it('finds the exported functions of each file', async () => {
     const pass = await parseFixture();
-    expect(Object.keys(pass.files).sort()).toEqual(['app', 'greet']);
-    expect(pass.files.greet.map((f) => f.name)).toEqual(['greet']);
-    expect(pass.files.app.map((f) => f.id)).toEqual(['app#run']);
+    expect(Object.keys(pass.files).sort()).toEqual(['xsrc/app', 'xsrc/greet']);
+    expect(pass.files['xsrc/greet'].map((f) => f.name)).toEqual(['greet']);
+    expect(pass.files['xsrc/app'].map((f) => f.id)).toEqual(['xsrc/app#run']);
   });
 
   it('records a cross-file call', async () => {
     const pass = await parseFixture();
-    expect(pass.files.app[0].calls).toEqual(['greet#greet']);
+    expect(pass.files['xsrc/app'][0].calls).toEqual(['xsrc/greet#greet']);
   });
 
   it('skips a file that the ignore list matches', async () => {
     const pass = await parseFixture();
-    expect(pass.files).not.toHaveProperty('index');
+    expect(pass.files).not.toHaveProperty('xsrc/index');
   });
 
   it('ignores a function that the file does not export', async () => {
@@ -48,8 +48,8 @@ describe('parseCode', () => {
         'utf8',
       );
     });
-    expect(pass.files.app.map((f) => f.name)).toEqual(['run']);
-    expect(pass.files.app[0].calls).toEqual(['greet#greet']);
+    expect(pass.files['xsrc/app'].map((f) => f.name)).toEqual(['run']);
+    expect(pass.files['xsrc/app'][0].calls).toEqual(['xsrc/greet#greet']);
   });
 
   it('attributes a call inside a nested arrow function to the exported function', async () => {
@@ -67,7 +67,7 @@ describe('parseCode', () => {
         'utf8',
       );
     });
-    expect(pass.files.app[0].calls).toEqual(['greet#greet']);
+    expect(pass.files['xsrc/app'][0].calls).toEqual(['xsrc/greet#greet']);
   });
 
   it('does not record a method call on an object', async () => {
@@ -83,7 +83,7 @@ describe('parseCode', () => {
         'utf8',
       );
     });
-    expect(pass.files.app[0].calls).toEqual([]);
+    expect(pass.files['xsrc/app'][0].calls).toEqual([]);
   });
 
   it('records a call to an exported function in the same file', async () => {
@@ -103,8 +103,8 @@ describe('parseCode', () => {
         'utf8',
       );
     });
-    const run = pass.files.app.find((f) => f.name === 'run');
-    expect(run?.calls).toEqual(['app#helper']);
+    const run = pass.files['xsrc/app'].find((f) => f.name === 'run');
+    expect(run?.calls).toEqual(['xsrc/app#helper']);
   });
 
   it('records an exported arrow-function constant', async () => {
@@ -120,7 +120,7 @@ describe('parseCode', () => {
         'utf8',
       );
     });
-    expect(pass.files.app.map((f) => f.name)).toEqual(['run']);
-    expect(pass.files.app[0].calls).toEqual(['greet#greet']);
+    expect(pass.files['xsrc/app'].map((f) => f.name)).toEqual(['run']);
+    expect(pass.files['xsrc/app'][0].calls).toEqual(['xsrc/greet#greet']);
   });
 });

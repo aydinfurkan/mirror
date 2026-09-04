@@ -1,3 +1,5 @@
 {
-  "src": "code/src"
+  "src": {
+    "xsrc": "code/src"
+  }
 }

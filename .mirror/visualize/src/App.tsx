@@ -14,8 +14,8 @@ export function App({ graph = loadGraph() }: { graph?: Graph }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   // A business rule and a technical decision are prose. The reader reads them as documents.
-  // An xsrc prompt describes functions, and the canvas shows those links.
-  const isDocument = tab !== 'xsrc';
+  // A source prompt describes functions, and the canvas shows those links.
+  const isDocument = tab === 'business' || tab === 'technical';
 
   const view = useMemo(() => {
     const picked = selectForTab(graph, tab, showCross);
@@ -39,6 +39,7 @@ export function App({ graph = loadGraph() }: { graph?: Graph }) {
     <div className="app">
       <TabBar
         tab={tab}
+        srcTabs={graph.tabs}
         onTabChange={setTab}
         showCross={showCross}
         onShowCrossChange={setShowCross}

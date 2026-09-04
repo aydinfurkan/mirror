@@ -2,7 +2,7 @@ import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import matter from 'gray-matter';
 import type { EdgeKind, GraphEdge, GraphNode } from '../../src/graph/types.js';
-import { fileIdFromXsrcPath, functionId, toPosix, xsrcIdFromFileId } from './paths.js';
+import { fileIdFromXsrcPath, functionId, toPosix } from './paths.js';
 
 export interface PromptPass {
   nodes: GraphNode[];
@@ -78,7 +78,10 @@ function edge(
   return { id: `${source}->${target}:${kind}`, source, target, kind, tab, drift: [] };
 }
 
-export async function parsePrompts(promptsDir: string): Promise<PromptPass> {
+export async function parsePrompts(
+  promptsDir: string,
+  srcTabs: string[] = ['xsrc'],
+): Promise<PromptPass> {
   const nodes: GraphNode[] = [];
   const edges: GraphEdge[] = [];
 
@@ -128,70 +131,71 @@ export async function parsePrompts(promptsDir: string): Promise<PromptPass> {
     }
   }
 
-  const xsrcDir = path.join(promptsDir, 'xsrc');
-  for (const file of await listMarkdown(xsrcDir)) {
-    const rel = toPosix(path.relative(xsrcDir, file));
-    const where = `xsrc/${rel}`;
-    const { data, content } = matter(await readFile(file, 'utf8'));
-    const fileId = fileIdFromXsrcPath(rel);
-    const nodeId = xsrcIdFromFileId(fileId);
-    const declaredId = requireString(data.id, 'id', where);
-    if (declaredId !== nodeId) {
-      throw new Error(`${where}: the id "${declaredId}" does not match the path "${nodeId}".`);
-    }
-    requireString(data.mirrors, 'mirrors', where);
+  for (const srcTab of srcTabs) {
+    const xsrcDir = path.join(promptsDir, srcTab);
+    for (const file of await listMarkdown(xsrcDir)) {
+      const rel = toPosix(path.relative(xsrcDir, file));
+      const where = `${srcTab}/${rel}`;
+      const { data, content } = matter(await readFile(file, 'utf8'));
+      const fileId = `${srcTab}/${fileIdFromXsrcPath(rel)}`;
+      const declaredId = requireString(data.id, 'id', where);
+      if (declaredId !== fileId) {
+        throw new Error(`${where}: the id "${declaredId}" does not match the path "${fileId}".`);
+      }
+      requireString(data.mirrors, 'mirrors', where);
 
-    nodes.push({
-      id: nodeId,
-      kind: 'file',
-      title: fileId,
-      tab: 'xsrc',
-      parent: null,
-      data: { ...data },
-      body: content.trim(),
-      drift: [],
-    });
-
-    for (const br of asList(data.implements, 'implements', where)) {
-      edges.push(edge(nodeId, br, 'implements', 'cross'));
-    }
-    for (const adr of asList(data.decisions, 'decisions', where)) {
-      edges.push(edge(nodeId, adr, 'decisions', 'cross'));
-    }
-
-    const rawFunctions = data.functions;
-    if (rawFunctions === undefined) {
-      throw new Error(`${where}: the field "functions" is required. Use [] for a type-only file.`);
-    }
-    if (!Array.isArray(rawFunctions)) {
-      throw new Error(`${where}: the field "functions" must be a list.`);
-    }
-    for (const raw of rawFunctions as Record<string, unknown>[]) {
-      const name = requireString(raw.name, 'functions[].name', where);
-      const entry: FunctionEntry = {
-        name,
-        input: requireString(raw.input, `functions[${name}].input`, where),
-        output: requireString(raw.output, `functions[${name}].output`, where),
-        responsibility: requireString(
-          raw.responsibility,
-          `functions[${name}].responsibility`,
-          where,
-        ),
-        calls: asList(raw.calls, `functions[${name}].calls`, where),
-      };
-      const fnId = functionId(fileId, name);
       nodes.push({
-        id: fnId,
-        kind: 'function',
-        title: name,
-        tab: 'xsrc',
-        parent: nodeId,
-        data: { ...entry },
-        body: '',
+        id: fileId,
+        kind: 'file',
+        title: fileId,
+        tab: srcTab,
+        parent: null,
+        data: { ...data },
+        body: content.trim(),
         drift: [],
       });
-      for (const target of entry.calls) {
-        edges.push(edge(fnId, target, 'calls', 'xsrc'));
+
+      for (const br of asList(data.implements, 'implements', where)) {
+        edges.push(edge(fileId, br, 'implements', 'cross'));
+      }
+      for (const adr of asList(data.decisions, 'decisions', where)) {
+        edges.push(edge(fileId, adr, 'decisions', 'cross'));
+      }
+
+      const rawFunctions = data.functions;
+      if (rawFunctions === undefined) {
+        throw new Error(`${where}: the field "functions" is required. Use [] for a type-only file.`);
+      }
+      if (!Array.isArray(rawFunctions)) {
+        throw new Error(`${where}: the field "functions" must be a list.`);
+      }
+      for (const raw of rawFunctions as Record<string, unknown>[]) {
+        const name = requireString(raw.name, 'functions[].name', where);
+        const entry: FunctionEntry = {
+          name,
+          input: requireString(raw.input, `functions[${name}].input`, where),
+          output: requireString(raw.output, `functions[${name}].output`, where),
+          responsibility: requireString(
+            raw.responsibility,
+            `functions[${name}].responsibility`,
+            where,
+          ),
+          calls: asList(raw.calls, `functions[${name}].calls`, where),
+        };
+        const fnId = functionId(fileId, name);
+        nodes.push({
+          id: fnId,
+          kind: 'function',
+          title: name,
+          tab: srcTab,
+          parent: fileId,
+          data: { ...entry },
+          body: '',
+          drift: [],
+        });
+        for (const target of entry.calls) {
+          edges.push(edge(fnId, target, 'calls', srcTab));
+        }
       }
     }
   }

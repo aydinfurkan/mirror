@@ -9,6 +9,6 @@ functions:
     input: "Accept no argument."
     output: "Return the greeting for the world."
     responsibility: "Call greet with a fixed name."
-    calls: [greet#greet]
+    calls: [xsrc/greet#greet]
 ---
 ## Notes

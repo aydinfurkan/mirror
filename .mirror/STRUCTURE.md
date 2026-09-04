@@ -11,20 +11,40 @@ generated graph.
 
 `.mirror/config.json` holds every project-specific value.
 
-| Key   | Meaning                                                      | Default    |
-| ----- | ------------------------------------------------------------ | ---------- |
-| `src` | Source root, repository-relative. The graph builder reads it. | `code/src` |
+| Key   | Meaning                                                        | Default                    |
+| ----- | -------------------------------------------------------------- | -------------------------- |
+| `src` | One source root per tab, repository-relative.                   | `{ "xsrc": "code/src" }`   |
 
-Every path in this document that says `code/src` means the `src` value. An absent
-`config.json` keeps the default.
+`src` takes one path or a map. One path becomes the `xsrc` tab:
 
-## The three prompt folders
+```json
+{ "src": "code/src" }
+```
 
-| Folder              | Holds                    | Filename              |
-| ------------------- | ------------------------ | --------------------- |
-| `.mirror/docs/business`  | Business rules           | `BR-####-<slug>.md`   |
-| `.mirror/docs/technical` | Technical decisions      | `ADR-####-<slug>.md`  |
-| `.mirror/docs/xsrc`      | One mirror per code file | `<path under code/src>.md` |
+A map gives each source root its own tab, its own prompt folder, and its own canvas:
+
+```json
+{
+  "src": {
+    "api": "services/api/src",
+    "web": "apps/web/src"
+  }
+}
+```
+
+Each key names a tab. A key must not be `business` or `technical`. Every path in this
+document that says `code/src` means the source root of that tab, and every path that says
+`xsrc` means that tab name. An absent `config.json` keeps the default.
+
+## The prompt folders
+
+| Folder                   | Holds                    | Filename                   |
+| ------------------------ | ------------------------ | -------------------------- |
+| `.mirror/docs/business`  | Business rules           | `BR-####-<slug>.md`        |
+| `.mirror/docs/technical` | Technical decisions      | `ADR-####-<slug>.md`       |
+| `.mirror/docs/<tab>`     | One mirror per code file | `<path under that root>.md` |
+
+`business` and `technical` are always present. One more folder exists for each key in `src`.
 
 `.mirror/docs/xsrc` clones the shape of `code/src`. The file `code/src/domain/bubble.service.ts`
 has the mirror `.mirror/docs/xsrc/domain/bubble.service.md`. The mirror describes every exported
@@ -36,9 +56,10 @@ function with four parts: the name, the input, the output, and the responsibilit
 | ------------------- | ---------------------------------------------- | ------------------------------------ |
 | Business rule       | `BR-####`                                       | `BR-0003`                            |
 | Technical decision  | `ADR-####`                                      | `ADR-0002`                           |
-| Source file         | path under `code/src`, extension removed        | `domain/bubble.service`              |
-| Function            | `<file id>#<function name>`                     | `domain/bubble.service#createBubble` |
-| xsrc prompt         | `xsrc/<file id>`                                | `xsrc/domain/bubble.service`         |
+| Source file         | `<tab>/<path under that root>`, extension removed | `xsrc/domain/bubble.service`       |
+| Function            | `<file id>#<function name>`                     | `xsrc/domain/bubble.service#createBubble` |
+
+The tab prefix keeps two source roots that hold the same relative path apart.
 
 Pad every number to four digits. Never reuse a number. Find the next free number by listing
 the folder.
@@ -54,7 +75,7 @@ type: business                                          # required, literal
 title: Bubble completion                                # required
 status: draft | active | superseded                     # required
 relates_to: [BR-0001]                                   # optional, other BR ids
-implemented_by: [domain/bubble.service#completeBubble]  # optional, function ids
+implemented_by: [xsrc/domain/bubble.service#completeBubble]  # optional, function ids
 ---
 ## Rule
 ## Rationale
@@ -80,12 +101,12 @@ supersedes: []                                     # optional, ADR ids
 ## Alternatives considered
 ```
 
-### Code mirrors: `.mirror/docs/xsrc/<source file id>.md`
+### Code mirrors: `.mirror/docs/<tab>/<path under that root>.md`
 
 ```yaml
 ---
 id: xsrc/api/routes/bubbles.route                  # required, matches path
-type: xsrc                                         # required, literal
+type: xsrc                                         # required, the tab name
 mirrors: code/src/api/routes/bubbles.route.ts      # required, repo-relative
 implements: [BR-0001, BR-0002]                     # optional, BR ids
 decisions: [ADR-0002, ADR-0003]                    # optional, ADR ids
@@ -94,7 +115,7 @@ functions:                                         # required, may be empty
     input: "Accept an HTTP request. The JSON body contains a title and an ownerId."
     output: "Return HTTP 201 with the new bubble. Return HTTP 400 with a validation error."
     responsibility: "Validate the request body. Call createBubble. Map the result to an HTTP response."
-    calls: [domain/bubble.service#createBubble]    # optional, function ids
+    calls: [xsrc/domain/bubble.service#createBubble]  # optional, function ids
 ---
 ## Notes
 ```
@@ -139,7 +160,8 @@ Copy `.mirror/` into the other repository, then:
 
 1. Delete the content of `.mirror/docs/business/`, `.mirror/docs/technical/`, and
    `.mirror/docs/xsrc/`. Keep the folders and `.mirror/docs/.xsrcignore`.
-2. Set `src` in `.mirror/config.json`.
+2. Set `src` in `.mirror/config.json`. Create one prompt folder under `.mirror/docs/`
+   for each key you declare, and delete `.mirror/docs/xsrc/` when you do not use that name.
 3. Create `AGENTS.md` at the repository root with one line: read `.mirror/AGENTS.md`.
 4. Add `.mirror/visualize/src/generated/` to `.gitignore`.
 5. Run `pnpm -C .mirror/visualize install`, then `pnpm -C .mirror/visualize graph`.

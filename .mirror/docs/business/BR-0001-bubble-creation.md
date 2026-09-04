@@ -4,7 +4,7 @@ type: business
 title: Bubble creation
 status: active
 relates_to: [BR-0002]
-implemented_by: [domain/bubble.service#createBubble]
+implemented_by: [xsrc/domain/bubble.service#createBubble]
 ---
 ## Rule
 

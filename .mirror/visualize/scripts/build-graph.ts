@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { buildGraph } from './lib/diff.js';
 import { parseCode } from './lib/parse-code.js';
 import { parsePrompts } from './lib/parse-prompts.js';
-import { readIgnoreGlobs, readSrcRoot } from './lib/paths.js';
+import { readIgnoreGlobs, readSrcRoots } from './lib/paths.js';
 
 interface Options {
   repo: string;
@@ -42,12 +42,14 @@ async function run(): Promise<void> {
   });
 
   const promptsDir = path.join(options.repo, '.mirror', 'docs');
-  const srcRoot = await readSrcRoot(path.join(options.repo, '.mirror'));
-  const srcDir = path.join(options.repo, ...srcRoot.split('/'));
+  const srcRoots = await readSrcRoots(path.join(options.repo, '.mirror'));
+  const srcDirs = Object.fromEntries(
+    Object.entries(srcRoots).map(([tab, root]) => [tab, path.join(options.repo, ...root.split('/'))]),
+  );
 
-  const prompts = await parsePrompts(promptsDir);
-  const code = await parseCode(srcDir, await readIgnoreGlobs(promptsDir));
-  const graph = buildGraph(prompts, code, srcRoot);
+  const prompts = await parsePrompts(promptsDir, Object.keys(srcRoots));
+  const code = await parseCode(srcDirs, await readIgnoreGlobs(promptsDir));
+  const graph = buildGraph(prompts, code, srcRoots);
 
   await mkdir(path.dirname(options.out), { recursive: true });
   await writeFile(options.out, `${JSON.stringify(graph, null, 2)}\n`, 'utf8');

@@ -21,7 +21,8 @@ export interface Drift {
   message: string;
 }
 
-export type TabName = 'business' | 'technical' | 'xsrc';
+/** `business` and `technical` are fixed. Every other tab is a source root from config.json. */
+export type TabName = string;
 export type NodeKind = 'business' | 'technical' | 'file' | 'function';
 export type EdgeKind =
   | 'relates_to'
@@ -54,6 +55,8 @@ export interface GraphEdge {
 
 export interface Graph {
   generatedAt: string;
+  /** The source-root tabs, in config order, that follow business and technical. */
+  tabs: string[];
   nodes: GraphNode[];
   edges: GraphEdge[];
   driftSummary: Record<DriftKind, number>;

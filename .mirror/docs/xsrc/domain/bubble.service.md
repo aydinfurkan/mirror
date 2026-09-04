@@ -9,17 +9,17 @@ functions:
     input: "Accept the service dependencies and an input that holds a title and an owner id."
     output: "Return an ok result with the new bubble. Return a failed result with a validation error."
     responsibility: "Validate the title. Build an open bubble. Store the bubble."
-    calls: [domain/bubble.rules#validateTitle]
+    calls: [xsrc/domain/bubble.rules#validateTitle]
   - name: completeBubble
     input: "Accept the service dependencies and a bubble id."
     output: "Return an ok result with the completed bubble. Return a failed result with a not-found error or a conflict error."
     responsibility: "Find the bubble. Refuse a bubble that is already done. Set the state to done. Store the bubble."
-    calls: [domain/bubble.rules#isCompletable]
+    calls: [xsrc/domain/bubble.rules#isCompletable]
   - name: listBubblesByOwner
     input: "Accept the service dependencies and an owner id."
     output: "Return an ok result with the bubbles of the owner, newest first."
     responsibility: "Read the bubbles of the owner. Order them, newest first."
-    calls: [domain/bubble.rules#sortNewestFirst]
+    calls: [xsrc/domain/bubble.rules#sortNewestFirst]
 ---
 ## Notes
 

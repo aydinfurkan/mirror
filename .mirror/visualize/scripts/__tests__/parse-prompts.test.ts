@@ -12,10 +12,10 @@ describe('parsePrompts', () => {
     expect(nodes.map((n) => n.id).sort()).toEqual([
       'ADR-0001',
       'BR-0001',
-      'app#run',
-      'greet#greet',
       'xsrc/app',
+      'xsrc/app#run',
       'xsrc/greet',
+      'xsrc/greet#greet',
     ]);
   });
 
@@ -26,13 +26,13 @@ describe('parsePrompts', () => {
     expect(byId.get('BR-0001')?.tab).toBe('business');
     expect(byId.get('ADR-0001')?.tab).toBe('technical');
     expect(byId.get('xsrc/greet')?.tab).toBe('xsrc');
-    expect(byId.get('greet#greet')?.tab).toBe('xsrc');
+    expect(byId.get('xsrc/greet#greet')?.tab).toBe('xsrc');
   });
 
   it('parents a function node to its file node', async () => {
     const { promptsDir } = await makeRepo();
     const { nodes } = await parsePrompts(promptsDir);
-    const fn = nodes.find((n) => n.id === 'greet#greet');
+    const fn = nodes.find((n) => n.id === 'xsrc/greet#greet');
     expect(fn?.kind).toBe('function');
     expect(fn?.parent).toBe('xsrc/greet');
     expect(fn?.data).toMatchObject({
@@ -60,8 +60,8 @@ describe('parsePrompts', () => {
     const summary = edges.map((e) => `${e.source}->${e.target}:${e.kind}:${e.tab}`).sort();
     expect(summary).toEqual([
       'ADR-0001->BR-0001:driven_by:cross',
-      'BR-0001->greet#greet:implemented_by:cross',
-      'app#run->greet#greet:calls:xsrc',
+      'BR-0001->xsrc/greet#greet:implemented_by:cross',
+      'xsrc/app#run->xsrc/greet#greet:calls:xsrc',
       'xsrc/app->BR-0001:implements:cross',
       'xsrc/greet->ADR-0001:decisions:cross',
       'xsrc/greet->BR-0001:implements:cross',
@@ -87,6 +87,20 @@ describe('parsePrompts', () => {
       );
     });
     await expect(parsePrompts(promptsDir)).rejects.toThrow(/responsibility/);
+  });
+
+  it('reads one prompt folder per source tab', async () => {
+    const { promptsDir } = await makeRepo(async (root) => {
+      const { cp } = await import('node:fs/promises');
+      await cp(`${root}/docs/xsrc`, `${root}/docs/web`, { recursive: true });
+      const { patchFile } = await import('./helpers.js');
+      await patchFile(`${root}/docs/web/greet.md`, 'id: xsrc/greet', 'id: web/greet');
+      await patchFile(`${root}/docs/web/app.md`, 'id: xsrc/app', 'id: web/app');
+      await patchFile(`${root}/docs/web/app.md`, 'xsrc/greet#greet', 'web/greet#greet');
+    });
+    const { nodes } = await parsePrompts(promptsDir, ['xsrc', 'web']);
+    expect(nodes.map((n) => n.id)).toContain('web/greet');
+    expect(nodes.map((n) => n.id)).toContain('web/greet#greet');
   });
 
   it('refuses to parse when a prompt folder is missing', async () => {

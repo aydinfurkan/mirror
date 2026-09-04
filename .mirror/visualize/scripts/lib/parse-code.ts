@@ -42,33 +42,55 @@ function exportedFunctions(source: SourceFile): Map<string, FunctionBody> {
   return found;
 }
 
-export async function parseCode(srcDir: string, ignoreGlobs: string[]): Promise<CodePass> {
+/**
+ * Parse every source root at once, keyed by tab name, so a call that crosses two roots
+ * still resolves to a function id.
+ */
+export async function parseCode(
+  srcDirs: Record<string, string>,
+  ignoreGlobs: string[],
+): Promise<CodePass> {
   const project = new Project({
     compilerOptions: { allowJs: false, skipLibCheck: true },
     useInMemoryFileSystem: false,
     skipAddingFilesFromTsConfig: true,
   });
-  project.addSourceFilesAtPaths(`${toPosix(srcDir)}/**/*.ts`);
+  const roots = Object.entries(srcDirs).map(
+    ([tab, dir]) => [tab, toPosix(path.resolve(dir))] as const,
+  );
+  for (const [, dir] of roots) project.addSourceFilesAtPaths(`${dir}/**/*.ts`);
 
-  const idOf = (source: SourceFile): string =>
-    fileIdFromSrcPath(path.relative(srcDir, source.getFilePath()));
+  /** Find the root that holds one file. A file outside every root is not ours to mirror. */
+  const rootOf = (source: SourceFile) => {
+    const file = toPosix(source.getFilePath());
+    return roots.find(([, dir]) => file.startsWith(`${dir}/`));
+  };
 
-  const included = project
-    .getSourceFiles()
-    .filter((source) => !isIgnored(path.relative(srcDir, source.getFilePath()), ignoreGlobs));
+  const relOf = (source: SourceFile, dir: string): string =>
+    path.relative(dir, source.getFilePath());
+
+  const idOf = (source: SourceFile, tab: string, dir: string): string =>
+    `${tab}/${fileIdFromSrcPath(relOf(source, dir))}`;
+
+  const included: { source: SourceFile; fileId: string }[] = [];
+  for (const source of project.getSourceFiles()) {
+    const root = rootOf(source);
+    if (!root) continue;
+    const [tab, dir] = root;
+    if (isIgnored(relOf(source, dir), ignoreGlobs)) continue;
+    included.push({ source, fileId: idOf(source, tab, dir) });
+  }
 
   // Map every exported function declaration node to its id, so a call can resolve to it.
   const idByDeclaration = new Map<FunctionBody, string>();
-  for (const source of included) {
-    const fileId = idOf(source);
+  for (const { source, fileId } of included) {
     for (const [name, declaration] of exportedFunctions(source)) {
       idByDeclaration.set(declaration, functionId(fileId, name));
     }
   }
 
   const files: Record<string, CodeFunction[]> = {};
-  for (const source of included) {
-    const fileId = idOf(source);
+  for (const { source, fileId } of included) {
     const functions: CodeFunction[] = [];
 
     for (const [name, declaration] of exportedFunctions(source)) {

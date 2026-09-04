@@ -9,7 +9,7 @@ functions:
     input: "Accept no argument. Read the port from the PORT environment variable."
     output: "Start the HTTP server. Return nothing."
     responsibility: "Build the repository. Build the dependencies. Build the server. Listen on the port."
-    calls: [infra/bubble.repo.memory#createMemoryBubbleRepository, infra/system.deps#createSystemDeps, api/server#createServer]
+    calls: [xsrc/infra/bubble.repo.memory#createMemoryBubbleRepository, xsrc/infra/system.deps#createSystemDeps, xsrc/api/server#createServer]
 ---
 ## Notes
 

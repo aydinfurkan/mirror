@@ -4,7 +4,7 @@ type: business
 title: Bubble completion
 status: active
 relates_to: [BR-0001]
-implemented_by: [domain/bubble.service#completeBubble, domain/bubble.rules#isCompletable]
+implemented_by: [xsrc/domain/bubble.service#completeBubble, xsrc/domain/bubble.rules#isCompletable]
 ---
 ## Rule
 

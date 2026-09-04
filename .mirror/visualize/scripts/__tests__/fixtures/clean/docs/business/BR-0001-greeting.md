@@ -4,7 +4,7 @@ type: business
 title: Greeting
 status: active
 relates_to: []
-implemented_by: [greet#greet]
+implemented_by: [xsrc/greet#greet]
 ---
 ## Rule
 

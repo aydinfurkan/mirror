@@ -8,36 +8,37 @@ import {
 } from '../../src/graph/types.js';
 import type { CodePass } from './parse-code.js';
 import type { PromptPass } from './parse-prompts.js';
-import { fileIdFromXsrcId, functionId, xsrcIdFromFileId } from './paths.js';
+import { DEFAULT_SRC_ROOTS, functionId, srcPathOfFileId, tabOfFileId, type SrcRoots } from './paths.js';
 
 function drift(kind: DriftKind, id: string, message: string): Drift {
   return { kind, id, message };
 }
 
-export function buildGraph(prompts: PromptPass, code: CodePass, srcRoot = 'code/src'): Graph {
+export function buildGraph(
+  prompts: PromptPass,
+  code: CodePass,
+  srcRoots: SrcRoots = DEFAULT_SRC_ROOTS,
+): Graph {
   const nodes: GraphNode[] = prompts.nodes.map((n) => ({ ...n, drift: [...n.drift] }));
   const edges: GraphEdge[] = prompts.edges.map((e) => ({ ...e, drift: [...e.drift] }));
   const byId = new Map(nodes.map((n) => [n.id, n]));
 
-  const promptFileIds = new Set(
-    nodes.filter((n) => n.kind === 'file').map((n) => fileIdFromXsrcId(n.id)),
-  );
+  const promptFileIds = new Set(nodes.filter((n) => n.kind === 'file').map((n) => n.id));
   const codeFileIds = new Set(Object.keys(code.files));
 
   // 2. A source file with no mirror.
   for (const fileId of codeFileIds) {
     if (promptFileIds.has(fileId)) continue;
+    const srcPath = srcPathOfFileId(fileId, srcRoots);
     const node: GraphNode = {
-      id: xsrcIdFromFileId(fileId),
+      id: fileId,
       kind: 'file',
       title: fileId,
-      tab: 'xsrc',
+      tab: tabOfFileId(fileId),
       parent: null,
-      data: { mirrors: `${srcRoot}/${fileId}.ts` },
+      data: { mirrors: srcPath },
       body: '',
-      drift: [
-        drift('missing-prompt', xsrcIdFromFileId(fileId), `Write a mirror prompt for ${srcRoot}/${fileId}.ts.`),
-      ],
+      drift: [drift('missing-prompt', fileId, `Write a mirror prompt for ${srcPath}.`)],
     };
     nodes.push(node);
     byId.set(node.id, node);
@@ -45,7 +46,7 @@ export function buildGraph(prompts: PromptPass, code: CodePass, srcRoot = 'code/
 
   // 3 and 4. Compare the function sets of each file.
   for (const fileId of new Set([...promptFileIds, ...codeFileIds])) {
-    const fileNodeId = xsrcIdFromFileId(fileId);
+    const fileNodeId = fileId;
     const fileNode = byId.get(fileNodeId);
     const codeFunctions = code.files[fileId];
 
@@ -69,7 +70,7 @@ export function buildGraph(prompts: PromptPass, code: CodePass, srcRoot = 'code/
         id: fn.id,
         kind: 'function',
         title: fn.name,
-        tab: 'xsrc',
+        tab: tabOfFileId(fileId),
         parent: fileNodeId,
         data: {},
         body: '',
@@ -85,7 +86,7 @@ export function buildGraph(prompts: PromptPass, code: CodePass, srcRoot = 'code/
       byId
         .get(functionId(fileId, name))
         ?.drift.push(
-          drift('orphan-function', functionId(fileId, name), `Find no exported function ${name} in ${srcRoot}/${fileId}.ts.`),
+          drift('orphan-function', functionId(fileId, name), `Find no exported function ${name} in ${srcPathOfFileId(fileId, srcRoots)}.`),
         );
     }
   }
@@ -116,7 +117,7 @@ export function buildGraph(prompts: PromptPass, code: CodePass, srcRoot = 'code/
       source,
       target,
       kind: 'calls',
-      tab: 'xsrc',
+      tab: tabOfFileId(source),
       drift: [drift('call-drift', `${source}->${target}:calls`, `The code makes the call ${key}, but no prompt declares it.`)],
     };
     edges.push(e);
@@ -147,6 +148,7 @@ export function buildGraph(prompts: PromptPass, code: CodePass, srcRoot = 'code/
 
   return {
     generatedAt: new Date().toISOString(),
+    tabs: Object.keys(srcRoots),
     nodes,
     edges: resolved,
     driftSummary,
