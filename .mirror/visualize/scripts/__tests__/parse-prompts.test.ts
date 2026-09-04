@@ -70,7 +70,7 @@ describe('parsePrompts', () => {
 
   it('rejects a prompt whose id does not match its path', async () => {
     const { promptsDir } = await makeRepo(async (root) => {
-      const file = `${root}/prompts/xsrc/greet.md`;
+      const file = `${root}/docs/xsrc/greet.md`;
       const { patchFile } = await import('./helpers.js');
       await patchFile(file, 'id: xsrc/greet', 'id: xsrc/wrong');
     });
@@ -81,7 +81,7 @@ describe('parsePrompts', () => {
     const { promptsDir } = await makeRepo(async (root) => {
       const { patchFile } = await import('./helpers.js');
       await patchFile(
-        `${root}/prompts/xsrc/greet.md`,
+        `${root}/docs/xsrc/greet.md`,
         '    responsibility: "Build a greeting from the name."\n',
         '',
       );
@@ -91,7 +91,7 @@ describe('parsePrompts', () => {
 
   it('refuses to parse when a prompt folder is missing', async () => {
     const { promptsDir } = await makeRepo(async (root) => {
-      await rm(`${root}/prompts/xsrc`, { recursive: true, force: true });
+      await rm(`${root}/docs/xsrc`, { recursive: true, force: true });
     });
     await expect(parsePrompts(promptsDir)).rejects.toThrow(/prompt folder/);
   });

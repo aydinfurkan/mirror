@@ -10,7 +10,7 @@ supersedes: []
 ---
 ## Context
 
-BubbleCode contains an API, a graph builder, and a React canvas. The graph builder must
+Mirror contains an API, a graph builder, and a React canvas. The graph builder must
 read the source of the API. It must find the exported functions. It must find the call
 sites.
 

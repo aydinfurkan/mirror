@@ -7,7 +7,7 @@ export function main(): void {
   const deps = createSystemDeps(createMemoryBubbleRepository());
   const app = createServer(deps);
   app.listen(port, () => {
-    console.log(`BubbleCode API listens on port ${port}.`);
+    console.log(`Mirror API listens on port ${port}.`);
   });
 }
 
