@@ -19,12 +19,14 @@ draws it as a graph in one HTML file.
 - `mirror:init`: find the projects and the flows, write the documents, draw the graph.
 - `mirror:add-feature`: change the flow documents, show a review page, then change the code.
 
+A `SessionStart` hook loads `.mirror/AGENTS.md` into each Claude Code session of a project that has a mirror.
+
 ## This repository
 
 | Path | Holds |
 | --- | --- |
 | `.claude-plugin/marketplace.json` | The marketplace. It points to `plugin/`. |
-| `plugin/` | The plugin: `skills/`, `templates/`, `references/`, `.claude-plugin/plugin.json`. Only this folder is installed. |
+| `plugin/` | The plugin: `skills/`, `hooks/`, `templates/`, `references/`, `.claude-plugin/plugin.json`. Only this folder is installed. |
 | `examples/bubbles/` | A demo API (`code/`) and its mirror (`.mirror/`). Open `examples/bubbles/.mirror/visualize.html` to see the viewer. |
 
 Check the viewer or a built page:
