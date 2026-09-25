@@ -56,7 +56,7 @@ The shape:
 
 1. Copy the template to the target path.
 2. Replace the text between `/* MIRROR:TOKENS:START */` and `/* MIRROR:TOKENS:END */` with
-   the `:root { … }` block from the `css` fence in `.mirror/visualize.md`.
+   the full content of the `css` fence in `.mirror/visualize.md`.
 3. Replace the content of `<script type="application/json" id="mirror-data">` with the JSON.
 4. Run `node "${CLAUDE_PLUGIN_ROOT}/templates/visualize.check.mjs" <target path>`. It must print `ok`.
    Fix the page and run it again when it fails.

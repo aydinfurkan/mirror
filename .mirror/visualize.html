@@ -7,65 +7,136 @@
 <style>
 /* MIRROR:TOKENS:START */
 :root {
-  --bg: #0f1115;  --panel: #171a21;  --text: #e6e6e6;  --muted: #8a8f98;
-  --project: #6c8cff;  --flow: #3fb68b;  --page: #e0a84f;  --step: #8a8f98;
-  --added: #2ea043;  --changed: #d29922;  --removed: #f85149;
-  --box-w: 220px;  --box-h: 56px;  --gap-x: 80px;  --gap-y: 24px;
-  --radius: 8px;  --font: system-ui, sans-serif;
+  --bg: #f6f7f9;  --grid: #d5dae1;  --surface: #ffffff;  --panel: #ffffff;  --border: #e4e7ec;
+  --text: #111827;  --muted: #6b7280;  --edge: #c3cad4;  --accent: #4f6bff;
+  --shadow: drop-shadow(0 1px 1px rgb(16 24 40 / .05)) drop-shadow(0 4px 10px rgb(16 24 40 / .07));
+  --project: #4f6bff;  --flow: #12a37a;  --page: #d98a1c;  --step: #94a3b8;
+  --added: #16a34a;  --changed: #d97706;  --removed: #dc2626;
+  --box-w: 240px;  --box-h: 64px;  --gap-x: 96px;  --gap-y: 20px;  --radius: 12px;
+  --font: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
+}
+:root[data-theme="dark"] {
+  --bg: #0b0d12;  --grid: #222835;  --surface: #151922;  --panel: #11151c;  --border: #262c38;
+  --text: #e6e9ef;  --muted: #8b93a3;  --edge: #3a4252;  --accent: #7b8cff;
+  --shadow: drop-shadow(0 1px 1px rgb(0 0 0 / .4)) drop-shadow(0 6px 14px rgb(0 0 0 / .35));
+  --project: #7b8cff;  --flow: #34d399;  --page: #fbbf24;  --step: #64748b;
+  --added: #22c55e;  --changed: #f59e0b;  --removed: #f87171;
 }
 /* MIRROR:TOKENS:END */
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; }
-body { background: var(--bg); color: var(--text); font-family: var(--font); display: flex; flex-direction: column; }
-header { display: flex; gap: 16px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--panel); }
-header h1 { font-size: 16px; margin: 0; }
+body { background: var(--bg); color: var(--text); font: 14px/1.5 var(--font); display: flex; flex-direction: column; overflow: hidden; -webkit-font-smoothing: antialiased; }
+button, input { font: inherit; color: inherit; }
+header { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--border); z-index: 2; }
+.brand { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+.brand h1 { font-size: 15px; font-weight: 650; margin: 0; white-space: nowrap; }
+.brand h1::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 8px; background: linear-gradient(135deg, var(--project), var(--flow)); }
 .meta { color: var(--muted); font-size: 12px; }
-#legend { display: none; gap: 12px; margin-left: auto; font-size: 12px; }
-#legend.on { display: flex; }
-#legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; background: var(--c); }
-main { flex: 1; display: flex; min-height: 0; }
-#canvas { flex: 1; overflow: auto; }
-#canvas svg { display: block; }
-.node { cursor: pointer; }
-.node rect { fill: var(--panel); stroke: var(--c); stroke-width: 2; }
-.node text { fill: var(--text); font-size: 13px; pointer-events: none; }
-.node text.sub { fill: var(--muted); font-size: 11px; }
+.search { position: relative; flex: 1; max-width: 420px; margin: 0 auto; }
+.search input { width: 100%; height: 34px; padding: 0 56px 0 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); outline: none; }
+.search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+.search .count { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; }
+.tools { display: flex; gap: 6px; }
+.btn { height: 34px; min-width: 34px; padding: 0 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); cursor: pointer; white-space: nowrap; }
+.btn:hover { border-color: var(--accent); }
+.btn:focus-visible, .tab:focus-visible, .link:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+#canvas { position: absolute; inset: 0; cursor: grab; touch-action: none; background-color: var(--bg); background-image: radial-gradient(var(--grid) 1px, transparent 1.3px); }
+#canvas.panning { cursor: grabbing; }
+#canvas svg { display: block; width: 100%; height: 100%; }
+.edge { fill: none; stroke: var(--edge); stroke-width: 1.5; }
+.node { cursor: pointer; outline: none; }
 .node.project { --c: var(--project); }
 .node.flow { --c: var(--flow); }
 .node.page { --c: var(--page); }
 .node.step { --c: var(--step); }
-.node.st-added rect { stroke: var(--added); stroke-width: 3; }
-.node.st-changed rect { stroke: var(--changed); stroke-width: 3; }
-.node.st-removed { opacity: .6; }
-.node.st-removed rect { stroke: var(--removed); stroke-width: 3; stroke-dasharray: 6 4; }
-.node.sel rect { stroke-width: 4; }
-.node:focus { outline: none; }
-.node:focus rect { stroke-width: 4; }
-.edge { fill: none; stroke: var(--muted); stroke-width: 1.5; opacity: .6; }
-#panel { width: 380px; max-width: 45vw; overflow: auto; background: var(--panel); padding: 16px; }
-#panel h2 { font-size: 15px; margin: 0 0 4px; }
-#panel h3 { font-size: 12px; text-transform: uppercase; color: var(--muted); margin: 18px 0 6px; }
-#panel code { background: var(--bg); padding: 1px 4px; border-radius: 4px; }
-#panel pre { background: var(--bg); padding: 8px; overflow: auto; }
+.node .card { fill: var(--surface); stroke: var(--border); stroke-width: 1; filter: var(--shadow); transition: stroke .15s; }
+.node:hover .card { stroke: var(--c); }
+.node .bar { fill: var(--c); }
+.node text { pointer-events: none; }
+.node .title { fill: var(--text); font-size: 13px; font-weight: 600; }
+.node .sub { fill: var(--muted); font: 11px var(--mono); }
+.node .badge rect { fill: var(--c); opacity: .15; }
+.node .badge text { fill: var(--c); font-size: 10px; font-weight: 700; letter-spacing: .04em; }
+.node .num circle { fill: color-mix(in srgb, var(--c) 20%, transparent); }
+.node .num text { fill: var(--text); font-size: 11px; font-weight: 700; }
+.node.sel .card, .node:focus-visible .card, .node.match .card { stroke: var(--accent); stroke-width: 2; }
+.node.current .card { stroke-width: 3; filter: var(--shadow) drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 60%, transparent)); }
+.node.st-added .card { stroke: var(--added); stroke-width: 2.5; }
+.node.st-changed .card { stroke: var(--changed); stroke-width: 2.5; }
+.node.st-removed { opacity: .55; }
+.node.st-removed .card { stroke: var(--removed); stroke-width: 2.5; stroke-dasharray: 6 4; }
+.toggle { cursor: pointer; outline: none; }
+.toggle circle { fill: var(--surface); stroke: var(--border); }
+.toggle:hover circle, .toggle:focus-visible circle { stroke: var(--accent); stroke-width: 2; }
+.toggle text { fill: var(--muted); font-size: 11px; font-weight: 700; }
+.float { position: absolute; display: flex; gap: 6px; align-items: center; padding: 6px; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 4px 16px rgb(0 0 0 / .08); }
+#zoom { left: 16px; bottom: 16px; }
+#zoom .btn { height: 28px; min-width: 28px; padding: 0 8px; border-radius: 8px; }
+#zoom .pct { min-width: 44px; text-align: center; }
+#legend { right: 16px; bottom: 16px; display: none; gap: 14px; padding: 8px 12px; font-size: 12px; }
+#legend.on { display: flex; }
+#legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; background: var(--c); }
+#drawer { position: absolute; top: 0; right: 0; bottom: 0; width: min(420px, 100%); display: flex; flex-direction: column; background: var(--panel); border-left: 1px solid var(--border); box-shadow: -8px 0 24px rgb(0 0 0 / .08); transform: translateX(100%); visibility: hidden; transition: transform .2s ease, visibility .2s; z-index: 3; }
+#drawer.open { transform: none; visibility: visible; }
+.dh { display: flex; align-items: flex-start; gap: 10px; padding: 16px 16px 10px; }
+.dh h2 { font-size: 16px; line-height: 1.35; margin: 6px 0 2px; overflow-wrap: anywhere; }
+.dh > div { flex: 1; min-width: 0; }
+.dh .close { flex: none; }
+.chip { display: inline-block; margin-right: 4px; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: .03em; color: var(--c); background: color-mix(in srgb, var(--c) 15%, transparent); }
+.tabs { display: flex; gap: 2px; padding: 0 12px; border-bottom: 1px solid var(--border); }
+.tab { padding: 8px 10px; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--muted); cursor: pointer; }
+.tab.on { color: var(--text); border-bottom-color: var(--accent); }
+.db { flex: 1; overflow: auto; padding: 12px 16px 24px; }
+.db h4, .db h5, .db h6 { margin: 18px 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.db code { font: 12px var(--mono); padding: 1px 5px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg); }
+.db pre { padding: 10px; overflow: auto; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); }
+.db pre code { padding: 0; border: 0; }
+.db ul, .db ol { padding-left: 20px; }
+.list { list-style: none; margin: 0; padding: 0; }
+.list li { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.list li > div { flex: 1; min-width: 0; }
+.list .n { flex: none; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; font-size: 11px; font-weight: 700; border: 1px solid var(--border); background: var(--bg); }
+.ref { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+.ref code { min-width: 0; overflow-wrap: anywhere; }
+.copy { flex: none; height: 24px; padding: 0 8px; border-radius: 6px; font-size: 11px; }
+.link { padding: 0; border: 0; background: none; color: var(--accent); text-align: left; cursor: pointer; }
+.empty { color: var(--muted); }
 @media (max-width: 700px) {
-  main { flex-direction: column; }
-  #panel { width: auto; max-width: none; max-height: 45vh; }
+  header { flex-wrap: wrap; }
+  .search { order: 3; flex-basis: 100%; max-width: none; }
+  #legend { bottom: 64px; }
 }
 </style>
 </head>
 <body>
 <header>
-  <h1 id="title">Mirror</h1>
-  <span class="meta" id="meta"></span>
-  <div id="legend">
-    <span style="--c: var(--added)">added</span>
-    <span style="--c: var(--changed)">changed</span>
-    <span style="--c: var(--removed)">removed</span>
+  <div class="brand"><h1 id="title">Mirror</h1><span class="meta" id="meta"></span></div>
+  <div class="search">
+    <input id="q" type="search" placeholder="Search flows, steps, code  ( / )" aria-label="Search" autocomplete="off">
+    <span class="meta count" id="qcount"></span>
+  </div>
+  <div class="tools">
+    <button class="btn" id="collapse-all" title="Hide all steps">Collapse</button>
+    <button class="btn" id="expand-all" title="Show all steps">Expand</button>
+    <button class="btn" id="theme" title="Toggle light / dark" aria-label="Toggle light or dark theme">&#9680;</button>
   </div>
 </header>
 <main>
   <div id="canvas"></div>
-  <aside id="panel"><p class="meta">Click a box to see its details.</p></aside>
+  <div class="float" id="zoom">
+    <button class="btn" id="zoom-out" aria-label="Zoom out">&minus;</button>
+    <span class="meta pct" id="zoom-pct">100%</span>
+    <button class="btn" id="zoom-in" aria-label="Zoom in">+</button>
+    <button class="btn" id="fit">Fit</button>
+  </div>
+  <div class="float" id="legend">
+    <span style="--c: var(--added)">added</span>
+    <span style="--c: var(--changed)">changed</span>
+    <span style="--c: var(--removed)">removed</span>
+  </div>
+  <aside id="drawer" aria-hidden="true"></aside>
 </main>
 <script type="application/json" id="mirror-data">
 {"generated":"2026-09-25","title":"mirror","projects":[{"id":"api","kinds":["backend"],"definition":"The `api` project is an HTTP API for bubbles. A bubble is one unit of work. An owner creates a bubble and completes it.\n\n## Stack\n\n- TypeScript on Node 20 or later. Express 4. zod. vitest and supertest for the tests.\n- Start it with `npm -C code run dev`. It reads the port from `PORT`. The default port is 3000.\n\n## Technical decisions\n\n- Keep the bubbles in memory behind the `BubbleRepository` port in `src/domain/bubble.port.ts`. The service restarts empty. A real store can replace `src/infra/bubble.repo.memory.ts` later.\n- Parse the shape of each request body with zod at the route (`src/api/routes/*.schema.ts`). Keep the business rules in `src/domain/bubble.rules.ts`.\n- Return a `ServiceResult` from each service function. `src/api/http.ts` maps the error codes to HTTP: `validation` 400, `not-found` 404, `conflict` 409, an unexpected error 500.","status":null,"flows":[{"id":"complete-bubble","trigger":"http","entry":"POST /bubbles/:id/complete","kind":"flow","definition":"Mark an open bubble as done.","boundary":"## Input\n\n- `POST /bubbles/:id/complete`. No body.\n\n## Output\n\n- HTTP 200 with the bubble, `state: \"done\"` and `completedAt` set.\n- HTTP 404 with `{ error: { code: \"not-found\", field: \"id\", message } }`.\n- HTTP 409 with `{ error: { code: \"conflict\", field: \"state\", message } }`.\n- HTTP 500 with `{ error: { code: \"unexpected\", field: \"server\", message } }`.\n\n## Dependencies\n\n- `BubbleRepository.findById` and `BubbleRepository.save` (in memory).\n- `now()` from `src/infra/system.deps.ts`.","rules":"- Set the state of a bubble to `done` when a user completes it.\n- Record the completion time.\n- Refuse to complete a bubble that is already done. A second completion loses the first completion time.\n\n## Acceptance criteria\n\n- Change the state from `open` to `done`.\n- Set `completedAt` to the completion time.\n- Report a not-found error for an unknown bubble id.\n- Report a conflict error for a bubble that is already done.","status":null,"steps":[{"n":1,"ref":"src/api/routes/bubbles.route.ts#postBubbleComplete","text":"Receive the request. Read `id` from the path.","status":null},{"n":2,"ref":"src/domain/bubble.service.ts#completeBubble","text":"Find the bubble. Return HTTP 404 when it does not exist.","status":null},{"n":3,"ref":"src/domain/bubble.rules.ts#isCompletable","text":"Make sure that the bubble is open. Return HTTP 409 when it is done.","status":null},{"n":4,"ref":"src/domain/bubble.service.ts#completeBubble","text":"Set the state to `done` and record the completion time. Save the bubble.","status":null},{"n":5,"ref":"src/api/http.ts#sendJson","text":"Return HTTP 200 with the bubble.","status":null}]},{"id":"create-bubble","trigger":"http","entry":"POST /bubbles","kind":"flow","definition":"Create an open bubble for an owner.","boundary":"## Input\n\n- `POST /bubbles` with the JSON body `{ \"title\": string, \"ownerId\": non-empty string }`.\n\n## Output\n\n- HTTP 201 with `{ id, title, ownerId, state: \"open\", createdAt, completedAt: null }`.\n- HTTP 400 with `{ error: { code: \"validation\", field, message } }`.\n- HTTP 500 with `{ error: { code: \"unexpected\", field: \"server\", message } }`.\n\n## Dependencies\n\n- `BubbleRepository.save` (in memory).\n- `now()` and `newId()` from `src/infra/system.deps.ts`.","rules":"- Create a bubble when a user supplies a title and an owner id.\n- Set the state of the new bubble to `open`. Record the creation time. Give the bubble a unique id.\n- Reject a title that contains no visible characters.\n- Reject a title that is longer than 120 characters.\n\n## Acceptance criteria\n\n- Return the new bubble with the state `open`.\n- Set `completedAt` to null on the new bubble.\n- Store the new bubble in the repository.\n- Give each bubble a different id.\n- Reject an empty title.\n- Reject a title that contains only whitespace.\n- Accept a title of exactly 120 characters.\n- Reject a title of 121 characters.\n- Store nothing when the title is invalid.","status":null,"steps":[{"n":1,"ref":"src/api/routes/bubbles.route.ts#postBubble","text":"Receive the request.","status":null},{"n":2,"ref":"src/api/routes/bubbles.schema.ts#parseCreateBubbleBody","text":"Parse the body shape. Return HTTP 400 when it is wrong.","status":null},{"n":3,"ref":"src/domain/bubble.rules.ts#validateTitle","text":"Validate the title. Return HTTP 400 when it is not valid.","status":null},{"n":4,"ref":"src/domain/bubble.service.ts#createBubble","text":"Make the bubble with the state `open`, a new id and the creation time. Save it.","status":null},{"n":5,"ref":"src/api/http.ts#sendJson","text":"Return HTTP 201 with the bubble.","status":null}]},{"id":"health-check","trigger":"http","entry":"GET /health","kind":"flow","definition":"Tell a caller that the API runs.","boundary":"## Input\n\n- `GET /health`.\n\n## Output\n\n- HTTP 200 with `{ \"status\": \"ok\" }`.\n\n## Dependencies\n\n- None.","rules":"- Answer without a call to the repository.\n\n## Acceptance criteria\n\n- `GET /health` returns HTTP 200 with `{ \"status\": \"ok\" }`.","status":null,"steps":[{"n":1,"ref":"src/api/server.ts#createServer","text":"Return HTTP 200 with `{ \"status\": \"ok\" }`.","status":null}]},{"id":"list-owner-bubbles","trigger":"http","entry":"GET /owners/:ownerId/bubbles","kind":"flow","definition":"List the bubbles of one owner, newest first.","boundary":"## Input\n\n- `GET /owners/:ownerId/bubbles`.\n\n## Output\n\n- HTTP 200 with an array of bubbles. The array can be empty.\n- HTTP 500 with `{ error: { code: \"unexpected\", field: \"server\", message } }`.\n\n## Dependencies\n\n- `BubbleRepository.findByOwner` (in memory).","rules":"- List the bubbles of one owner.\n- Show the newest bubble first.\n- Exclude the bubbles of every other owner.\n\n## Acceptance criteria\n\n- Return only the bubbles whose `ownerId` matches the request.\n- Order the bubbles by `createdAt`, newest first.\n- Return an empty list for an owner who has no bubbles.","status":null,"steps":[{"n":1,"ref":"src/api/routes/bubbles.route.ts#getBubblesByOwner","text":"Receive the request. Read `ownerId` from the path.","status":null},{"n":2,"ref":"src/domain/bubble.service.ts#listBubblesByOwner","text":"Load the bubbles of the owner.","status":null},{"n":3,"ref":"src/domain/bubble.rules.ts#sortNewestFirst","text":"Sort the bubbles newest first.","status":null},{"n":4,"ref":"src/api/http.ts#sendJson","text":"Return HTTP 200 with the list.","status":null}]}]}]}
@@ -113,8 +184,13 @@ main { flex: 1; display: flex; min-height: 0; }
     return out.join('');
   }
 
+  var BADGE = { http: 'HTTP', main: 'MAIN', message: 'MSG', schedule: 'CRON', page: 'PAGE' };
+  var STATUS = { added: 1, changed: 1, removed: 1 };
+
   // Columns: project, flow/page, step. Each step takes one row; a parent sits at the middle of its children.
-  function layout(data, t) {
+  // collapsed: { '<project>/<flow>': true } hides the steps of that flow.
+  function layout(data, t, collapsed) {
+    collapsed = collapsed || {};
     var nodes = [], edges = [], row = 0;
     var rowH = t.boxH + t.gapY, colW = t.boxW + t.gapX;
     function add(n, col, y) { n.x = col * colW; n.y = y; nodes.push(n); return n; }
@@ -122,29 +198,48 @@ main { flex: 1; display: flex; min-height: 0; }
     (data.projects || []).forEach(function (p) {
       var flowNodes = [];
       (p.flows || []).forEach(function (f) {
-        var stepNodes = (f.steps || []).map(function (s) {
-          return add({ type: 'step', title: s.n + '. ' + s.text, sub: s.ref || '', status: s.status || null, item: s, parent: f }, 2, row++ * rowH);
+        var key = p.id + '/' + f.id, steps = f.steps || [], shut = !!collapsed[key] && steps.length > 0;
+        var stepNodes = shut ? [] : steps.map(function (s, i) {
+          return add({ key: key + '#' + i, type: 'step', title: s.n + '. ' + s.text, label: s.text, num: s.n, sub: s.ref || '',
+            status: s.status || null, item: s, parent: f, parentKey: key }, 2, row++ * rowH);
         });
-        var fn = add({ type: f.kind === 'page' ? 'page' : 'flow', title: f.id, sub: f.entry || '', status: f.status || null, item: f },
+        var fn = add({ key: key, type: f.kind === 'page' ? 'page' : 'flow', title: f.id, label: f.id, sub: f.entry || '',
+          badge: BADGE[f.trigger] || '', status: f.status || null, item: f, count: steps.length, collapsed: shut },
           1, stepNodes.length ? mid(stepNodes) : row++ * rowH);
         stepNodes.forEach(function (s) { edges.push([fn, s]); });
         flowNodes.push(fn);
       });
-      var pn = add({ type: 'project', title: p.id, sub: (p.kinds || []).join(', '), status: p.status || null, item: p },
-        0, flowNodes.length ? mid(flowNodes) : row++ * rowH);
+      var pn = add({ key: p.id, type: 'project', title: p.id, label: p.id, sub: (p.kinds || []).join(' \u00b7 '),
+        badge: 'PROJECT', status: p.status || null, item: p }, 0, flowNodes.length ? mid(flowNodes) : row++ * rowH);
       flowNodes.forEach(function (f) { edges.push([pn, f]); });
       row++; // empty row between projects
     });
     return { nodes: nodes, edges: edges, width: 3 * colW - t.gapX, height: Math.max(row * rowH, t.boxH) };
   }
 
+  function matches(n, q) {
+    q = String(q || '').trim().toLowerCase();
+    if (!q) return false;
+    return [n.title, n.sub, n.item && n.item.trigger].join('\n').toLowerCase().indexOf(q) >= 0;
+  }
+
+  globalThis.MirrorViewer = { esc: esc, renderMd: renderMd, layout: layout, matches: matches };
+  if (typeof document === 'undefined') return;
+
+  // ---- Browser only below ----
+
   var SVG = 'http://www.w3.org/2000/svg';
+  var state = { collapsed: {}, k: 1, tx: 0, ty: 0, sel: null, hits: [], hit: -1, q: '', tab: 'definition', open: null, dragged: false };
+
+  function $(id) { return document.getElementById(id); }
   function el(name, attrs) {
     var e = document.createElementNS(SVG, name);
     for (var k in attrs) e.setAttribute(k, attrs[k]);
     return e;
   }
-  function clip(s, max) { s = String(s || ''); return s.length > max ? s.slice(0, max - 1) + '…' : s; }
+  function txt(value, attrs) { var e = el('text', attrs); e.textContent = value; return e; }
+  function clip(s, max) { s = String(s || ''); return s.length > max ? s.slice(0, Math.max(1, max - 1)) + '\u2026' : s; }
+  function sel(attr, value) { return '[' + attr + '="' + String(value).replace(/["\\]/g, '\\$&') + '"]'; }
 
   function tokens() {
     var cs = getComputedStyle(document.documentElement);
@@ -152,70 +247,362 @@ main { flex: 1; display: flex; min-height: 0; }
     return { boxW: n('--box-w'), boxH: n('--box-h'), gapX: n('--gap-x'), gapY: n('--gap-y'), radius: n('--radius') };
   }
 
-  function show(n) {
-    var it = n.item, h = ['<h2>' + esc(n.title) + '</h2>'];
+  // ---- Theme ----
+
+  var media = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+  function savedTheme() { try { return localStorage.getItem('mirror-theme'); } catch (e) { return null; } }
+  function applyTheme() {
+    document.documentElement.setAttribute('data-theme', savedTheme() || (media && media.matches ? 'dark' : 'light'));
+  }
+  function toggleTheme() {
+    var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem('mirror-theme', next); } catch (e) { /* private mode */ }
+    applyTheme();
+  }
+
+  // ---- View: pan and zoom ----
+
+  function applyView() {
+    state.root.setAttribute('transform', 'translate(' + state.tx + ',' + state.ty + ') scale(' + state.k + ')');
+    var c = $('canvas'), s = 20 * state.k;
+    c.style.backgroundSize = s + 'px ' + s + 'px';
+    c.style.backgroundPosition = state.tx + 'px ' + state.ty + 'px';
+    $('zoom-pct').textContent = Math.round(state.k * 100) + '%';
+  }
+
+  function zoomAt(k, mx, my) {
+    k = Math.min(3, Math.max(0.2, k));
+    state.tx = mx - (mx - state.tx) * k / state.k;
+    state.ty = my - (my - state.ty) * k / state.k;
+    state.k = k;
+    applyView();
+  }
+
+  function zoomBy(f) { var c = $('canvas'); zoomAt(state.k * f, c.clientWidth / 2, c.clientHeight / 2); }
+
+  function fit() {
+    var c = $('canvas'), pad = 40, g = state.g;
+    state.k = Math.max(0.2, Math.min((c.clientWidth - 2 * pad) / g.width, (c.clientHeight - 2 * pad) / g.height, 1.2));
+    state.tx = (c.clientWidth - g.width * state.k) / 2;
+    state.ty = (c.clientHeight - g.height * state.k) / 2;
+    applyView();
+  }
+
+  // First view: fit, but keep text readable on a tall graph and start at its top.
+  function initialView() {
+    fit();
+    if (state.k >= 0.75) return;
+    state.k = 0.75;
+    state.tx = ($('canvas').clientWidth - state.g.width * state.k) / 2;
+    state.ty = 40;
+    applyView();
+  }
+
+  function centerOn(n) {
+    var c = $('canvas'), t = state.t;
+    state.tx = c.clientWidth / 2 - (n.x + t.boxW / 2) * state.k;
+    state.ty = c.clientHeight / 2 - (n.y + t.boxH / 2) * state.k;
+    applyView();
+  }
+
+  function bindCanvas(c) {
+    var pts = {}, moved = 0, startDist = 1, startK = 1;
+    function ids() { return Object.keys(pts); }
+    function dist() { var a = pts[ids()[0]], b = pts[ids()[1]]; return Math.hypot(a.x - b.x, a.y - b.y) || 1; }
+    c.addEventListener('pointerdown', function (e) {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      pts[e.pointerId] = { x: e.clientX, y: e.clientY };
+      moved = 0;
+      state.dragged = false;
+      if (ids().length === 2) { startDist = dist(); startK = state.k; }
+    });
+    window.addEventListener('pointermove', function (e) {
+      var p = pts[e.pointerId];
+      if (!p) return;
+      var dx = e.clientX - p.x, dy = e.clientY - p.y;
+      p.x = e.clientX; p.y = e.clientY;
+      if (ids().length === 2) {
+        var r = c.getBoundingClientRect(), a = pts[ids()[0]], b = pts[ids()[1]];
+        state.dragged = true;
+        zoomAt(startK * dist() / startDist, (a.x + b.x) / 2 - r.left, (a.y + b.y) / 2 - r.top);
+        return;
+      }
+      moved += Math.abs(dx) + Math.abs(dy);
+      if (moved > 4) {
+        state.dragged = true;
+        c.classList.add('panning');
+        state.tx += dx; state.ty += dy;
+        applyView();
+      }
+    });
+    function up(e) { delete pts[e.pointerId]; c.classList.remove('panning'); }
+    window.addEventListener('pointerup', up);
+    window.addEventListener('pointercancel', up);
+    c.addEventListener('wheel', function (e) {
+      e.preventDefault();
+      var r = c.getBoundingClientRect(), d = e.deltaY * (e.deltaMode === 1 ? 16 : 1);
+      zoomAt(state.k * Math.exp(-d * 0.0015), e.clientX - r.left, e.clientY - r.top);
+    }, { passive: false });
+  }
+
+  // ---- Graph ----
+
+  function card(n, hit, current) {
+    var t = state.t, w = t.boxW, h = t.boxH, x = 14, badgeW = 0;
+    var cls = 'node ' + n.type + (STATUS[n.status] ? ' st-' + n.status : '') + (hit ? ' match' : '') +
+      (current ? ' current' : '') + (state.sel === n.key ? ' sel' : '');
+    var ge = el('g', { 'class': cls, transform: 'translate(' + n.x + ',' + n.y + ')', tabindex: 0, role: 'button',
+      'data-key': n.key, 'aria-label': n.type + ' ' + n.title });
+    ge.appendChild(el('rect', { 'class': 'card', width: w, height: h, rx: t.radius }));
+    ge.appendChild(el('rect', { 'class': 'bar', width: w, height: 4, 'clip-path': 'url(#card-clip)' }));
     if (n.type === 'step') {
-      h.push('<h3>Code</h3><p><code>' + esc(it.ref || '') + '</code></p>', '<h3>Flow</h3><p>' + esc(n.parent.id) + '</p>');
-    } else {
-      if (n.sub) h.push('<p class="meta">' + esc(n.sub) + '</p>');
-      [['Definition', it.definition], ['Boundary', it.boundary], ['Rules', it.rules]].forEach(function (s) {
-        if (s[1]) h.push('<h3>' + s[0] + '</h3>' + renderMd(s[1]));
+      var num = el('g', { 'class': 'num' });
+      num.appendChild(el('circle', { cx: 26, cy: h / 2 + 2, r: 11 }));
+      num.appendChild(txt(String(n.num), { x: 26, y: h / 2 + 6, 'text-anchor': 'middle' }));
+      ge.appendChild(num);
+      x = 46;
+    }
+    if (n.badge) {
+      badgeW = n.badge.length * 6.6 + 12;
+      var b = el('g', { 'class': 'badge', transform: 'translate(' + (w - badgeW - 10) + ',14)' });
+      b.appendChild(el('rect', { width: badgeW, height: 18, rx: 9 }));
+      b.appendChild(txt(n.badge, { x: badgeW / 2, y: 12.5, 'text-anchor': 'middle' }));
+      ge.appendChild(b);
+    }
+    ge.appendChild(txt(clip(String(n.label).replace(/`/g, ''), Math.floor((w - x - badgeW - 20) / 7.4)), { 'class': 'title', x: x, y: n.sub ? h / 2 - 1 : h / 2 + 7 }));
+    if (n.sub) ge.appendChild(txt(clip(n.sub, Math.floor((w - x - 14) / 6.7)), { 'class': 'sub', x: x, y: h / 2 + 17 }));
+    var tip = el('title', {});
+    tip.textContent = n.title + (n.sub ? '\n' + n.sub : '');
+    ge.appendChild(tip);
+    if (n.count) {
+      var tg = el('g', { 'class': 'toggle', transform: 'translate(' + w + ',' + (h / 2 + 2) + ')', tabindex: 0, role: 'button',
+        'data-toggle': n.key, 'aria-label': (n.collapsed ? 'Show steps of ' : 'Hide steps of ') + n.title });
+      tg.appendChild(el('circle', { r: 11 }));
+      tg.appendChild(txt(n.collapsed ? String(n.count) : '\u2212', { y: 4, 'text-anchor': 'middle' }));
+      ge.appendChild(tg);
+    }
+    return ge;
+  }
+
+  function draw() {
+    var t = state.t, g = state.g = layout(state.data, t, state.collapsed), root = state.root;
+    state.byKey = {};
+    g.nodes.forEach(function (n) { state.byKey[n.key] = n; });
+    state.hits = g.nodes.filter(function (n) { return matches(n, state.q); });
+    if (state.hit >= state.hits.length) state.hit = state.hits.length - 1;
+    var hitKeys = {}, cur = state.hits[state.hit];
+    state.hits.forEach(function (n) { hitKeys[n.key] = true; });
+    while (root.firstChild) root.removeChild(root.firstChild);
+    g.edges.forEach(function (e) {
+      var a = e[0], b = e[1], x1 = a.x + t.boxW, y1 = a.y + t.boxH / 2 + 2, x2 = b.x, y2 = b.y + t.boxH / 2 + 2, mx = (x1 + x2) / 2;
+      root.appendChild(el('path', { 'class': 'edge', d: 'M' + x1 + ' ' + y1 + ' C' + mx + ' ' + y1 + ' ' + mx + ' ' + y2 + ' ' + x2 + ' ' + y2 }));
+    });
+    g.nodes.forEach(function (n) { root.appendChild(card(n, hitKeys[n.key], cur === n)); });
+    $('qcount').textContent = state.q.trim() ? (state.hits.length ? (state.hit + 1) + '/' + state.hits.length : '0') : '';
+    $('legend').classList.toggle('on', g.nodes.some(function (n) { return STATUS[n.status]; }));
+  }
+
+  function refocus(attr, key) {
+    var e = state.root.querySelector(sel(attr, key));
+    if (e) e.focus();
+  }
+
+  function toggleFlow(key, keyboard) {
+    state.collapsed[key] = !state.collapsed[key];
+    if (state.open && state.open.parentKey === key) closeDrawer();
+    draw();
+    if (keyboard) refocus('data-toggle', key);
+  }
+
+  function setAll(shut) {
+    state.collapsed = {};
+    if (shut) state.g.nodes.forEach(function (n) { if (n.count) state.collapsed[n.key] = true; });
+    if (shut && state.open && state.open.type === 'step') closeDrawer();
+    draw();
+    fit();
+  }
+
+  function select(key, center) {
+    var n = state.byKey[key];
+    if (!n) return;
+    var old = state.sel && state.root.querySelector(sel('data-key', state.sel));
+    if (old) old.classList.remove('sel');
+    state.sel = key;
+    var ge = state.root.querySelector(sel('data-key', key));
+    if (ge) ge.classList.add('sel');
+    openDrawer(n);
+    if (center) centerOn(n);
+  }
+
+  function goto(key) {
+    if (!state.byKey[key] && key.indexOf('#') > 0) {
+      delete state.collapsed[key.split('#')[0]];
+      draw();
+    }
+    select(key, true);
+  }
+
+  // ---- Search ----
+
+  function search(q) {
+    state.q = q;
+    if (q.trim()) {
+      (state.data.projects || []).forEach(function (p) {
+        (p.flows || []).forEach(function (f) {
+          var hidden = (f.steps || []).some(function (s) { return matches({ title: s.n + '. ' + s.text, sub: s.ref }, q); });
+          if (hidden) delete state.collapsed[p.id + '/' + f.id];
+        });
       });
     }
-    if (it.status) h.push('<p class="meta">status: ' + esc(it.status) + '</p>');
-    document.getElementById('panel').innerHTML = h.join('');
+    state.hit = -1;
+    draw();
+    if (state.hits.length) next(1);
+  }
+
+  function next(dir) {
+    if (!state.hits.length) return;
+    state.hit = (state.hit + dir + state.hits.length) % state.hits.length;
+    draw();
+    centerOn(state.hits[state.hit]);
+  }
+
+  // ---- Drawer ----
+
+  function refHtml(ref) {
+    return ref ? '<div class="ref"><code>' + esc(ref) + '</code><button class="btn copy" data-copy="' + esc(ref) + '">Copy</button></div>' : '';
+  }
+
+  function body(n, tab) {
+    var it = n.item;
+    if (tab === 'step') {
+      return '<h5>Code</h5>' + (refHtml(it.ref) || '<p class="empty">No code reference.</p>') +
+        '<h5>Flow</h5><p><button class="link" data-goto="' + esc(n.parentKey) + '">' + esc(n.parent.id) + '</button></p>';
+    }
+    if (tab === 'flows') {
+      var flows = it.flows || [];
+      return flows.length ? '<ol class="list">' + flows.map(function (f) {
+        return '<li><div><button class="link" data-goto="' + esc(it.id + '/' + f.id) + '">' + esc(f.id) + '</button>' +
+          '<div class="meta">' + esc([BADGE[f.trigger], f.entry].filter(Boolean).join(' \u00b7 ')) + '</div></div></li>';
+      }).join('') + '</ol>' : '<p class="empty">No flows.</p>';
+    }
+    if (tab === 'steps') {
+      var steps = it.steps || [];
+      return steps.length ? '<ol class="list">' + steps.map(function (s, i) {
+        return '<li><span class="n">' + esc(s.n) + '</span><div><button class="link" data-goto="' + esc(n.key + '#' + i) + '">' +
+          inline(s.text) + '</button>' + refHtml(s.ref) + '</div></li>';
+      }).join('') + '</ol>' : '<p class="empty">No steps.</p>';
+    }
+    return it[tab] ? renderMd(it[tab]) : '<p class="empty">Nothing here yet.</p>';
+  }
+
+  function openDrawer(n) {
+    var tabs = n.type === 'project' ? ['definition', 'flows'] : n.type === 'step' ? [] : ['definition', 'steps', 'boundary', 'rules'];
+    if (tabs.length && tabs.indexOf(state.tab) < 0) state.tab = tabs[0];
+    var h = ['<div class="dh"><div>', '<span class="chip" style="--c: var(--' + n.type + ')">' + esc(n.badge || n.type.toUpperCase()) + '</span>'];
+    if (STATUS[n.status]) h.push('<span class="chip" style="--c: var(--' + n.status + ')">' + n.status + '</span>');
+    h.push('<h2>' + esc(n.label) + '</h2>');
+    if (n.sub && n.type !== 'step') h.push('<div class="meta">' + esc(n.sub) + '</div>');
+    h.push('</div><button class="btn close" data-close aria-label="Close">\u00d7</button></div>');
+    if (tabs.length) {
+      h.push('<div class="tabs" role="tablist">' + tabs.map(function (k) {
+        return '<button class="tab' + (k === state.tab ? ' on' : '') + '" role="tab" aria-selected="' + (k === state.tab) + '" data-tab="' + k + '">' +
+          k.charAt(0).toUpperCase() + k.slice(1) + '</button>';
+      }).join('') + '</div>');
+    }
+    h.push('<div class="db">' + body(n, tabs.length ? state.tab : 'step') + '</div>');
+    var d = $('drawer');
+    d.innerHTML = h.join('');
+    d.classList.add('open');
+    d.setAttribute('aria-hidden', 'false');
+    state.open = n;
+  }
+
+  function closeDrawer() {
+    var d = $('drawer');
+    d.classList.remove('open');
+    d.setAttribute('aria-hidden', 'true');
+    var old = state.sel && state.root.querySelector(sel('data-key', state.sel));
+    if (old) old.classList.remove('sel');
+    state.sel = null;
+    state.open = null;
+  }
+
+  function copy(value, btn) {
+    function done() { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy'; }, 1200); }
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = value;
+      document.body.appendChild(ta);
+      ta.select();
+      try { if (document.execCommand('copy')) done(); } catch (e) { /* no clipboard */ }
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(value).then(done, fallback);
+    else fallback();
+  }
+
+  // ---- Wiring ----
+
+  function activate(target, keyboard) {
+    var tg = target.closest('[data-toggle]');
+    if (tg) { toggleFlow(tg.getAttribute('data-toggle'), keyboard); return true; }
+    var node = target.closest('.node');
+    if (node) { select(node.getAttribute('data-key'), false); return true; }
+    return false;
   }
 
   function main() {
-    var data = JSON.parse(document.getElementById('mirror-data').textContent);
-    document.title = data.title || 'Mirror';
-    document.getElementById('title').textContent = data.title || 'Mirror';
-    document.getElementById('meta').textContent = data.generated ? 'generated ' + data.generated : '';
-    var t = tokens(), g = layout(data, t), pad = 16;
-    var svg = el('svg', { width: g.width + 2 * pad, height: g.height + 2 * pad });
-    var root = el('g', { transform: 'translate(' + pad + ',' + pad + ')' });
-    svg.appendChild(root);
-    g.edges.forEach(function (e) {
-      var a = e[0], b = e[1], x1 = a.x + t.boxW, y1 = a.y + t.boxH / 2, x2 = b.x, y2 = b.y + t.boxH / 2, mx = (x1 + x2) / 2;
-      root.appendChild(el('path', { 'class': 'edge', d: 'M' + x1 + ' ' + y1 + ' C' + mx + ' ' + y1 + ' ' + mx + ' ' + y2 + ' ' + x2 + ' ' + y2 }));
+    applyTheme();
+    if (media && media.addEventListener) media.addEventListener('change', applyTheme);
+    state.data = JSON.parse($('mirror-data').textContent);
+    document.title = state.data.title || 'Mirror';
+    $('title').textContent = state.data.title || 'Mirror';
+    $('meta').textContent = state.data.generated ? 'generated ' + state.data.generated : '';
+    var t = state.t = tokens();
+    var svg = el('svg', { role: 'group', 'aria-label': 'Flow graph' }), defs = el('defs', {}), cp = el('clipPath', { id: 'card-clip' });
+    cp.appendChild(el('rect', { width: t.boxW, height: t.boxH, rx: t.radius }));
+    defs.appendChild(cp);
+    svg.appendChild(defs);
+    state.root = el('g', {});
+    svg.appendChild(state.root);
+    var c = $('canvas');
+    c.appendChild(svg);
+    draw();
+    initialView();
+    bindCanvas(c);
+
+    svg.addEventListener('click', function (e) { if (!state.dragged) activate(e.target, false); });
+    svg.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      if (activate(e.target, true)) e.preventDefault();
     });
-    var chars = Math.floor((t.boxW - 20) / 7), selected = null, anyStatus = false;
-    g.nodes.forEach(function (n) {
-      if (n.status) anyStatus = true;
-      var ge = el('g', { 'class': 'node ' + n.type + (n.status ? ' st-' + n.status : ''), transform: 'translate(' + n.x + ',' + n.y + ')', tabindex: '0', role: 'button' });
-      ge.appendChild(el('rect', { width: t.boxW, height: t.boxH, rx: t.radius }));
-      var title = el('text', { x: 10, y: n.sub ? t.boxH / 2 - 4 : t.boxH / 2 + 4 });
-      title.textContent = clip(n.title, chars);
-      ge.appendChild(title);
-      if (n.sub) {
-        var sub = el('text', { x: 10, y: t.boxH / 2 + 14, 'class': 'sub' });
-        sub.textContent = clip(n.sub, chars + 4);
-        ge.appendChild(sub);
-      }
-      var tip = el('title', {});
-      tip.textContent = n.title + (n.sub ? '\n' + n.sub : '');
-      ge.appendChild(tip);
-      function selectNode() {
-        if (selected) selected.classList.remove('sel');
-        selected = ge;
-        ge.classList.add('sel');
-        show(n);
-      }
-      ge.addEventListener('click', selectNode);
-      ge.addEventListener('keydown', function (ev) {
-        if (ev.key === 'Enter' || ev.key === ' ') {
-          if (ev.key === ' ') ev.preventDefault();
-          selectNode();
-        }
-      });
-      root.appendChild(ge);
+    $('drawer').addEventListener('click', function (e) {
+      var b = e.target.closest('button');
+      if (!b) return;
+      if (b.hasAttribute('data-close')) closeDrawer();
+      else if (b.hasAttribute('data-tab')) { state.tab = b.getAttribute('data-tab'); openDrawer(state.open); }
+      else if (b.hasAttribute('data-copy')) copy(b.getAttribute('data-copy'), b);
+      else if (b.hasAttribute('data-goto')) goto(b.getAttribute('data-goto'));
     });
-    document.getElementById('canvas').appendChild(svg);
-    if (anyStatus) document.getElementById('legend').classList.add('on');
+    $('q').addEventListener('input', function (e) { search(e.target.value); });
+    $('q').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); next(e.shiftKey ? -1 : 1); }
+      else if (e.key === 'Escape') { e.target.value = ''; search(''); e.target.blur(); }
+    });
+    $('collapse-all').addEventListener('click', function () { setAll(true); });
+    $('expand-all').addEventListener('click', function () { setAll(false); });
+    $('theme').addEventListener('click', toggleTheme);
+    $('zoom-in').addEventListener('click', function () { zoomBy(1.25); });
+    $('zoom-out').addEventListener('click', function () { zoomBy(0.8); });
+    $('fit').addEventListener('click', fit);
+    document.addEventListener('keydown', function (e) {
+      var typing = /^(INPUT|TEXTAREA)$/.test(document.activeElement && document.activeElement.tagName);
+      if (e.key === 'Escape' && state.open) closeDrawer();
+      else if (e.key === '/' && !typing) { e.preventDefault(); $('q').focus(); }
+    });
   }
 
-  globalThis.MirrorViewer = { esc: esc, renderMd: renderMd, layout: layout };
-  if (typeof document !== 'undefined') main();
+  main();
 })();
 </script>
 </body>

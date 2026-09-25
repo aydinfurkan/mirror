@@ -13,7 +13,7 @@ for (const p of data.projects) for (const f of p.flows) assert.ok(Array.isArray(
 
 const ctx = {};
 runInNewContext(html.match(/<script id="mirror-app">([\s\S]*?)<\/script>/)[1], ctx);
-const { renderMd, layout } = ctx.MirrorViewer;
+const { renderMd, layout, matches } = ctx.MirrorViewer;
 
 assert.equal(renderMd('<b>'), '<p>&lt;b&gt;</p>');
 assert.equal(
@@ -23,13 +23,12 @@ assert.equal(
 assert.equal(renderMd('1. one\n2. two'), '<ol><li>one</li><li>two</li></ol>');
 assert.equal(renderMd('```\n<a>\n```'), '<pre><code>&lt;a&gt;</code></pre>');
 
-const g = layout(
-  { projects: [{ id: 'api', kinds: ['backend'], flows: [
-    { id: 'a', kind: 'flow', steps: [{ n: 1, text: 's1', ref: '' }, { n: 2, text: 's2', ref: '' }] },
-    { id: 'b', kind: 'page', steps: [] },
-  ] }] },
-  { boxW: 100, boxH: 20, gapX: 10, gapY: 5 },
-);
+const sample = { projects: [{ id: 'api', kinds: ['backend'], flows: [
+  { id: 'a', kind: 'flow', steps: [{ n: 1, text: 's1', ref: '' }, { n: 2, text: 's2', ref: 'src/a.ts#postUser' }] },
+  { id: 'b', kind: 'page', steps: [] },
+] }] };
+const t = { boxW: 100, boxH: 20, gapX: 10, gapY: 5 };
+const g = layout(sample, t);
 const at = (title) => g.nodes.find((n) => n.title === title);
 assert.equal(g.nodes.length, 5);
 assert.equal(g.edges.length, 4);
@@ -38,5 +37,20 @@ assert.deepEqual([at('a').x, at('a').y, at('a').type], [110, 12.5, 'flow']);
 assert.deepEqual([at('b').y, at('b').type], [50, 'page']);
 assert.deepEqual([at('api').x, at('api').y], [0, 31.25]);
 assert.equal(g.height, 100);
+assert.deepEqual(Array.from(g.nodes, (n) => n.key).sort(), ['api', 'api/a', 'api/a#0', 'api/a#1', 'api/b']);
+
+// A collapsed flow hides its steps and takes one row.
+const c = layout(sample, t, { 'api/a': true });
+const cat = (title) => c.nodes.find((n) => n.title === title);
+assert.equal(c.nodes.length, 3);
+assert.equal(c.edges.length, 2);
+assert.deepEqual([cat('a').y, cat('a').collapsed, cat('a').count], [0, true, 2]);
+assert.deepEqual([cat('b').y, cat('api').y, c.height], [25, 12.5, 75]);
+
+// Search matches title, sub (code ref, entry) and trigger, case-insensitive.
+assert.equal(matches(at('1. s1'), 'S1'), true);
+assert.equal(matches(at('2. s2'), 'postuser'), true);
+assert.equal(matches(at('a'), 'zzz'), false);
+assert.equal(matches(at('a'), '  '), false);
 
 console.log('ok');
