@@ -132,7 +132,7 @@ Data shape:
 ```
 
 `kind` is `flow` or `page`. `status` is `added`, `changed`, `removed` or `null`. Only feature
-review pages set it. In the data, `</` is escaped as `<\/` so markdown cannot close the
+review pages set it. In the data, `<` is escaped as `\u003c` so markdown cannot close the
 script tag.
 
 ## 3. `init` skill

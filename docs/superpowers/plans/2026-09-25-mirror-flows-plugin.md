@@ -14,7 +14,7 @@
 
 - Viewer: one file, inline CSS and JS, no external requests, works from `file://`.
 - Token markers: `/* MIRROR:TOKENS:START */` and `/* MIRROR:TOKENS:END */`.
-- Data block: `<script type="application/json" id="mirror-data">`; `</` escaped as `<\/`.
+- Data block: `<script type="application/json" id="mirror-data">`; `<` escaped as `\u003c`.
 - Flow file set: `definition.md`, `steps.md`, `boundary.md`, `rules.md`.
 - Flow `definition.md` frontmatter: `trigger` (`http | main | message | schedule | page`), `entry`.
 - Step line format: `N. Sentence. \`path/relative/to/project/root#function\``.
