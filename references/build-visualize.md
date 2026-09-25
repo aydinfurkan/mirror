@@ -1,5 +1,8 @@
 # Build visualize.html
 
+`${CLAUDE_PLUGIN_ROOT}` is the plugin root: the folder that contains `templates/` and
+`references/`.
+
 The `init` and `add-feature` skills use this procedure.
 
 ## Inputs
@@ -26,11 +29,11 @@ The `init` and `add-feature` skills use this procedure.
    - `status`: `null`.
    - `steps`: one entry for each numbered item in `steps.md`, in order.
      - `n`: the number of the item.
-     - `ref`: the text of the last backtick span on the line that contains `#`. Use `""` when there is none.
+     - `ref`: the text of the last backtick span on the line, when that span contains `#`. Use `""` when there is none.
      - `text`: the item text without that backtick span, trimmed.
      - `status`: `null`.
 3. Set `generated` to today in the form `YYYY-MM-DD`. Set `title` to the repository folder name.
-4. Write the data as JSON. Replace each `</` with `<\/`.
+4. Write the data as JSON. Replace each `<` with `\u003c`.
 
 The shape:
 
@@ -63,6 +66,8 @@ The shape:
 Use this section only in `add-feature`.
 
 1. Read the old data: the JSON in `<script id="mirror-data">` of the current `.mirror/visualize.html`.
+   The old data is the last built graph. When `.mirror/visualize.html` does not exist, use
+   empty old data, so each item is `added`.
 2. Build the new data from `.mirror/xsrc/` with the steps above.
 3. Compare project by `id`, flow by project `id` + flow `id`, and step by `ref` + `text`.
    - A project, flow or step only in the new data: set `status` to `added`.
