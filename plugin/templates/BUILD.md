@@ -1,16 +1,14 @@
 # Build visualize.html
 
-`${CLAUDE_PLUGIN_ROOT}` is the plugin root: the folder that contains `templates/` and
-`references/`.
-
-The `init` and `add-feature` skills use this procedure.
+`.mirror/AGENTS.md` and the Mirror `init` skill use this procedure.
 
 ## Inputs
 
 - `.mirror/config.json`
 - `.mirror/visualize.md`
 - `.mirror/xsrc/**`
-- The template: `${CLAUDE_PLUGIN_ROOT}/templates/visualize.html`
+- The template: `.mirror/visualize.html`. When it does not exist, use `templates/visualize.html`
+  of the Mirror plugin.
 
 ## Build the data
 
@@ -33,7 +31,7 @@ The `init` and `add-feature` skills use this procedure.
      - `text`: the item text without that backtick span, trimmed.
      - `status`: `null`.
 3. Set `generated` to today in the form `YYYY-MM-DD`. Set `title` to the repository folder name.
-4. Write the data as JSON. Replace each `<` with `\u003c`.
+4. Write the data as JSON. Replace each `<` with `<`.
 
 The shape:
 
@@ -58,17 +56,16 @@ The shape:
 2. Replace the text between `/* MIRROR:TOKENS:START */` and `/* MIRROR:TOKENS:END */` with
    the full content of the `css` fence in `.mirror/visualize.md`.
 3. Replace the content of `<script type="application/json" id="mirror-data">` with the JSON.
-4. Run `node "${CLAUDE_PLUGIN_ROOT}/templates/visualize.check.mjs" <target path>`. It must print `ok`.
-   Fix the page and run it again when it fails.
+4. Check the page. When the Mirror plugin is installed, run
+   `node <plugin root>/templates/visualize.check.mjs <target path>`. It must print `ok`.
+   Else make sure that the data block is valid JSON.
 
-## Feature review data
-
-Use this section only in `add-feature`.
+## Review page
 
 1. Read the old data: the JSON in `<script id="mirror-data">` of the current `.mirror/visualize.html`.
    The old data is the last built graph. When `.mirror/visualize.html` does not exist, use
    empty old data, so each item is `added`.
-2. Build the new data from `.mirror/xsrc/` with the steps above.
+2. Build the new data from `.mirror/xsrc/` with "Build the data".
 3. Compare project by `id`, flow by project `id` + flow `id`, and step by `ref` + `text`.
    - A project, flow or step only in the new data: set `status` to `added`.
    - A project, flow or step only in the old data: copy it into the new data at its old

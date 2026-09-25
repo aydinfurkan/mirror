@@ -14,19 +14,22 @@ draws it as a graph in one HTML file.
 /plugin install mirror@mirror
 ```
 
-## Skills
+## How it works
 
-- `mirror:init`: find the projects and the flows, write the documents, draw the graph.
-- `mirror:add-feature`: change the flow documents, show a review page, then change the code.
+1. Run `mirror:init` once. It finds the projects and the flows, writes the documents,
+   draws the graph, and adds `.mirror/AGENTS.md` and `.mirror/BUILD.md`.
+2. After that, every change follows the workflow in `.mirror/AGENTS.md`: change the
+   mirror, review the change on `.mirror/features/NNNN-<slug>.html`, then change the code.
 
-A `SessionStart` hook loads `.mirror/AGENTS.md` into each Claude Code session of a project that has a mirror.
+A `SessionStart` hook loads `.mirror/AGENTS.md` into each Claude Code session of a
+project that has a mirror. Other agents read it through the root `AGENTS.md`.
 
 ## This repository
 
 | Path | Holds |
 | --- | --- |
 | `.claude-plugin/marketplace.json` | The marketplace. It points to `plugin/`. |
-| `plugin/` | The plugin: `skills/`, `hooks/`, `templates/`, `references/`, `.claude-plugin/plugin.json`. Only this folder is installed. |
+| `plugin/` | The plugin: `skills/`, `hooks/`, `templates/`, `.claude-plugin/plugin.json`. Only this folder is installed. |
 | `examples/bubbles/` | A demo API (`code/`) and its mirror (`.mirror/`). Open `examples/bubbles/.mirror/visualize.html` to see the viewer. |
 
 Check the viewer or a built page:
@@ -35,5 +38,5 @@ Check the viewer or a built page:
 node plugin/templates/visualize.check.mjs [page.html]
 ```
 
-Try a skill on the example: open Claude Code in `examples/bubbles/` and run
-`mirror:add-feature`.
+Try the workflow on the example: open Claude Code in `examples/bubbles/` and ask for a
+change, for example "add an endpoint that deletes a bubble".

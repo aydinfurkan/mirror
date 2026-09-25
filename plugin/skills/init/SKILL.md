@@ -90,20 +90,25 @@ per testable result. Read the tests to find the rules.
 For a page, the steps describe data loads and user actions, and the boundary lists the API
 calls of the page.
 
-## 4. Draw
+## 4. Agent rules and build guide
+
+1. Copy `${CLAUDE_PLUGIN_ROOT}/templates/AGENTS.md` to `.mirror/AGENTS.md` if it does not exist.
+2. Copy `${CLAUDE_PLUGIN_ROOT}/templates/BUILD.md` to `.mirror/BUILD.md` if it does not exist.
+3. If the repository root has no `AGENTS.md`, create it with this text:
+   `This repository uses Mirror. Read [.mirror/AGENTS.md](.mirror/AGENTS.md) and follow it.`
+
+## 5. Draw
 
 1. Copy `${CLAUDE_PLUGIN_ROOT}/templates/visualize.md` to `.mirror/visualize.md` if it does
    not exist.
-2. Build `.mirror/visualize.html` with `${CLAUDE_PLUGIN_ROOT}/references/build-visualize.md`
-   ("Build the data", then "Write the page").
-
-## 5. Agent rules
-
-1. Copy `${CLAUDE_PLUGIN_ROOT}/templates/AGENTS.md` to `.mirror/AGENTS.md` if it does not exist.
-2. If the repository root has no `AGENTS.md`, create it with this text:
-   `This repository uses Mirror. Read [.mirror/AGENTS.md](.mirror/AGENTS.md) and follow it.`
+2. Build `.mirror/visualize.html` with "Build the data" and "Write the page" in
+   `.mirror/BUILD.md`. Use `${CLAUDE_PLUGIN_ROOT}/templates/visualize.html` as the template.
+3. Run `node "${CLAUDE_PLUGIN_ROOT}/templates/visualize.check.mjs" .mirror/visualize.html`.
+   It must print `ok`.
 
 ## 6. Report
 
 Tell the user the number of projects, flows and pages. Tell the user to open
-`.mirror/visualize.html` in a browser.
+`.mirror/visualize.html` in a browser. Tell the user to commit `.mirror/`. From now on, each
+change goes through the change workflow in `.mirror/AGENTS.md`: mirror first, then review,
+then code.
