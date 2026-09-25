@@ -88,6 +88,13 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 .tabs { display: flex; gap: 2px; padding: 0 12px; border-bottom: 1px solid var(--border); }
 .tab { padding: 8px 10px; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--muted); cursor: pointer; }
 .tab.on { color: var(--text); border-bottom-color: var(--accent); }
+.ptabs { display: flex; gap: 2px; padding: 0 12px; overflow-x: auto; background: var(--panel); border-bottom: 1px solid var(--border); z-index: 2; }
+.ptabs:empty { display: none; }
+.ptab { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--muted); font-weight: 600; white-space: nowrap; cursor: pointer; }
+.ptab small { font-weight: 400; font-size: 11px; }
+.ptab.on { color: var(--text); border-bottom-color: var(--accent); }
+.ptab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.ptab .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--changed); }
 .db { flex: 1; overflow: auto; padding: 12px 16px 24px; }
 .db h4, .db h5, .db h6 { margin: 18px 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
 .db code { font: 12px var(--mono); padding: 1px 5px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg); }
@@ -123,6 +130,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     <button class="btn" id="theme" title="Toggle light / dark" aria-label="Toggle light or dark theme">&#9680;</button>
   </div>
 </header>
+<nav class="ptabs" id="ptabs" role="tablist" aria-label="Projects"></nav>
 <main>
   <div id="canvas"></div>
   <div class="float" id="zoom">
@@ -223,13 +231,20 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     return [n.title, n.sub, n.item && n.item.trigger].join('\n').toLowerCase().indexOf(q) >= 0;
   }
 
-  globalThis.MirrorViewer = { esc: esc, renderMd: renderMd, layout: layout, matches: matches };
+  // True when a project, or a flow or step in it, has a review status.
+  function hasChanges(p) {
+    return !!STATUS[p.status] || (p.flows || []).some(function (f) {
+      return !!STATUS[f.status] || (f.steps || []).some(function (s) { return !!STATUS[s.status]; });
+    });
+  }
+
+  globalThis.MirrorViewer = { esc: esc, renderMd: renderMd, layout: layout, matches: matches, hasChanges: hasChanges };
   if (typeof document === 'undefined') return;
 
   // ---- Browser only below ----
 
   var SVG = 'http://www.w3.org/2000/svg';
-  var state = { collapsed: {}, k: 1, tx: 0, ty: 0, sel: null, hits: [], hit: -1, q: '', tab: 'definition', open: null, dragged: false };
+  var state = { pi: 0, collapsed: {}, k: 1, tx: 0, ty: 0, sel: null, hits: [], hit: -1, q: '', tab: 'definition', open: null, dragged: false };
 
   function $(id) { return document.getElementById(id); }
   function el(name, attrs) {
@@ -384,8 +399,40 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     return ge;
   }
 
+  // Each project has its own tab; the graph shows one project at a time.
+  function current() { return { projects: (state.data.projects || []).slice(state.pi, state.pi + 1) }; }
+
+  function renderTabs() {
+    var projects = state.data.projects || [];
+    $('ptabs').innerHTML = projects.map(function (p, i) {
+      var on = i === state.pi;
+      return '<button class="ptab' + (on ? ' on' : '') + '" role="tab" aria-selected="' + on + '" tabindex="' + (on ? 0 : -1) +
+        '" data-pi="' + i + '">' + esc(p.id) + ' <small>' + esc((p.kinds || []).join(' · ')) + '</small>' +
+        (hasChanges(p) ? '<span class="dot" title="Has changes"></span>' : '') + '</button>';
+    }).join('');
+  }
+
+  function switchProject(i, focus) {
+    var projects = state.data.projects || [];
+    if (i < 0 || i >= projects.length) return;
+    closeDrawer();
+    state.pi = i;
+    state.hit = -1;
+    try { history.replaceState(null, '', '#' + encodeURIComponent(projects[i].id)); } catch (e) { /* file:// in some browsers */ }
+    renderTabs();
+    draw();
+    initialView();
+    if (focus) $('ptabs').querySelector('.ptab.on').focus();
+  }
+
+  function projectFromHash() {
+    var id = decodeURIComponent(location.hash.slice(1));
+    var i = (state.data.projects || []).map(function (p) { return p.id; }).indexOf(id);
+    return i < 0 ? 0 : i;
+  }
+
   function draw() {
-    var t = state.t, g = state.g = layout(state.data, t, state.collapsed), root = state.root;
+    var t = state.t, g = state.g = layout(current(), t, state.collapsed), root = state.root;
     state.byKey = {};
     g.nodes.forEach(function (n) { state.byKey[n.key] = n; });
     state.hits = g.nodes.filter(function (n) { return matches(n, state.q); });
@@ -447,7 +494,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
   function search(q) {
     state.q = q;
     if (q.trim()) {
-      (state.data.projects || []).forEach(function (p) {
+      current().projects.forEach(function (p) {
         (p.flows || []).forEach(function (f) {
           var hidden = (f.steps || []).some(function (s) { return matches({ title: s.n + '. ' + s.text, sub: s.ref }, q); });
           if (hidden) delete state.collapsed[p.id + '/' + f.id];
@@ -567,6 +614,8 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     svg.appendChild(state.root);
     var c = $('canvas');
     c.appendChild(svg);
+    state.pi = projectFromHash();
+    renderTabs();
     draw();
     initialView();
     bindCanvas(c);
@@ -583,6 +632,18 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
       else if (b.hasAttribute('data-tab')) { state.tab = b.getAttribute('data-tab'); openDrawer(state.open); }
       else if (b.hasAttribute('data-copy')) copy(b.getAttribute('data-copy'), b);
       else if (b.hasAttribute('data-goto')) goto(b.getAttribute('data-goto'));
+    });
+    $('ptabs').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-pi]');
+      if (b) switchProject(Number(b.getAttribute('data-pi')), false);
+    });
+    $('ptabs').addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight') switchProject(state.pi + 1, true);
+      else if (e.key === 'ArrowLeft') switchProject(state.pi - 1, true);
+    });
+    window.addEventListener('hashchange', function () {
+      var i = projectFromHash();
+      if (i !== state.pi) switchProject(i, false);
     });
     $('q').addEventListener('input', function (e) { search(e.target.value); });
     $('q').addEventListener('keydown', function (e) {

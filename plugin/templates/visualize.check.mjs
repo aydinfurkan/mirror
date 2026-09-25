@@ -13,7 +13,7 @@ for (const p of data.projects) for (const f of p.flows) assert.ok(Array.isArray(
 
 const ctx = {};
 runInNewContext(html.match(/<script id="mirror-app">([\s\S]*?)<\/script>/)[1], ctx);
-const { renderMd, layout, matches } = ctx.MirrorViewer;
+const { renderMd, layout, matches, hasChanges } = ctx.MirrorViewer;
 
 assert.equal(renderMd('<b>'), '<p>&lt;b&gt;</p>');
 assert.equal(
@@ -52,5 +52,10 @@ assert.equal(matches(at('1. s1'), 'S1'), true);
 assert.equal(matches(at('2. s2'), 'postuser'), true);
 assert.equal(matches(at('a'), 'zzz'), false);
 assert.equal(matches(at('a'), '  '), false);
+
+// A project tab shows a change mark when any item in it has a review status.
+assert.equal(hasChanges(sample.projects[0]), false);
+assert.equal(hasChanges({ flows: [{ steps: [{ status: 'removed' }] }] }), true);
+assert.equal(hasChanges({ status: 'bogus', flows: [] }), false);
 
 console.log('ok');
