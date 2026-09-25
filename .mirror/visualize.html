@@ -39,6 +39,8 @@ main { flex: 1; display: flex; min-height: 0; }
 .node.st-removed { opacity: .6; }
 .node.st-removed rect { stroke: var(--removed); stroke-width: 3; stroke-dasharray: 6 4; }
 .node.sel rect { stroke-width: 4; }
+.node:focus { outline: none; }
+.node:focus rect { stroke-width: 4; }
 .edge { fill: none; stroke: var(--muted); stroke-width: 1.5; opacity: .6; }
 #panel { width: 380px; max-width: 45vw; overflow: auto; background: var(--panel); padding: 16px; }
 #panel h2 { font-size: 15px; margin: 0 0 4px; }
@@ -180,7 +182,7 @@ main { flex: 1; display: flex; min-height: 0; }
     var chars = Math.floor((t.boxW - 20) / 7), selected = null, anyStatus = false;
     g.nodes.forEach(function (n) {
       if (n.status) anyStatus = true;
-      var ge = el('g', { 'class': 'node ' + n.type + (n.status ? ' st-' + n.status : ''), transform: 'translate(' + n.x + ',' + n.y + ')' });
+      var ge = el('g', { 'class': 'node ' + n.type + (n.status ? ' st-' + n.status : ''), transform: 'translate(' + n.x + ',' + n.y + ')', tabindex: '0', role: 'button' });
       ge.appendChild(el('rect', { width: t.boxW, height: t.boxH, rx: t.radius }));
       var title = el('text', { x: 10, y: n.sub ? t.boxH / 2 - 4 : t.boxH / 2 + 4 });
       title.textContent = clip(n.title, chars);
@@ -193,11 +195,18 @@ main { flex: 1; display: flex; min-height: 0; }
       var tip = el('title', {});
       tip.textContent = n.title + (n.sub ? '\n' + n.sub : '');
       ge.appendChild(tip);
-      ge.addEventListener('click', function () {
+      function selectNode() {
         if (selected) selected.classList.remove('sel');
         selected = ge;
         ge.classList.add('sel');
         show(n);
+      }
+      ge.addEventListener('click', selectNode);
+      ge.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Enter' || ev.key === ' ') {
+          if (ev.key === ' ') ev.preventDefault();
+          selectNode();
+        }
       });
       root.appendChild(ge);
     });
