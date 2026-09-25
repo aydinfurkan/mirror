@@ -1,0 +1,12 @@
+:root { color-scheme: light dark; font-family: system-ui, sans-serif; line-height: 1.5; }
+body { margin: 0; }
+main { max-width: 680px; margin: 0 auto; padding: 24px 16px; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+form, label { display: flex; flex-direction: column; gap: 6px; }
+form { gap: 14px; margin-top: 16px; }
+input, textarea, button { font: inherit; padding: 8px 10px; border-radius: 8px; border: 1px solid #8884; }
+button { cursor: pointer; align-self: flex-start; }
+ul { padding-left: 18px; }
+li { margin: 6px 0; }
+.body { white-space: pre-wrap; }
+[role='alert'] { color: #d33; }

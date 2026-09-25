@@ -30,7 +30,7 @@ project that has a mirror.
 | --- | --- |
 | `.claude-plugin/marketplace.json` | The marketplace. It points to `plugin/`. |
 | `plugin/` | The plugin: `skills/`, `hooks/`, `templates/`, `.claude-plugin/plugin.json`. Only this folder is installed. |
-| `examples/posts/` | A demo API (`code/`) and its mirror (`.mirror/`). Open `examples/posts/.mirror/visualize.html` to see the viewer. |
+| `examples/posts/` | A demo API (`code/`), a web app (`web/`), and their mirror (`.mirror/`). Open `examples/posts/.mirror/visualize.html` to see the viewer. |
 
 Check the viewer or a built page:
 
