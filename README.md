@@ -30,7 +30,7 @@ project that has a mirror. Other agents read it through the root `AGENTS.md`.
 | --- | --- |
 | `.claude-plugin/marketplace.json` | The marketplace. It points to `plugin/`. |
 | `plugin/` | The plugin: `skills/`, `hooks/`, `templates/`, `.claude-plugin/plugin.json`. Only this folder is installed. |
-| `examples/bubbles/` | A demo API (`code/`) and its mirror (`.mirror/`). Open `examples/bubbles/.mirror/visualize.html` to see the viewer. |
+| `examples/posts/` | A demo API (`code/`) and its mirror (`.mirror/`). Open `examples/posts/.mirror/visualize.html` to see the viewer. |
 
 Check the viewer or a built page:
 
@@ -38,5 +38,5 @@ Check the viewer or a built page:
 node plugin/templates/visualize.check.mjs [page.html]
 ```
 
-Try the workflow on the example: open Claude Code in `examples/bubbles/` and ask for a
-change, for example "add an endpoint that deletes a bubble".
+Try the workflow on the example: open Claude Code in `examples/posts/` and ask for a
+change, for example "add comments to posts".
