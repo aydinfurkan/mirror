@@ -21,6 +21,18 @@ draws it as a graph in one HTML file.
 
 ## This repository
 
-- `skills/`, `templates/`, `references/`, `.claude-plugin/`: the plugin.
-- `code/`: a demo API. `.mirror/`: its mirror.
-- `node templates/visualize.check.mjs [page.html]`: check the viewer or a built page.
+| Path | Holds |
+| --- | --- |
+| `.claude-plugin/marketplace.json` | The marketplace. It points to `plugin/`. |
+| `plugin/` | The plugin: `skills/`, `templates/`, `references/`, `.claude-plugin/plugin.json`. Only this folder is installed. |
+| `examples/bubbles/` | A demo API (`code/`) and its mirror (`.mirror/`). Open `examples/bubbles/.mirror/visualize.html` to see the viewer. |
+| `docs/` | Design specs and plans. |
+
+Check the viewer or a built page:
+
+```sh
+node plugin/templates/visualize.check.mjs [page.html]
+```
+
+Try a skill on the example: open Claude Code in `examples/bubbles/` and run
+`mirror:add-feature`.
