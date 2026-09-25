@@ -67,7 +67,7 @@ Use this section only in `add-feature`.
 3. Compare project by `id`, flow by project `id` + flow `id`, and step by `ref` + `text`.
    - A project, flow or step only in the new data: set `status` to `added`.
    - A project, flow or step only in the old data: copy it into the new data at its old
-     position and set `status` to `removed`. Set each child of a removed item to `removed`.
+     position and set `status` to `removed`. Set each descendant of a removed item (its flows and their steps) to `removed`.
    - A flow in both with a different `trigger`, `entry`, `definition`, `boundary`, `rules`
      or step list: set `status` to `changed`.
    - A project in both with a different `definition` or with a flow that is not `null`: set
