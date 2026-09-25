@@ -1,14 +1,26 @@
 # Mirror
 
-Every code file has a mirror prompt. The graph links them, and drift tells you when they disagree.
+A Claude Code plugin. Mirror keeps the intent of each flow and page next to the code, and
+draws it as a graph in one HTML file.
 
-- `code/` holds the implementation.
-- `.mirror/docs/` holds the intent.
-- `.mirror/visualize/` builds the graph and draws it.
+- `.mirror/xsrc/<project>/` holds one folder per flow (backend, worker, consumer) or page
+  (frontend, Expo), with `definition.md`, `steps.md`, `boundary.md`, `rules.md`.
+- `.mirror/visualize.html` draws them. `.mirror/visualize.md` sets its colors and sizes.
+
+## Install
 
 ```sh
-pnpm -C .mirror/visualize check:drift   # fail if intent and code disagree
-pnpm -C .mirror/visualize dev           # open the canvas
+/plugin marketplace add aydinfurkan/mirror
+/plugin install mirror@mirror
 ```
 
-See [.mirror/STRUCTURE.md](.mirror/STRUCTURE.md).
+## Skills
+
+- `mirror:init`: find the projects and the flows, write the documents, draw the graph.
+- `mirror:add-feature`: change the flow documents, show a review page, then change the code.
+
+## This repository
+
+- `skills/`, `templates/`, `references/`, `.claude-plugin/`: the plugin.
+- `code/`: a demo API. `.mirror/`: its mirror.
+- `node templates/visualize.check.mjs [page.html]`: check the viewer or a built page.

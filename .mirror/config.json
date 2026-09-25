@@ -1,5 +1,1 @@
-{
-  "src": {
-    "xsrc": "code/src"
-  }
-}
+{ "projects": { "api": { "root": "code", "kinds": ["backend"] } } }

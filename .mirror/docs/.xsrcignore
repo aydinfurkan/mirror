@@ -1,3 +1,0 @@
-# Globs under the source root that need no mirror prompt in .mirror/docs/xsrc.
-# One glob per line. Lines that start with # are comments.
-**/index.ts
