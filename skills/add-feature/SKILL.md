@@ -5,10 +5,15 @@ description: Add or change a feature the Mirror way. Change the flow documents i
 
 # Mirror add-feature
 
+`${CLAUDE_PLUGIN_ROOT}` is the plugin root. When it is not set, use the folder two levels
+above the base directory of this skill.
+
 Write all documents in ASD-STE100 Simplified Technical English. Write one imperative
 instruction per sentence.
 
 If `.mirror/config.json` does not exist, stop. Tell the user to run `mirror:init` first.
+
+If the repository is not a git repository, stop. Tell the user that add-feature needs git.
 
 ## 1. Understand the feature
 
@@ -17,6 +22,9 @@ If `.mirror/config.json` does not exist, stop. Tell the user to run `mirror:init
 3. List the projects and the flows or pages that the feature adds, changes or removes.
 
 ## 2. Change the mirror
+
+Run `git status --porcelain .mirror/xsrc`. If it prints anything, stop and ask the user to
+commit or stash the changes first.
 
 Change only files under `.mirror/xsrc/`. Do not change code in this step.
 
@@ -51,8 +59,8 @@ removed flows and steps. Stop and wait for the answer.
 1. For each added or changed flow, write tests for its `rules.md` acceptance criteria. Run
    them. Make sure that the new tests fail.
 2. Write the code for the steps. Put each function at the path and name in its step.
-3. Run the full test suite of each changed project. Make sure that all tests pass.
-4. Remove the code of each removed flow and its tests.
+3. Remove the code of each removed flow and its tests.
+4. Run the full test suite of each changed project. Make sure that all tests pass.
 5. For each changed `steps.md`, make sure that each `path#function` exists in the code. Fix
    the document or the code when they do not agree.
 6. Build `.mirror/visualize.html` with "Build the data" and "Write the page" in
