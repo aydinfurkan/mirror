@@ -22,7 +22,7 @@ draws it as a graph in one HTML file.
    mirror, review the change on `.mirror/features/NNNN-<slug>.html`, then change the code.
 
 A `SessionStart` hook loads `.mirror/AGENTS.md` into each Claude Code session of a
-project that has a mirror. Other agents read it through the root `AGENTS.md`.
+project that has a mirror.
 
 ## This repository
 

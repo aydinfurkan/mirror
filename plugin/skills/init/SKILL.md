@@ -94,8 +94,6 @@ calls of the page.
 
 1. Copy `${CLAUDE_PLUGIN_ROOT}/templates/AGENTS.md` to `.mirror/AGENTS.md` if it does not exist.
 2. Copy `${CLAUDE_PLUGIN_ROOT}/templates/BUILD.md` to `.mirror/BUILD.md` if it does not exist.
-3. If the repository root has no `AGENTS.md`, create it with this text:
-   `This repository uses Mirror. Read [.mirror/AGENTS.md](.mirror/AGENTS.md) and follow it.`
 
 ## 5. Draw
 
