@@ -57,38 +57,13 @@ Show the list per project to the user. Wait for an OK. The user can rename, merg
    - `## Stack`: language, framework, main libraries, how to start it.
    - `## Technical decisions`: the choices that apply to many flows (storage, validation,
      error mapping, auth).
-2. For each flow or page, trace the code from the entry point. Then write
-   `.mirror/xsrc/<project>/<flow>/`:
-
-`definition.md`:
-
-```markdown
----
-trigger: http
-entry: POST /users
----
-Create a user account.
-```
-
-`steps.md`: a numbered list. Write one step per function that does a distinct part of the
-work. End each step with the code reference in backticks. The path is relative to the
-project root.
-
-```markdown
-1. Validate the request body. `src/users/users.schema.ts#parseCreateUser`
-2. Save the user. `src/users/users.service.ts#createUser`
-3. Return HTTP 201 with the user. `src/users/users.route.ts#postUser`
-```
-
-`boundary.md`: three sections. `## Input`: the request, message or route params.
-`## Output`: each response or effect, with each error. `## Dependencies`: databases, queues,
-external APIs, and other flows.
-
-`rules.md`: a bullet list of business rules, then `## Acceptance criteria` with one bullet
-per testable result. Read the tests to find the rules.
-
-For a page, the steps describe data loads and user actions, and the boundary lists the API
-calls of the page.
+2. For each flow or page, trace the code from the entry point. Then write the four files in
+   `.mirror/xsrc/<project>/<flow>/`. Use the formats in "File formats" of
+   `${CLAUDE_PLUGIN_ROOT}/templates/AGENTS.md`.
+3. Write one step per function that does a distinct part of the work.
+4. Read the request schemas and validators to fill the Input table of `boundary.md`. Read the
+   error mapping to fill the Output table.
+5. Read the tests to find the business rules and the acceptance criteria.
 
 ## 4. Agent rules and build guide
 

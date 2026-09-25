@@ -1,11 +1,17 @@
 ## Input
 
-- `GET /posts`, with the optional query `?authorId=<id>`.
+`GET /posts`:
+
+| Field | Type | Required | Validation |
+| --- | --- | --- | --- |
+| `authorId` (query) | string | no | Ignored when it is not a single string. |
 
 ## Output
 
-- HTTP 200 with an array of posts. The array can be empty.
-- HTTP 500 with `{ error: { code: "unexpected", field: "server", message } }`.
+| Status | Body | When |
+| --- | --- | --- |
+| 200 | `Post[]`, newest first, can be empty | Always, unless the server fails. |
+| 500 | `{ error: { code: "unexpected", field: "server", message } }` | The server fails. |
 
 ## Dependencies
 

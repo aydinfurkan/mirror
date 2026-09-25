@@ -40,10 +40,42 @@ Create a user account.
 2. Save the user. `src/users/users.service.ts#createUser`
 ```
 
-`boundary.md`: `## Input`, `## Output` (each response or effect, with each error),
-`## Dependencies` (databases, queues, external APIs, other flows).
+`boundary.md`: the contract of the flow, in three sections.
 
-`rules.md`: a bullet list of business rules, then `## Acceptance criteria`.
+- `## Input`: the trigger line (endpoint, queue, script or route), then one table row per
+  input field: path, query, body or message field. Put the shape limits (type, required,
+  length, format) in the Validation column.
+- `## Output`: one table row per result: each status code, event or effect, with each error.
+- `## Dependencies`: a bullet list of databases, queues, external APIs, and other flows.
+
+```markdown
+## Input
+
+`POST /users`, JSON body:
+
+| Field | Type | Required | Validation |
+| --- | --- | --- | --- |
+| `email` | string | yes | valid email, at most 254 characters |
+
+## Output
+
+| Status | Body | When |
+| --- | --- | --- |
+| 201 | `User` | The user is created. |
+| 400 | `{ error: { code: "validation", field, message } }` | A field fails its validation. |
+
+## Dependencies
+
+- `UserRepository.save`
+```
+
+For a page, the Input table lists the route params, the query and the form fields. The
+Output table lists what the page shows and where it goes. The Dependencies list the API
+flows that the page calls.
+
+`rules.md`: a bullet list of business rules, then `## Acceptance criteria`. Put the shape
+limits in `boundary.md`, not here. Put here the rules that need state or context: for
+example "only the author can delete a post".
 
 ## Change workflow
 

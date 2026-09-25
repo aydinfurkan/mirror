@@ -9,17 +9,17 @@
 :root {
   --bg: #f6f7f9;  --grid: #d5dae1;  --surface: #ffffff;  --panel: #ffffff;  --border: #e4e7ec;
   --text: #111827;  --muted: #6b7280;  --edge: #c3cad4;  --accent: #4f6bff;
-  --shadow: drop-shadow(0 1px 1px rgb(16 24 40 / .05)) drop-shadow(0 4px 10px rgb(16 24 40 / .07));
+  --shadow: 0 1px 2px rgb(16 24 40 / .05), 0 4px 12px rgb(16 24 40 / .07);
   --project: #4f6bff;  --flow: #12a37a;  --page: #d98a1c;  --step: #94a3b8;
   --added: #16a34a;  --changed: #d97706;  --removed: #dc2626;
-  --box-w: 240px;  --box-h: 64px;  --gap-x: 96px;  --gap-y: 20px;  --radius: 12px;
+  --box-w: 260px;  --box-h: 88px;  --gap-x: 20px;  --gap-y: 56px;  --radius: 12px;
   --font: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
 }
 :root[data-theme="dark"] {
   --bg: #0b0d12;  --grid: #222835;  --surface: #151922;  --panel: #11151c;  --border: #262c38;
   --text: #e6e9ef;  --muted: #8b93a3;  --edge: #3a4252;  --accent: #7b8cff;
-  --shadow: drop-shadow(0 1px 1px rgb(0 0 0 / .4)) drop-shadow(0 6px 14px rgb(0 0 0 / .35));
+  --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 6px 16px rgb(0 0 0 / .35);
   --project: #7b8cff;  --flow: #34d399;  --page: #fbbf24;  --step: #64748b;
   --added: #22c55e;  --changed: #f59e0b;  --removed: #f87171;
 }
@@ -40,37 +40,54 @@ header { display: flex; align-items: center; gap: 12px; padding: 10px 16px; back
 .tools { display: flex; gap: 6px; }
 .btn { height: 34px; min-width: 34px; padding: 0 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); cursor: pointer; white-space: nowrap; }
 .btn:hover { border-color: var(--accent); }
-.btn:focus-visible, .tab:focus-visible, .link:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.btn:focus-visible, .tab:focus-visible, .link:focus-visible, .toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.ptabs { display: flex; gap: 2px; padding: 0 12px; overflow-x: auto; background: var(--panel); border-bottom: 1px solid var(--border); z-index: 2; }
+.ptabs:empty { display: none; }
+.ptab { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--muted); font-weight: 600; white-space: nowrap; cursor: pointer; }
+.ptab small { font-weight: 400; font-size: 11px; }
+.ptab.on { color: var(--text); border-bottom-color: var(--accent); }
+.ptab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.ptab .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--changed); }
 main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
-#canvas { position: absolute; inset: 0; cursor: grab; touch-action: none; background-color: var(--bg); background-image: radial-gradient(var(--grid) 1px, transparent 1.3px); }
+#canvas { position: absolute; inset: 0; overflow: hidden; cursor: grab; touch-action: none; background-color: var(--bg); background-image: radial-gradient(var(--grid) 1px, transparent 1.3px); }
 #canvas.panning { cursor: grabbing; }
-#canvas svg { display: block; width: 100%; height: 100%; }
+#world { position: absolute; left: 0; top: 0; transform-origin: 0 0; user-select: none; }
+.edges { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
 .edge { fill: none; stroke: var(--edge); stroke-width: 1.5; }
-.node { cursor: pointer; outline: none; }
-.node.project { --c: var(--project); }
-.node.flow { --c: var(--flow); }
-.node.page { --c: var(--page); }
-.node.step { --c: var(--step); }
-.node .card { fill: var(--surface); stroke: var(--border); stroke-width: 1; filter: var(--shadow); transition: stroke .15s; }
-.node:hover .card { stroke: var(--c); }
-.node .bar { fill: var(--c); }
-.node text { pointer-events: none; }
-.node .title { fill: var(--text); font-size: 13px; font-weight: 600; }
-.node .sub { fill: var(--muted); font: 11px var(--mono); }
-.node .badge rect { fill: var(--c); opacity: .15; }
-.node .badge text { fill: var(--c); font-size: 10px; font-weight: 700; letter-spacing: .04em; }
-.node .num circle { fill: color-mix(in srgb, var(--c) 20%, transparent); }
-.node .num text { fill: var(--text); font-size: 11px; font-weight: 700; }
-.node.sel .card, .node:focus-visible .card, .node.match .card { stroke: var(--accent); stroke-width: 2; }
-.node.current .card { stroke-width: 3; filter: var(--shadow) drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 60%, transparent)); }
-.node.st-added .card { stroke: var(--added); stroke-width: 2.5; }
-.node.st-changed .card { stroke: var(--changed); stroke-width: 2.5; }
-.node.st-removed { opacity: .55; }
-.node.st-removed .card { stroke: var(--removed); stroke-width: 2.5; stroke-dasharray: 6 4; }
-.toggle { cursor: pointer; outline: none; }
-.toggle circle { fill: var(--surface); stroke: var(--border); }
-.toggle:hover circle, .toggle:focus-visible circle { stroke: var(--accent); stroke-width: 2; }
-.toggle text { fill: var(--muted); font-size: 11px; font-weight: 700; }
+.row { display: flex; align-items: flex-start; justify-content: center; gap: var(--gap-x); }
+.row + .row { margin-top: var(--gap-y); }
+.empty-state { padding: 40px; color: var(--muted); }
+/* Cards */
+.card { flex: none; width: var(--box-w); min-height: var(--box-h); padding: 10px 12px 12px; background: var(--surface); border: 1px solid var(--border); border-top: 4px solid var(--c); border-radius: var(--radius); box-shadow: var(--shadow); cursor: pointer; outline: none; transition: border-color .15s, box-shadow .15s; }
+.card.project { --c: var(--project); }
+.card.flow { --c: var(--flow); }
+.card.page { --c: var(--page); }
+.card:hover { border-color: var(--c); }
+.ch { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.name { font-size: 13px; font-weight: 650; overflow-wrap: anywhere; }
+.badge { flex: none; padding: 1px 7px; border-radius: 999px; font-size: 10px; font-weight: 700; letter-spacing: .04em; color: var(--c); background: color-mix(in srgb, var(--c) 15%, transparent); }
+.sub { margin-top: 2px; font: 11px var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+.def { margin: 8px 0 0; font-size: 12.5px; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.card code { font: 11px var(--mono); }
+.toggle { display: block; margin-top: 8px; padding: 2px 0; border: 0; background: none; color: var(--accent); font-size: 12px; font-weight: 600; cursor: pointer; }
+.steps { list-style: none; margin: 6px 0 0; padding: 0; border-top: 1px solid var(--border); }
+.step { display: flex; gap: 8px; padding: 6px 4px; border-bottom: 1px solid var(--border); border-radius: 6px; font-size: 12px; line-height: 1.4; outline: none; }
+.step:last-child { border-bottom: 0; }
+.step:hover { background: var(--bg); }
+.step .n { flex: none; display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; font-size: 10px; font-weight: 700; background: color-mix(in srgb, var(--c) 18%, transparent); }
+.step .body { min-width: 0; }
+.step .ref { display: block; margin-top: 2px; color: var(--muted); font-size: 10.5px; overflow-wrap: anywhere; }
+.card.sel, .card:focus-visible, .card.match { border-color: var(--accent); box-shadow: var(--shadow), 0 0 0 2px var(--accent); }
+.card.current { box-shadow: var(--shadow), 0 0 0 3px var(--accent), 0 0 18px color-mix(in srgb, var(--accent) 45%, transparent); }
+.step.sel, .step:focus-visible { box-shadow: inset 0 0 0 2px var(--accent); }
+.step.match { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.card.st-added { border-color: var(--added); box-shadow: var(--shadow), 0 0 0 2px var(--added); }
+.card.st-changed { border-color: var(--changed); box-shadow: var(--shadow), 0 0 0 2px var(--changed); }
+.card.st-removed { opacity: .6; border-style: dashed; border-color: var(--removed); }
+.step.st-added { background: color-mix(in srgb, var(--added) 14%, transparent); }
+.step.st-changed { background: color-mix(in srgb, var(--changed) 14%, transparent); }
+.step.st-removed { opacity: .6; text-decoration: line-through; background: color-mix(in srgb, var(--removed) 10%, transparent); }
+/* Floating controls */
 .float { position: absolute; display: flex; gap: 6px; align-items: center; padding: 6px; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 4px 16px rgb(0 0 0 / .08); }
 #zoom { left: 16px; bottom: 16px; }
 #zoom .btn { height: 28px; min-width: 28px; padding: 0 8px; border-radius: 8px; }
@@ -78,6 +95,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 #legend { right: 16px; bottom: 16px; display: none; gap: 14px; padding: 8px 12px; font-size: 12px; }
 #legend.on { display: flex; }
 #legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; background: var(--c); }
+/* Drawer */
 #drawer { position: absolute; top: 0; right: 0; bottom: 0; width: min(420px, 100%); display: flex; flex-direction: column; background: var(--panel); border-left: 1px solid var(--border); box-shadow: -8px 0 24px rgb(0 0 0 / .08); transform: translateX(100%); visibility: hidden; transition: transform .2s ease, visibility .2s; z-index: 3; }
 #drawer.open { transform: none; visibility: visible; }
 .dh { display: flex; align-items: flex-start; gap: 10px; padding: 16px 16px 10px; }
@@ -88,25 +106,21 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 .tabs { display: flex; gap: 2px; padding: 0 12px; border-bottom: 1px solid var(--border); }
 .tab { padding: 8px 10px; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--muted); cursor: pointer; }
 .tab.on { color: var(--text); border-bottom-color: var(--accent); }
-.ptabs { display: flex; gap: 2px; padding: 0 12px; overflow-x: auto; background: var(--panel); border-bottom: 1px solid var(--border); z-index: 2; }
-.ptabs:empty { display: none; }
-.ptab { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--muted); font-weight: 600; white-space: nowrap; cursor: pointer; }
-.ptab small { font-weight: 400; font-size: 11px; }
-.ptab.on { color: var(--text); border-bottom-color: var(--accent); }
-.ptab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-.ptab .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--changed); }
 .db { flex: 1; overflow: auto; padding: 12px 16px 24px; }
 .db h4, .db h5, .db h6 { margin: 18px 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
 .db code { font: 12px var(--mono); padding: 1px 5px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg); }
 .db pre { padding: 10px; overflow: auto; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); }
 .db pre code { padding: 0; border: 0; }
 .db ul, .db ol { padding-left: 20px; }
+.db table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 13px; }
+.db th, .db td { padding: 6px 8px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+.db th { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
 .list { list-style: none; margin: 0; padding: 0; }
 .list li { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
 .list li > div { flex: 1; min-width: 0; }
 .list .n { flex: none; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; font-size: 11px; font-weight: 700; border: 1px solid var(--border); background: var(--bg); }
-.ref { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
-.ref code { min-width: 0; overflow-wrap: anywhere; }
+.coderef { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+.coderef code { min-width: 0; overflow-wrap: anywhere; }
 .copy { flex: none; height: 24px; padding: 0 8px; border-radius: 6px; font-size: 11px; }
 .link { padding: 0; border: 0; background: none; color: var(--accent); text-align: left; cursor: pointer; }
 .empty { color: var(--muted); }
@@ -132,7 +146,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 </header>
 <nav class="ptabs" id="ptabs" role="tablist" aria-label="Projects"></nav>
 <main>
-  <div id="canvas"></div>
+  <div id="canvas"><div id="world"></div></div>
   <div class="float" id="zoom">
     <button class="btn" id="zoom-out" aria-label="Zoom out">&minus;</button>
     <span class="meta pct" id="zoom-pct">100%</span>
@@ -147,7 +161,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
   <aside id="drawer" aria-hidden="true"></aside>
 </main>
 <script type="application/json" id="mirror-data">
-{"generated":"2026-09-25","title":"posts","projects":[{"id":"api","kinds":["backend"],"definition":"The `api` project is an HTTP API for posts. An author creates, reads, updates and deletes posts.\n\n## Stack\n\n- TypeScript on Node 20 or later. Express 4. zod. vitest and supertest for the tests.\n- Start it with `npm -C code run dev`. It reads the port from `PORT`. The default port is 3000.\n\n## Technical decisions\n\n- Keep the posts in memory behind the `PostRepository` port in `src/domain/post.port.ts`. The service restarts empty. A real store can replace `src/infra/post.repo.memory.ts` later.\n- Parse the shape of each request body with zod at the route (`src/api/routes/posts.schema.ts`). Keep the business rules in `src/domain/post.rules.ts`.\n- Return a `ServiceResult` from each service function. `src/api/http.ts` maps the error codes to HTTP: `validation` 400, `not-found` 404, an unexpected error 500.\n","status":null,"flows":[{"id":"create-post","kind":"flow","trigger":"http","entry":"POST /posts","definition":"Create a post for an author.\n","boundary":"## Input\n\n- `POST /posts` with the JSON body `{ \"title\": string, \"body\": string, \"authorId\": non-empty string }`.\n\n## Output\n\n- HTTP 201 with `{ id, title, body, authorId, createdAt, updatedAt }`. `updatedAt` equals `createdAt`.\n- HTTP 400 with `{ error: { code: \"validation\", field, message } }`.\n- HTTP 500 with `{ error: { code: \"unexpected\", field: \"server\", message } }`.\n\n## Dependencies\n\n- `PostRepository.save` (in memory).\n- `now()` and `newId()` from `src/infra/system.deps.ts`.\n","rules":"- Create a post when a user supplies a title, a body and an author id.\n- Give the post a unique id. Record the creation time.\n- Reject a title that contains no visible characters or is longer than 120 characters.\n- Reject a body that contains no visible characters or is longer than 10000 characters.\n\n## Acceptance criteria\n\n- Return the new post with `updatedAt` equal to `createdAt`.\n- Store the new post in the repository.\n- Accept a title of exactly 120 characters.\n- Reject a title of 121 characters.\n- Reject an empty body.\n- Store nothing when the input is invalid.\n","status":null,"steps":[{"n":1,"text":"Receive the request.","ref":"src/api/routes/posts.route.ts#handleCreatePost","status":null},{"n":2,"text":"Parse the body shape. Return HTTP 400 when it is wrong.","ref":"src/api/routes/posts.schema.ts#parseCreatePostBody","status":null},{"n":3,"text":"Validate the title. Return HTTP 400 when it is not valid.","ref":"src/domain/post.rules.ts#validateTitle","status":null},{"n":4,"text":"Validate the body. Return HTTP 400 when it is not valid.","ref":"src/domain/post.rules.ts#validateBody","status":null},{"n":5,"text":"Make the post with a new id and the creation time. Save it.","ref":"src/domain/post.service.ts#createPost","status":null},{"n":6,"text":"Return HTTP 201 with the post.","ref":"src/api/http.ts#sendJson","status":null}]},{"id":"delete-post","kind":"flow","trigger":"http","entry":"DELETE /posts/: id","definition":"Delete a post.\n","boundary":"## Input\n\n- `DELETE /posts/:id`. No body.\n\n## Output\n\n- HTTP 204 with no body.\n- HTTP 404 with `{ error: { code: \"not-found\", field: \"id\", message } }`.\n- HTTP 500 with `{ error: { code: \"unexpected\", field: \"server\", message } }`.\n\n## Dependencies\n\n- `PostRepository.remove` (in memory).\n","rules":"- Remove the post with the given id.\n\n## Acceptance criteria\n\n- Remove the post from the repository.\n- Return not-found for the post after the delete.\n- Report a not-found error for an unknown id.\n","status":null,"steps":[{"n":1,"text":"Receive the request. Read `id` from the path.","ref":"src/api/routes/posts.route.ts#handleDeletePost","status":null},{"n":2,"text":"Remove the post. Return HTTP 404 when it does not exist.","ref":"src/domain/post.service.ts#deletePost","status":null},{"n":3,"text":"Return HTTP 204 with no body.","ref":"src/api/http.ts#sendNoContent","status":null}]},{"id":"get-post","kind":"flow","trigger":"http","entry":"GET /posts/: id","definition":"Return one post.\n","boundary":"## Input\n\n- `GET /posts/:id`.\n\n## Output\n\n- HTTP 200 with the post.\n- HTTP 404 with `{ error: { code: \"not-found\", field: \"id\", message } }`.\n- HTTP 500 with `{ error: { code: \"unexpected\", field: \"server\", message } }`.\n\n## Dependencies\n\n- `PostRepository.findById` (in memory).\n","rules":"- Return the post with the given id.\n\n## Acceptance criteria\n\n- Return the post for a known id.\n- Report a not-found error for an unknown id.\n","status":null,"steps":[{"n":1,"text":"Receive the request. Read `id` from the path.","ref":"src/api/routes/posts.route.ts#handleGetPost","status":null},{"n":2,"text":"Find the post. Return HTTP 404 when it does not exist.","ref":"src/domain/post.service.ts#getPost","status":null},{"n":3,"text":"Return HTTP 200 with the post.","ref":"src/api/http.ts#sendJson","status":null}]},{"id":"health-check","kind":"flow","trigger":"http","entry":"GET /health","definition":"Tell a caller that the API runs.\n","boundary":"## Input\n\n- `GET /health`.\n\n## Output\n\n- HTTP 200 with `{ \"status\": \"ok\" }`.\n\n## Dependencies\n\n- None.\n","rules":"- Answer without a call to the repository.\n\n## Acceptance criteria\n\n- `GET /health` returns HTTP 200 with `{ \"status\": \"ok\" }`.\n","status":null,"steps":[{"n":1,"text":"Return HTTP 200 with `{ \"status\": \"ok\" }`.","ref":"src/api/server.ts#createServer","status":null}]},{"id":"list-posts","kind":"flow","trigger":"http","entry":"GET /posts","definition":"List the posts, newest first. Filter by author when the request names one.\n","boundary":"## Input\n\n- `GET /posts`, with the optional query `?authorId=\u003cid>`.\n\n## Output\n\n- HTTP 200 with an array of posts. The array can be empty.\n- HTTP 500 with `{ error: { code: \"unexpected\", field: \"server\", message } }`.\n\n## Dependencies\n\n- `PostRepository.findAll` (in memory).\n","rules":"- List all posts when the request names no author.\n- List only the posts of the author when the request names one.\n- Show the newest post first.\n\n## Acceptance criteria\n\n- Order the posts by `createdAt`, newest first.\n- Return only the posts whose `authorId` matches the query.\n- Return an empty list for an author who has no posts.\n","status":null,"steps":[{"n":1,"text":"Receive the request. Read the optional `authorId` from the query.","ref":"src/api/routes/posts.route.ts#handleListPosts","status":null},{"n":2,"text":"Load the posts. Keep only the posts of the author when `authorId` is set.","ref":"src/domain/post.service.ts#listPosts","status":null},{"n":3,"text":"Sort the posts newest first.","ref":"src/domain/post.rules.ts#sortNewestFirst","status":null},{"n":4,"text":"Return HTTP 200 with the list.","ref":"src/api/http.ts#sendJson","status":null}]},{"id":"update-post","kind":"flow","trigger":"http","entry":"PATCH /posts/: id","definition":"Change the title, the body, or both, of a post.\n","boundary":"## Input\n\n- `PATCH /posts/:id` with the JSON body `{ \"title\"?: string, \"body\"?: string }`. At least one field is set.\n\n## Output\n\n- HTTP 200 with the updated post.\n- HTTP 400 with `{ error: { code: \"validation\", field, message } }`.\n- HTTP 404 with `{ error: { code: \"not-found\", field: \"id\", message } }`.\n- HTTP 500 with `{ error: { code: \"unexpected\", field: \"server\", message } }`.\n\n## Dependencies\n\n- `PostRepository.findById` and `PostRepository.save` (in memory).\n- `now()` from `src/infra/system.deps.ts`.\n","rules":"- Change only the fields that the request sets.\n- Record the update time. Keep the creation time.\n- Use the same title and body limits as when a post is created.\n\n## Acceptance criteria\n\n- Keep each field that the request does not set.\n- Set `updatedAt` to the update time.\n- Reject a request that sets no field.\n- Keep the post unchanged when a field is invalid.\n- Report a not-found error for an unknown id.\n","status":null,"steps":[{"n":1,"text":"Receive the request. Read `id` from the path.","ref":"src/api/routes/posts.route.ts#handleUpdatePost","status":null},{"n":2,"text":"Parse the body shape. Return HTTP 400 when it has no field to change.","ref":"src/api/routes/posts.schema.ts#parseUpdatePostBody","status":null},{"n":3,"text":"Find the post. Return HTTP 404 when it does not exist.","ref":"src/domain/post.service.ts#updatePost","status":null},{"n":4,"text":"Validate the title when it is set. Return HTTP 400 when it is not valid.","ref":"src/domain/post.rules.ts#validateTitle","status":null},{"n":5,"text":"Validate the body when it is set. Return HTTP 400 when it is not valid.","ref":"src/domain/post.rules.ts#validateBody","status":null},{"n":6,"text":"Apply the given fields and record the update time. Save the post.","ref":"src/domain/post.service.ts#updatePost","status":null},{"n":7,"text":"Return HTTP 200 with the post.","ref":"src/api/http.ts#sendJson","status":null}]}]},{"id":"web","kinds":["frontend"],"definition":"The `web` project is a web app for posts. A user lists, reads, creates, edits and deletes posts through the `api` project.\n\n## Stack\n\n- TypeScript, React 18, React Router 6, Vite. vitest, jsdom and Testing Library for the tests.\n- Start it with `npm -C web run dev`. Start the `api` project on port 3000 first.\n\n## Technical decisions\n\n- Call the API only through `src/api/posts.api.ts`. Each call uses the base path `/api`. The Vite dev server sends `/api/*` to `http://localhost:3000`, so the browser needs no CORS.\n- Throw an `ApiError` with the status, the field and the message of the API error. A form shows that message.\n- Use one form component, `src/components/PostForm.tsx`, for the new-post page and the edit-post page.\n- Keep the state of each page in the page. The app has no global store.\n","status":null,"flows":[{"id":"edit-post","kind":"page","trigger":"page","entry":"/posts/: id/edit","definition":"Let the user change the title and the body of a post.\n","boundary":"## Input\n\n- Route `/posts/:id/edit`.\n- The title and the body that the user types.\n\n## Output\n\n- A move to `/posts/:id` after the save.\n- An alert on the form with the API message when the save fails.\n- An alert when the post does not exist.\n\n## Dependencies\n\n- `GET /api/posts/:id` (flow `api/get-post`).\n- `PATCH /api/posts/:id` (flow `api/update-post`).\n","rules":"- Do not let the user change the author of a post.\n- Let the API validate the change. Show its message to the user.\n\n## Acceptance criteria\n\n- Fill the form with the current title and body.\n- Send `PATCH /api/posts/\u003cid>`, then show the post with the new title.\n","status":null,"steps":[{"n":1,"text":"Read `id` from the route. Load the post. Show an alert when it does not exist.","ref":"src/api/posts.api.ts#getPost","status":null},{"n":2,"text":"Show the form with the current title and body.","ref":"src/components/PostForm.tsx#PostForm","status":null},{"n":3,"text":"When the user clicks \"Save\", send the title and the body.","ref":"src/api/posts.api.ts#updatePost","status":null},{"n":4,"text":"Show the error message of the API on the form when the API rejects the change.","ref":"src/components/PostForm.tsx#PostForm","status":null},{"n":5,"text":"Open the detail page of the post.","ref":"src/pages/EditPostPage.tsx#EditPostPage","status":null}]},{"id":"new-post","kind":"page","trigger":"page","entry":"/posts/new","definition":"Let the user write and create a post.\n","boundary":"## Input\n\n- Route `/posts/new`.\n- The title, the body and the author id that the user types.\n\n## Output\n\n- A move to `/posts/\u003cnew id>` after the create.\n- An alert on the form with the API message when the create fails.\n\n## Dependencies\n\n- `POST /api/posts` (flow `api/create-post`).\n","rules":"- Let the API validate the post. Show its message to the user.\n- Disable the submit button while the request runs.\n\n## Acceptance criteria\n\n- Open the new post after a create.\n- Show \"Enter a title.\" and stay on the form when the title is empty.\n","status":null,"steps":[{"n":1,"text":"Show an empty form with a title, a body and an author id.","ref":"src/components/PostForm.tsx#PostForm","status":null},{"n":2,"text":"When the user clicks \"Create\", send the post.","ref":"src/api/posts.api.ts#createPost","status":null},{"n":3,"text":"Show the error message of the API on the form when the API rejects the post.","ref":"src/components/PostForm.tsx#PostForm","status":null},{"n":4,"text":"Open the detail page of the new post.","ref":"src/pages/NewPostPage.tsx#NewPostPage","status":null}]},{"id":"post-detail","kind":"page","trigger":"page","entry":"/posts/: id","definition":"Show one post. Let the user edit or delete it.\n","boundary":"## Input\n\n- Route `/posts/:id`.\n- A click on \"Delete\", and the answer to the confirmation.\n\n## Output\n\n- The post: title, author, update time and body.\n- An \"Edit\" link to `/posts/:id/edit`.\n- A move to `/` after a delete.\n- An alert when the post does not exist or the delete fails.\n\n## Dependencies\n\n- `GET /api/posts/:id` (flow `api/get-post`).\n- `DELETE /api/posts/:id` (flow `api/delete-post`).\n","rules":"- Delete a post only after the user confirms it.\n\n## Acceptance criteria\n\n- Show the title as the page heading.\n- Send `DELETE /api/posts/\u003cid>` after the confirmation, then show the list without the post.\n- Show \"Could not find this post.\" for an unknown id.\n","status":null,"steps":[{"n":1,"text":"Read `id` from the route.","ref":"src/pages/PostDetailPage.tsx#PostDetailPage","status":null},{"n":2,"text":"Load the post. Show an alert when it does not exist.","ref":"src/api/posts.api.ts#getPost","status":null},{"n":3,"text":"Show the title, the author, the update time and the body.","ref":"src/pages/PostDetailPage.tsx#PostDetailPage","status":null},{"n":4,"text":"When the user clicks \"Delete\", ask for a confirmation. Delete the post. Go to the list.","ref":"src/api/posts.api.ts#deletePost","status":null}]},{"id":"posts-list","kind":"page","trigger":"page","entry":"/","definition":"Show the list of posts. Let the user filter it by author.\n","boundary":"## Input\n\n- Route `/`, with the optional query `?authorId=\u003cid>`.\n- The author id that the user types.\n\n## Output\n\n- A list of posts. Each post links to `/posts/:id`.\n- A \"New post\" link to `/posts/new`.\n- \"Loading…\" while the posts load. \"No posts yet.\" for an empty list. An alert when the load fails.\n\n## Dependencies\n\n- `GET /api/posts` (flow `api/list-posts`).\n","rules":"- Show the posts in the order that the API returns: newest first.\n- Keep the author filter in the URL, so a user can share the filtered list.\n\n## Acceptance criteria\n\n- Show a link to `/posts/\u003cid>` for each post.\n- Request `GET /api/posts?authorId=\u003cid>` when the URL has an author id.\n- Show \"No posts yet.\" when the API returns an empty list.\n","status":null,"steps":[{"n":1,"text":"Read the optional `authorId` from the URL query.","ref":"src/pages/PostsListPage.tsx#PostsListPage","status":null},{"n":2,"text":"Load the posts. Filter them by author when `authorId` is set.","ref":"src/api/posts.api.ts#listPosts","status":null},{"n":3,"text":"Show each post as a link to its detail page. Show \"No posts yet.\" for an empty list.","ref":"src/pages/PostsListPage.tsx#PostsListPage","status":null},{"n":4,"text":"Put the author id that the user types into the URL query. Load the posts again.","ref":"src/pages/PostsListPage.tsx#PostsListPage","status":null}]}]}]}
+{"generated":"2026-09-25","title":"posts","projects":[{"id":"api","kinds":["backend"],"definition":"The `api` project is an HTTP API for posts. An author creates, reads, updates and deletes posts.\n\n## Stack\n\n- TypeScript on Node 20 or later. Express 4. zod. vitest and supertest for the tests.\n- Start it with `npm -C code run dev`. It reads the port from `PORT`. The default port is 3000.\n\n## Technical decisions\n\n- Keep the posts in memory behind the `PostRepository` port in `src/domain/post.port.ts`. The service restarts empty. A real store can replace `src/infra/post.repo.memory.ts` later.\n- Parse the shape of each request body with zod at the route (`src/api/routes/posts.schema.ts`). Keep the business rules in `src/domain/post.rules.ts`.\n- Return a `ServiceResult` from each service function. `src/api/http.ts` maps the error codes to HTTP: `validation` 400, `not-found` 404, an unexpected error 500.\n","status":null,"flows":[{"id":"create-post","kind":"flow","trigger":"http","entry":"POST /posts","definition":"Create a post for an author.\n","boundary":"## Input\n\n`POST /posts`, JSON body:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `title` | string | yes | 1–120 characters, at least one visible character |\n| `body` | string | yes | 1–10000 characters, at least one visible character |\n| `authorId` | string | yes | not empty |\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 201 | `Post` (`updatedAt` equals `createdAt`) | The post is created. |\n| 400 | `{ error: { code: \"validation\", field, message } }` | A field fails its validation. |\n| 500 | `{ error: { code: \"unexpected\", field: \"server\", message } }` | The server fails. |\n\n## Dependencies\n\n- `PostRepository.save` (in memory).\n- `now()` and `newId()` from `src/infra/system.deps.ts`.\n","rules":"- Create a post when a user supplies a title, a body and an author id.\n- Give the post a unique id. Record the creation time.\n- Reject a title that contains no visible characters or is longer than 120 characters.\n- Reject a body that contains no visible characters or is longer than 10000 characters.\n\n## Acceptance criteria\n\n- Return the new post with `updatedAt` equal to `createdAt`.\n- Store the new post in the repository.\n- Accept a title of exactly 120 characters.\n- Reject a title of 121 characters.\n- Reject an empty body.\n- Store nothing when the input is invalid.\n","status":null,"steps":[{"n":1,"text":"Receive the request.","ref":"src/api/routes/posts.route.ts#handleCreatePost","status":null},{"n":2,"text":"Parse the body shape. Return HTTP 400 when it is wrong.","ref":"src/api/routes/posts.schema.ts#parseCreatePostBody","status":null},{"n":3,"text":"Validate the title. Return HTTP 400 when it is not valid.","ref":"src/domain/post.rules.ts#validateTitle","status":null},{"n":4,"text":"Validate the body. Return HTTP 400 when it is not valid.","ref":"src/domain/post.rules.ts#validateBody","status":null},{"n":5,"text":"Make the post with a new id and the creation time. Save it.","ref":"src/domain/post.service.ts#createPost","status":null},{"n":6,"text":"Return HTTP 201 with the post.","ref":"src/api/http.ts#sendJson","status":null}]},{"id":"delete-post","kind":"flow","trigger":"http","entry":"DELETE /posts/: id","definition":"Delete a post.\n","boundary":"## Input\n\n`DELETE /posts/:id`, no body:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `id` (path) | string | yes | — |\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 204 | none | The post is deleted. |\n| 404 | `{ error: { code: \"not-found\", field: \"id\", message } }` | No post has this id. |\n| 500 | `{ error: { code: \"unexpected\", field: \"server\", message } }` | The server fails. |\n\n## Dependencies\n\n- `PostRepository.remove` (in memory).\n","rules":"- Remove the post with the given id.\n\n## Acceptance criteria\n\n- Remove the post from the repository.\n- Return not-found for the post after the delete.\n- Report a not-found error for an unknown id.\n","status":null,"steps":[{"n":1,"text":"Receive the request. Read `id` from the path.","ref":"src/api/routes/posts.route.ts#handleDeletePost","status":null},{"n":2,"text":"Remove the post. Return HTTP 404 when it does not exist.","ref":"src/domain/post.service.ts#deletePost","status":null},{"n":3,"text":"Return HTTP 204 with no body.","ref":"src/api/http.ts#sendNoContent","status":null}]},{"id":"get-post","kind":"flow","trigger":"http","entry":"GET /posts/: id","definition":"Return one post.\n","boundary":"## Input\n\n`GET /posts/:id`:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `id` (path) | string | yes | — |\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 200 | `Post` | The post exists. |\n| 404 | `{ error: { code: \"not-found\", field: \"id\", message } }` | No post has this id. |\n| 500 | `{ error: { code: \"unexpected\", field: \"server\", message } }` | The server fails. |\n\n## Dependencies\n\n- `PostRepository.findById` (in memory).\n","rules":"- Return the post with the given id.\n\n## Acceptance criteria\n\n- Return the post for a known id.\n- Report a not-found error for an unknown id.\n","status":null,"steps":[{"n":1,"text":"Receive the request. Read `id` from the path.","ref":"src/api/routes/posts.route.ts#handleGetPost","status":null},{"n":2,"text":"Find the post. Return HTTP 404 when it does not exist.","ref":"src/domain/post.service.ts#getPost","status":null},{"n":3,"text":"Return HTTP 200 with the post.","ref":"src/api/http.ts#sendJson","status":null}]},{"id":"health-check","kind":"flow","trigger":"http","entry":"GET /health","definition":"Tell a caller that the API runs.\n","boundary":"## Input\n\n`GET /health`, no fields.\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 200 | `{ \"status\": \"ok\" }` | The API runs. |\n\n## Dependencies\n\n- None.\n","rules":"- Answer without a call to the repository.\n\n## Acceptance criteria\n\n- `GET /health` returns HTTP 200 with `{ \"status\": \"ok\" }`.\n","status":null,"steps":[{"n":1,"text":"Return HTTP 200 with `{ \"status\": \"ok\" }`.","ref":"src/api/server.ts#createServer","status":null}]},{"id":"list-posts","kind":"flow","trigger":"http","entry":"GET /posts","definition":"List the posts, newest first. Filter by author when the request names one.\n","boundary":"## Input\n\n`GET /posts`:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `authorId` (query) | string | no | Ignored when it is not a single string. |\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 200 | `Post[]`, newest first, can be empty | Always, unless the server fails. |\n| 500 | `{ error: { code: \"unexpected\", field: \"server\", message } }` | The server fails. |\n\n## Dependencies\n\n- `PostRepository.findAll` (in memory).\n","rules":"- List all posts when the request names no author.\n- List only the posts of the author when the request names one.\n- Show the newest post first.\n\n## Acceptance criteria\n\n- Order the posts by `createdAt`, newest first.\n- Return only the posts whose `authorId` matches the query.\n- Return an empty list for an author who has no posts.\n","status":null,"steps":[{"n":1,"text":"Receive the request. Read the optional `authorId` from the query.","ref":"src/api/routes/posts.route.ts#handleListPosts","status":null},{"n":2,"text":"Load the posts. Keep only the posts of the author when `authorId` is set.","ref":"src/domain/post.service.ts#listPosts","status":null},{"n":3,"text":"Sort the posts newest first.","ref":"src/domain/post.rules.ts#sortNewestFirst","status":null},{"n":4,"text":"Return HTTP 200 with the list.","ref":"src/api/http.ts#sendJson","status":null}]},{"id":"update-post","kind":"flow","trigger":"http","entry":"PATCH /posts/: id","definition":"Change the title, the body, or both, of a post.\n","boundary":"## Input\n\n`PATCH /posts/:id`, JSON body with at least one of `title` and `body`:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `id` (path) | string | yes | — |\n| `title` | string | no | 1–120 characters, at least one visible character |\n| `body` | string | no | 1–10000 characters, at least one visible character |\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 200 | `Post` with a new `updatedAt` | The post is updated. |\n| 400 | `{ error: { code: \"validation\", field, message } }` | No field is set, or a field fails its validation. |\n| 404 | `{ error: { code: \"not-found\", field: \"id\", message } }` | No post has this id. |\n| 500 | `{ error: { code: \"unexpected\", field: \"server\", message } }` | The server fails. |\n\n## Dependencies\n\n- `PostRepository.findById` and `PostRepository.save` (in memory).\n- `now()` from `src/infra/system.deps.ts`.\n","rules":"- Change only the fields that the request sets.\n- Record the update time. Keep the creation time.\n- Use the same title and body limits as when a post is created.\n\n## Acceptance criteria\n\n- Keep each field that the request does not set.\n- Set `updatedAt` to the update time.\n- Reject a request that sets no field.\n- Keep the post unchanged when a field is invalid.\n- Report a not-found error for an unknown id.\n","status":null,"steps":[{"n":1,"text":"Receive the request. Read `id` from the path.","ref":"src/api/routes/posts.route.ts#handleUpdatePost","status":null},{"n":2,"text":"Parse the body shape. Return HTTP 400 when it has no field to change.","ref":"src/api/routes/posts.schema.ts#parseUpdatePostBody","status":null},{"n":3,"text":"Find the post. Return HTTP 404 when it does not exist.","ref":"src/domain/post.service.ts#updatePost","status":null},{"n":4,"text":"Validate the title when it is set. Return HTTP 400 when it is not valid.","ref":"src/domain/post.rules.ts#validateTitle","status":null},{"n":5,"text":"Validate the body when it is set. Return HTTP 400 when it is not valid.","ref":"src/domain/post.rules.ts#validateBody","status":null},{"n":6,"text":"Apply the given fields and record the update time. Save the post.","ref":"src/domain/post.service.ts#updatePost","status":null},{"n":7,"text":"Return HTTP 200 with the post.","ref":"src/api/http.ts#sendJson","status":null}]}]},{"id":"web","kinds":["frontend"],"definition":"The `web` project is a web app for posts. A user lists, reads, creates, edits and deletes posts through the `api` project.\n\n## Stack\n\n- TypeScript, React 18, React Router 6, Vite. vitest, jsdom and Testing Library for the tests.\n- Start it with `npm -C web run dev`. Start the `api` project on port 3000 first.\n\n## Technical decisions\n\n- Call the API only through `src/api/posts.api.ts`. Each call uses the base path `/api`. The Vite dev server sends `/api/*` to `http://localhost:3000`, so the browser needs no CORS.\n- Throw an `ApiError` with the status, the field and the message of the API error. A form shows that message.\n- Use one form component, `src/components/PostForm.tsx`, for the new-post page and the edit-post page.\n- Keep the state of each page in the page. The app has no global store.\n","status":null,"flows":[{"id":"edit-post","kind":"page","trigger":"page","entry":"/posts/: id/edit","definition":"Let the user change the title and the body of a post.\n","boundary":"## Input\n\n- Route `/posts/:id/edit`.\n- The title and the body that the user types.\n\n## Output\n\n- A move to `/posts/:id` after the save.\n- An alert on the form with the API message when the save fails.\n- An alert when the post does not exist.\n\n## Dependencies\n\n- `GET /api/posts/:id` (flow `api/get-post`).\n- `PATCH /api/posts/:id` (flow `api/update-post`).\n","rules":"- Do not let the user change the author of a post.\n- Let the API validate the change. Show its message to the user.\n\n## Acceptance criteria\n\n- Fill the form with the current title and body.\n- Send `PATCH /api/posts/\u003cid>`, then show the post with the new title.\n","status":null,"steps":[{"n":1,"text":"Read `id` from the route. Load the post. Show an alert when it does not exist.","ref":"src/api/posts.api.ts#getPost","status":null},{"n":2,"text":"Show the form with the current title and body.","ref":"src/components/PostForm.tsx#PostForm","status":null},{"n":3,"text":"When the user clicks \"Save\", send the title and the body.","ref":"src/api/posts.api.ts#updatePost","status":null},{"n":4,"text":"Show the error message of the API on the form when the API rejects the change.","ref":"src/components/PostForm.tsx#PostForm","status":null},{"n":5,"text":"Open the detail page of the post.","ref":"src/pages/EditPostPage.tsx#EditPostPage","status":null}]},{"id":"new-post","kind":"page","trigger":"page","entry":"/posts/new","definition":"Let the user write and create a post.\n","boundary":"## Input\n\n- Route `/posts/new`.\n- The title, the body and the author id that the user types.\n\n## Output\n\n- A move to `/posts/\u003cnew id>` after the create.\n- An alert on the form with the API message when the create fails.\n\n## Dependencies\n\n- `POST /api/posts` (flow `api/create-post`).\n","rules":"- Let the API validate the post. Show its message to the user.\n- Disable the submit button while the request runs.\n\n## Acceptance criteria\n\n- Open the new post after a create.\n- Show \"Enter a title.\" and stay on the form when the title is empty.\n","status":null,"steps":[{"n":1,"text":"Show an empty form with a title, a body and an author id.","ref":"src/components/PostForm.tsx#PostForm","status":null},{"n":2,"text":"When the user clicks \"Create\", send the post.","ref":"src/api/posts.api.ts#createPost","status":null},{"n":3,"text":"Show the error message of the API on the form when the API rejects the post.","ref":"src/components/PostForm.tsx#PostForm","status":null},{"n":4,"text":"Open the detail page of the new post.","ref":"src/pages/NewPostPage.tsx#NewPostPage","status":null}]},{"id":"post-detail","kind":"page","trigger":"page","entry":"/posts/: id","definition":"Show one post. Let the user edit or delete it.\n","boundary":"## Input\n\n- Route `/posts/:id`.\n- A click on \"Delete\", and the answer to the confirmation.\n\n## Output\n\n- The post: title, author, update time and body.\n- An \"Edit\" link to `/posts/:id/edit`.\n- A move to `/` after a delete.\n- An alert when the post does not exist or the delete fails.\n\n## Dependencies\n\n- `GET /api/posts/:id` (flow `api/get-post`).\n- `DELETE /api/posts/:id` (flow `api/delete-post`).\n","rules":"- Delete a post only after the user confirms it.\n\n## Acceptance criteria\n\n- Show the title as the page heading.\n- Send `DELETE /api/posts/\u003cid>` after the confirmation, then show the list without the post.\n- Show \"Could not find this post.\" for an unknown id.\n","status":null,"steps":[{"n":1,"text":"Read `id` from the route.","ref":"src/pages/PostDetailPage.tsx#PostDetailPage","status":null},{"n":2,"text":"Load the post. Show an alert when it does not exist.","ref":"src/api/posts.api.ts#getPost","status":null},{"n":3,"text":"Show the title, the author, the update time and the body.","ref":"src/pages/PostDetailPage.tsx#PostDetailPage","status":null},{"n":4,"text":"When the user clicks \"Delete\", ask for a confirmation. Delete the post. Go to the list.","ref":"src/api/posts.api.ts#deletePost","status":null}]},{"id":"posts-list","kind":"page","trigger":"page","entry":"/","definition":"Show the list of posts. Let the user filter it by author.\n","boundary":"## Input\n\n- Route `/`, with the optional query `?authorId=\u003cid>`.\n- The author id that the user types.\n\n## Output\n\n- A list of posts. Each post links to `/posts/:id`.\n- A \"New post\" link to `/posts/new`.\n- \"Loading…\" while the posts load. \"No posts yet.\" for an empty list. An alert when the load fails.\n\n## Dependencies\n\n- `GET /api/posts` (flow `api/list-posts`).\n","rules":"- Show the posts in the order that the API returns: newest first.\n- Keep the author filter in the URL, so a user can share the filtered list.\n\n## Acceptance criteria\n\n- Show a link to `/posts/\u003cid>` for each post.\n- Request `GET /api/posts?authorId=\u003cid>` when the URL has an author id.\n- Show \"No posts yet.\" when the API returns an empty list.\n","status":null,"steps":[{"n":1,"text":"Read the optional `authorId` from the URL query.","ref":"src/pages/PostsListPage.tsx#PostsListPage","status":null},{"n":2,"text":"Load the posts. Filter them by author when `authorId` is set.","ref":"src/api/posts.api.ts#listPosts","status":null},{"n":3,"text":"Show each post as a link to its detail page. Show \"No posts yet.\" for an empty list.","ref":"src/pages/PostsListPage.tsx#PostsListPage","status":null},{"n":4,"text":"Put the author id that the user types into the URL query. Load the posts again.","ref":"src/pages/PostsListPage.tsx#PostsListPage","status":null}]}]}]}
 </script>
 <script id="mirror-app">
 (function () {
@@ -163,16 +177,31 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
       .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   }
 
-  // Headings, bullet and numbered lists, code fences, paragraphs. Input is escaped first.
+  // Headings, bullet and numbered lists, tables, code fences, paragraphs. Input is escaped first.
   function renderMd(text) {
     var out = [], list = null, code = null;
-    function closeList() { if (list) { out.push('</' + list + '>'); list = null; } }
+    function closeList() {
+      if (list) { out.push(list === 'table' ? '</tbody></table>' : '</' + list + '>'); list = null; }
+    }
     function openList(tag) { if (list !== tag) { closeList(); list = tag; out.push('<' + tag + '>'); } }
+    function cells(line, tag) {
+      return '<tr>' + line.trim().replace(/^\||\|$/g, '').split('|').map(function (c) {
+        return '<' + tag + '>' + inline(c.trim()) + '</' + tag + '>';
+      }).join('') + '</tr>';
+    }
     String(text || '').split(/\r?\n/).forEach(function (line) {
       var m;
       if (code !== null) {
         if (/^```/.test(line)) { out.push('<pre><code>' + esc(code.join('\n')) + '</code></pre>'); code = null; }
         else code.push(line);
+        return;
+      }
+      if (/^\s*\|/.test(line)) {
+        if (/^\s*\|[\s:|-]+\|\s*$/.test(line)) return; // separator row
+        if (list === 'table') { out.push(cells(line, 'td')); return; }
+        closeList();
+        list = 'table';
+        out.push('<table><thead>' + cells(line, 'th') + '</thead><tbody>');
         return;
       }
       if (/^```/.test(line)) { closeList(); code = []; return; }
@@ -192,37 +221,65 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     return out.join('');
   }
 
+  // The first plain paragraph of a markdown text: the short definition shown on a card.
+  function summary(md) {
+    var out = [];
+    String(md || '').split(/\r?\n/).some(function (line) {
+      var s = line.trim();
+      if (!s || /^(#|[-*]\s|\d+\.\s|\||```)/.test(s)) return out.length > 0;
+      out.push(s);
+      return false;
+    });
+    return out.join(' ');
+  }
+
   var BADGE = { http: 'HTTP', main: 'MAIN', message: 'MSG', schedule: 'CRON', page: 'PAGE' };
   var STATUS = { added: 1, changed: 1, removed: 1 };
 
-  // Columns: project, flow/page, step. Each step takes one row; a parent sits at the middle of its children.
-  // collapsed: { '<project>/<flow>': true } hides the steps of that flow.
-  function layout(data, t, collapsed) {
-    collapsed = collapsed || {};
-    var nodes = [], edges = [], row = 0;
-    var rowH = t.boxH + t.gapY, colW = t.boxW + t.gapX;
-    function add(n, col, y) { n.x = col * colW; n.y = y; nodes.push(n); return n; }
-    function mid(list) { return (list[0].y + list[list.length - 1].y) / 2; }
-    (data.projects || []).forEach(function (p) {
-      var flowNodes = [];
-      (p.flows || []).forEach(function (f) {
-        var key = p.id + '/' + f.id, steps = f.steps || [], shut = !!collapsed[key] && steps.length > 0;
-        var stepNodes = shut ? [] : steps.map(function (s, i) {
-          return add({ key: key + '#' + i, type: 'step', title: s.n + '. ' + s.text, label: s.text, num: s.n, sub: s.ref || '',
-            status: s.status || null, item: s, parent: f, parentKey: key }, 2, row++ * rowH);
-        });
-        var fn = add({ key: key, type: f.kind === 'page' ? 'page' : 'flow', title: f.id, label: f.id, sub: f.entry || '',
-          badge: BADGE[f.trigger] || '', status: f.status || null, item: f, count: steps.length, collapsed: shut },
-          1, stepNodes.length ? mid(stepNodes) : row++ * rowH);
-        stepNodes.forEach(function (s) { edges.push([fn, s]); });
-        flowNodes.push(fn);
+  // One project as cards: the project, its flows, and the steps inside each flow.
+  function model(p) {
+    var pn = { key: p.id, type: 'project', title: p.id, label: p.id, sub: (p.kinds || []).join(' \u00b7 '),
+      badge: 'PROJECT', status: p.status || null, item: p };
+    var all = [pn];
+    var flows = (p.flows || []).map(function (f) {
+      var key = p.id + '/' + f.id;
+      var fn = { key: key, type: f.kind === 'page' ? 'page' : 'flow', title: f.id, label: f.id, sub: f.entry || '',
+        badge: BADGE[f.trigger] || '', status: f.status || null, item: f };
+      all.push(fn);
+      fn.steps = (f.steps || []).map(function (s, i) {
+        var sn = { key: key + '#' + i, type: 'step', title: s.n + '. ' + s.text, label: s.text, num: s.n, sub: s.ref || '',
+          status: s.status || null, item: s, parent: f, parentKey: key };
+        all.push(sn);
+        return sn;
       });
-      var pn = add({ key: p.id, type: 'project', title: p.id, label: p.id, sub: (p.kinds || []).join(' \u00b7 '),
-        badge: 'PROJECT', status: p.status || null, item: p }, 0, flowNodes.length ? mid(flowNodes) : row++ * rowH);
-      flowNodes.forEach(function (f) { edges.push([pn, f]); });
-      row++; // empty row between projects
+      return fn;
     });
-    return { nodes: nodes, edges: edges, width: 3 * colW - t.gapX, height: Math.max(row * rowH, t.boxH) };
+    return { project: pn, flows: flows, all: all };
+  }
+
+  function statusClass(n) { return STATUS[n.status] ? ' st-' + n.status : ''; }
+
+  // A card as HTML. open: show the steps of a flow inside the card.
+  function cardHtml(n, open) {
+    var h = '<div class="card ' + n.type + statusClass(n) + '" data-key="' + esc(n.key) + '" tabindex="0" role="button" aria-label="' +
+      esc(n.type + ' ' + n.title) + '"><div class="ch"><span class="name">' + esc(n.label) + '</span>' +
+      (n.badge ? '<span class="badge">' + esc(n.badge) + '</span>' : '') + '</div>';
+    if (n.sub) h += '<div class="sub">' + esc(n.sub) + '</div>';
+    var def = summary(n.item.definition);
+    if (def) h += '<p class="def">' + inline(def) + '</p>';
+    var steps = n.steps || [];
+    if (steps.length) {
+      h += '<button type="button" class="toggle" data-toggle="' + esc(n.key) + '" aria-expanded="' + !!open + '">' +
+        (open ? '\u25be ' : '\u25b8 ') + steps.length + (steps.length === 1 ? ' step' : ' steps') + '</button>';
+      if (open) {
+        h += '<ol class="steps">' + steps.map(function (s) {
+          return '<li class="step' + statusClass(s) + '" data-key="' + esc(s.key) + '" tabindex="0" role="button">' +
+            '<span class="n">' + esc(s.num) + '</span><span class="body">' + inline(s.label) +
+            (s.sub ? '<code class="ref">' + esc(s.sub) + '</code>' : '') + '</span></li>';
+        }).join('') + '</ol>';
+      }
+    }
+    return h + '</div>';
   }
 
   function matches(n, q) {
@@ -238,29 +295,17 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     });
   }
 
-  globalThis.MirrorViewer = { esc: esc, renderMd: renderMd, layout: layout, matches: matches, hasChanges: hasChanges };
+  globalThis.MirrorViewer = { esc: esc, renderMd: renderMd, summary: summary, model: model, cardHtml: cardHtml, matches: matches, hasChanges: hasChanges };
   if (typeof document === 'undefined') return;
 
   // ---- Browser only below ----
 
   var SVG = 'http://www.w3.org/2000/svg';
-  var state = { pi: 0, collapsed: {}, k: 1, tx: 0, ty: 0, sel: null, hits: [], hit: -1, q: '', tab: 'definition', open: null, dragged: false };
+  var state = { pi: 0, expanded: {}, k: 1, tx: 0, ty: 0, sel: null, hits: [], hit: -1, q: '', tab: 'definition', open: null, dragged: false };
 
   function $(id) { return document.getElementById(id); }
-  function el(name, attrs) {
-    var e = document.createElementNS(SVG, name);
-    for (var k in attrs) e.setAttribute(k, attrs[k]);
-    return e;
-  }
-  function txt(value, attrs) { var e = el('text', attrs); e.textContent = value; return e; }
-  function clip(s, max) { s = String(s || ''); return s.length > max ? s.slice(0, Math.max(1, max - 1)) + '\u2026' : s; }
   function sel(attr, value) { return '[' + attr + '="' + String(value).replace(/["\\]/g, '\\$&') + '"]'; }
-
-  function tokens() {
-    var cs = getComputedStyle(document.documentElement);
-    function n(name) { return parseFloat(cs.getPropertyValue(name)) || 0; }
-    return { boxW: n('--box-w'), boxH: n('--box-h'), gapX: n('--gap-x'), gapY: n('--gap-y'), radius: n('--radius') };
-  }
+  function nodeEl(key) { return state.world.querySelector(sel('data-key', key)); }
 
   // ---- Theme ----
 
@@ -278,7 +323,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
   // ---- View: pan and zoom ----
 
   function applyView() {
-    state.root.setAttribute('transform', 'translate(' + state.tx + ',' + state.ty + ') scale(' + state.k + ')');
+    state.world.style.transform = 'translate(' + state.tx + 'px,' + state.ty + 'px) scale(' + state.k + ')';
     var c = $('canvas'), s = 20 * state.k;
     c.style.backgroundSize = s + 'px ' + s + 'px';
     c.style.backgroundPosition = state.tx + 'px ' + state.ty + 'px';
@@ -296,27 +341,38 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
   function zoomBy(f) { var c = $('canvas'); zoomAt(state.k * f, c.clientWidth / 2, c.clientHeight / 2); }
 
   function fit() {
-    var c = $('canvas'), pad = 40, g = state.g;
-    state.k = Math.max(0.2, Math.min((c.clientWidth - 2 * pad) / g.width, (c.clientHeight - 2 * pad) / g.height, 1.2));
-    state.tx = (c.clientWidth - g.width * state.k) / 2;
-    state.ty = (c.clientHeight - g.height * state.k) / 2;
+    var c = $('canvas'), w = state.world, pad = 40;
+    var gw = Math.max(1, w.offsetWidth), gh = Math.max(1, w.offsetHeight);
+    state.k = Math.max(0.2, Math.min((c.clientWidth - 2 * pad) / gw, (c.clientHeight - 2 * pad) / gh, 1.2));
+    state.tx = (c.clientWidth - gw * state.k) / 2;
+    state.ty = (c.clientHeight - gh * state.k) / 2;
     applyView();
   }
 
-  // First view: fit, but keep text readable on a tall graph and start at its top.
+  // First view: fit, but keep text readable on a big graph and start at its top.
   function initialView() {
     fit();
-    if (state.k >= 0.75) return;
-    state.k = 0.75;
-    state.tx = ($('canvas').clientWidth - state.g.width * state.k) / 2;
+    if (state.k >= 0.8) return;
+    var c = $('canvas');
+    state.k = 0.8;
+    state.tx = Math.max(40, (c.clientWidth - state.world.offsetWidth * state.k) / 2);
     state.ty = 40;
     applyView();
   }
 
-  function centerOn(n) {
-    var c = $('canvas'), t = state.t;
-    state.tx = c.clientWidth / 2 - (n.x + t.boxW / 2) * state.k;
-    state.ty = c.clientHeight / 2 - (n.y + t.boxH / 2) * state.k;
+  // Position of an element inside the world, in unscaled px.
+  function box(e) {
+    var x = 0, y = 0, cur = e;
+    while (cur && cur !== state.world) { x += cur.offsetLeft; y += cur.offsetTop; cur = cur.offsetParent; }
+    return { x: x, y: y, w: e.offsetWidth, h: e.offsetHeight };
+  }
+
+  function centerOn(key) {
+    var e = nodeEl(key);
+    if (!e) return;
+    var c = $('canvas'), b = box(e);
+    state.tx = c.clientWidth / 2 - (b.x + b.w / 2) * state.k;
+    state.ty = Math.min(c.clientHeight / 2 - (b.y + b.h / 2) * state.k, 40 - b.y * state.k);
     applyView();
   }
 
@@ -362,54 +418,94 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 
   // ---- Graph ----
 
-  function card(n, hit, current) {
-    var t = state.t, w = t.boxW, h = t.boxH, x = 14, badgeW = 0;
-    var cls = 'node ' + n.type + (STATUS[n.status] ? ' st-' + n.status : '') + (hit ? ' match' : '') +
-      (current ? ' current' : '') + (state.sel === n.key ? ' sel' : '');
-    var ge = el('g', { 'class': cls, transform: 'translate(' + n.x + ',' + n.y + ')', tabindex: 0, role: 'button',
-      'data-key': n.key, 'aria-label': n.type + ' ' + n.title });
-    ge.appendChild(el('rect', { 'class': 'card', width: w, height: h, rx: t.radius }));
-    ge.appendChild(el('rect', { 'class': 'bar', width: w, height: 4, 'clip-path': 'url(#card-clip)' }));
-    if (n.type === 'step') {
-      var num = el('g', { 'class': 'num' });
-      num.appendChild(el('circle', { cx: 26, cy: h / 2 + 2, r: 11 }));
-      num.appendChild(txt(String(n.num), { x: 26, y: h / 2 + 6, 'text-anchor': 'middle' }));
-      ge.appendChild(num);
-      x = 46;
-    }
-    if (n.badge) {
-      badgeW = n.badge.length * 6.6 + 12;
-      var b = el('g', { 'class': 'badge', transform: 'translate(' + (w - badgeW - 10) + ',14)' });
-      b.appendChild(el('rect', { width: badgeW, height: 18, rx: 9 }));
-      b.appendChild(txt(n.badge, { x: badgeW / 2, y: 12.5, 'text-anchor': 'middle' }));
-      ge.appendChild(b);
-    }
-    ge.appendChild(txt(clip(String(n.label).replace(/`/g, ''), Math.floor((w - x - badgeW - 20) / 7.4)), { 'class': 'title', x: x, y: n.sub ? h / 2 - 1 : h / 2 + 7 }));
-    if (n.sub) ge.appendChild(txt(clip(n.sub, Math.floor((w - x - 14) / 6.7)), { 'class': 'sub', x: x, y: h / 2 + 17 }));
-    var tip = el('title', {});
-    tip.textContent = n.title + (n.sub ? '\n' + n.sub : '');
-    ge.appendChild(tip);
-    if (n.count) {
-      var tg = el('g', { 'class': 'toggle', transform: 'translate(' + w + ',' + (h / 2 + 2) + ')', tabindex: 0, role: 'button',
-        'data-toggle': n.key, 'aria-label': (n.collapsed ? 'Show steps of ' : 'Hide steps of ') + n.title });
-      tg.appendChild(el('circle', { r: 11 }));
-      tg.appendChild(txt(n.collapsed ? String(n.count) : '\u2212', { y: 4, 'text-anchor': 'middle' }));
-      ge.appendChild(tg);
-    }
-    return ge;
-  }
-
-  // Each project has its own tab; the graph shows one project at a time.
-  function current() { return { projects: (state.data.projects || []).slice(state.pi, state.pi + 1) }; }
+  function currentProject() { return (state.data.projects || [])[state.pi] || null; }
 
   function renderTabs() {
     var projects = state.data.projects || [];
     $('ptabs').innerHTML = projects.map(function (p, i) {
       var on = i === state.pi;
       return '<button class="ptab' + (on ? ' on' : '') + '" role="tab" aria-selected="' + on + '" tabindex="' + (on ? 0 : -1) +
-        '" data-pi="' + i + '">' + esc(p.id) + ' <small>' + esc((p.kinds || []).join(' · ')) + '</small>' +
+        '" data-pi="' + i + '">' + esc(p.id) + ' <small>' + esc((p.kinds || []).join(' \u00b7 ')) + '</small>' +
         (hasChanges(p) ? '<span class="dot" title="Has changes"></span>' : '') + '</button>';
     }).join('');
+  }
+
+  // Lines from the bottom center of the project card to the top center of each flow card.
+  function drawEdges() {
+    var w = state.world, svg = w.querySelector('.edges'), top = nodeEl(state.m.project.key);
+    svg.setAttribute('width', w.offsetWidth);
+    svg.setAttribute('height', w.offsetHeight);
+    var a = box(top), x1 = a.x + a.w / 2, y1 = a.y + a.h;
+    state.m.flows.forEach(function (f) {
+      var b = box(nodeEl(f.key)), x2 = b.x + b.w / 2, y2 = b.y, my = (y1 + y2) / 2;
+      var path = document.createElementNS(SVG, 'path');
+      path.setAttribute('class', 'edge');
+      path.setAttribute('d', 'M' + x1 + ' ' + y1 + ' C' + x1 + ' ' + my + ' ' + x2 + ' ' + my + ' ' + x2 + ' ' + y2);
+      svg.appendChild(path);
+    });
+  }
+
+  function draw() {
+    var p = currentProject(), w = state.world;
+    if (!p) {
+      state.m = null;
+      state.byKey = {};
+      w.innerHTML = '<p class="empty-state">No projects yet. Run mirror:init.</p>';
+      return;
+    }
+    var m = state.m = model(p);
+    state.byKey = {};
+    m.all.forEach(function (n) { state.byKey[n.key] = n; });
+    state.hits = m.all.filter(function (n) { return matches(n, state.q); });
+    if (state.hit >= state.hits.length) state.hit = state.hits.length - 1;
+    w.innerHTML = '<svg class="edges" aria-hidden="true"></svg><div class="row">' + cardHtml(m.project) + '</div>' +
+      (m.flows.length ? '<div class="row">' + m.flows.map(function (f) { return cardHtml(f, state.expanded[f.key]); }).join('') + '</div>' : '');
+    state.hits.forEach(function (n, i) {
+      var e = nodeEl(n.key);
+      if (e) e.classList.add('match', i === state.hit ? 'current' : 'match');
+    });
+    var s = state.sel && nodeEl(state.sel);
+    if (s) s.classList.add('sel');
+    drawEdges();
+    $('qcount').textContent = state.q.trim() ? (state.hits.length ? (state.hit + 1) + '/' + state.hits.length : '0') : '';
+    $('legend').classList.toggle('on', m.all.some(function (n) { return STATUS[n.status]; }));
+  }
+
+  function toggleFlow(key) {
+    state.expanded[key] = !state.expanded[key];
+    if (!state.expanded[key] && state.open && state.open.parentKey === key) closeDrawer();
+    draw();
+    var b = state.world.querySelector(sel('data-toggle', key));
+    if (b) b.focus();
+  }
+
+  function setAll(open) {
+    state.expanded = {};
+    if (open && state.m) state.m.flows.forEach(function (f) { if (f.steps.length) state.expanded[f.key] = true; });
+    if (!open && state.open && state.open.type === 'step') closeDrawer();
+    draw();
+    initialView();
+  }
+
+  function select(key, center) {
+    var n = state.byKey[key];
+    if (!n) return;
+    var old = state.sel && nodeEl(state.sel);
+    if (old) old.classList.remove('sel');
+    state.sel = key;
+    var e = nodeEl(key);
+    if (e) e.classList.add('sel');
+    openDrawer(n);
+    if (center) centerOn(key);
+  }
+
+  function goto(key) {
+    var n = state.byKey[key];
+    if (n && n.type === 'step' && !state.expanded[n.parentKey]) {
+      state.expanded[n.parentKey] = true;
+      draw();
+    }
+    select(key, true);
   }
 
   function switchProject(i, focus) {
@@ -431,74 +527,14 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     return i < 0 ? 0 : i;
   }
 
-  function draw() {
-    var t = state.t, g = state.g = layout(current(), t, state.collapsed), root = state.root;
-    state.byKey = {};
-    g.nodes.forEach(function (n) { state.byKey[n.key] = n; });
-    state.hits = g.nodes.filter(function (n) { return matches(n, state.q); });
-    if (state.hit >= state.hits.length) state.hit = state.hits.length - 1;
-    var hitKeys = {}, cur = state.hits[state.hit];
-    state.hits.forEach(function (n) { hitKeys[n.key] = true; });
-    while (root.firstChild) root.removeChild(root.firstChild);
-    g.edges.forEach(function (e) {
-      var a = e[0], b = e[1], x1 = a.x + t.boxW, y1 = a.y + t.boxH / 2 + 2, x2 = b.x, y2 = b.y + t.boxH / 2 + 2, mx = (x1 + x2) / 2;
-      root.appendChild(el('path', { 'class': 'edge', d: 'M' + x1 + ' ' + y1 + ' C' + mx + ' ' + y1 + ' ' + mx + ' ' + y2 + ' ' + x2 + ' ' + y2 }));
-    });
-    g.nodes.forEach(function (n) { root.appendChild(card(n, hitKeys[n.key], cur === n)); });
-    $('qcount').textContent = state.q.trim() ? (state.hits.length ? (state.hit + 1) + '/' + state.hits.length : '0') : '';
-    $('legend').classList.toggle('on', g.nodes.some(function (n) { return STATUS[n.status]; }));
-  }
-
-  function refocus(attr, key) {
-    var e = state.root.querySelector(sel(attr, key));
-    if (e) e.focus();
-  }
-
-  function toggleFlow(key, keyboard) {
-    state.collapsed[key] = !state.collapsed[key];
-    if (state.open && state.open.parentKey === key) closeDrawer();
-    draw();
-    if (keyboard) refocus('data-toggle', key);
-  }
-
-  function setAll(shut) {
-    state.collapsed = {};
-    if (shut) state.g.nodes.forEach(function (n) { if (n.count) state.collapsed[n.key] = true; });
-    if (shut && state.open && state.open.type === 'step') closeDrawer();
-    draw();
-    fit();
-  }
-
-  function select(key, center) {
-    var n = state.byKey[key];
-    if (!n) return;
-    var old = state.sel && state.root.querySelector(sel('data-key', state.sel));
-    if (old) old.classList.remove('sel');
-    state.sel = key;
-    var ge = state.root.querySelector(sel('data-key', key));
-    if (ge) ge.classList.add('sel');
-    openDrawer(n);
-    if (center) centerOn(n);
-  }
-
-  function goto(key) {
-    if (!state.byKey[key] && key.indexOf('#') > 0) {
-      delete state.collapsed[key.split('#')[0]];
-      draw();
-    }
-    select(key, true);
-  }
-
   // ---- Search ----
 
   function search(q) {
     state.q = q;
-    if (q.trim()) {
-      current().projects.forEach(function (p) {
-        (p.flows || []).forEach(function (f) {
-          var hidden = (f.steps || []).some(function (s) { return matches({ title: s.n + '. ' + s.text, sub: s.ref }, q); });
-          if (hidden) delete state.collapsed[p.id + '/' + f.id];
-        });
+    var p = currentProject();
+    if (q.trim() && p) {
+      model(p).flows.forEach(function (f) {
+        if (f.steps.some(function (s) { return matches(s, q); })) state.expanded[f.key] = true;
       });
     }
     state.hit = -1;
@@ -510,13 +546,13 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     if (!state.hits.length) return;
     state.hit = (state.hit + dir + state.hits.length) % state.hits.length;
     draw();
-    centerOn(state.hits[state.hit]);
+    centerOn(state.hits[state.hit].key);
   }
 
   // ---- Drawer ----
 
   function refHtml(ref) {
-    return ref ? '<div class="ref"><code>' + esc(ref) + '</code><button class="btn copy" data-copy="' + esc(ref) + '">Copy</button></div>' : '';
+    return ref ? '<div class="coderef"><code>' + esc(ref) + '</code><button class="btn copy" data-copy="' + esc(ref) + '">Copy</button></div>' : '';
   }
 
   function body(n, tab) {
@@ -568,7 +604,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     var d = $('drawer');
     d.classList.remove('open');
     d.setAttribute('aria-hidden', 'true');
-    var old = state.sel && state.root.querySelector(sel('data-key', state.sel));
+    var old = state.sel && state.world && nodeEl(state.sel);
     if (old) old.classList.remove('sel');
     state.sel = null;
     state.open = null;
@@ -590,10 +626,10 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 
   // ---- Wiring ----
 
-  function activate(target, keyboard) {
+  function activate(target) {
     var tg = target.closest('[data-toggle]');
-    if (tg) { toggleFlow(tg.getAttribute('data-toggle'), keyboard); return true; }
-    var node = target.closest('.node');
+    if (tg) { toggleFlow(tg.getAttribute('data-toggle')); return true; }
+    var node = target.closest('[data-key]');
     if (node) { select(node.getAttribute('data-key'), false); return true; }
     return false;
   }
@@ -602,28 +638,21 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     applyTheme();
     if (media && media.addEventListener) media.addEventListener('change', applyTheme);
     state.data = JSON.parse($('mirror-data').textContent);
+    state.world = $('world');
     document.title = state.data.title || 'Mirror';
     $('title').textContent = state.data.title || 'Mirror';
     $('meta').textContent = state.data.generated ? 'generated ' + state.data.generated : '';
-    var t = state.t = tokens();
-    var svg = el('svg', { role: 'group', 'aria-label': 'Flow graph' }), defs = el('defs', {}), cp = el('clipPath', { id: 'card-clip' });
-    cp.appendChild(el('rect', { width: t.boxW, height: t.boxH, rx: t.radius }));
-    defs.appendChild(cp);
-    svg.appendChild(defs);
-    state.root = el('g', {});
-    svg.appendChild(state.root);
-    var c = $('canvas');
-    c.appendChild(svg);
     state.pi = projectFromHash();
     renderTabs();
     draw();
     initialView();
-    bindCanvas(c);
+    bindCanvas($('canvas'));
 
-    svg.addEventListener('click', function (e) { if (!state.dragged) activate(e.target, false); });
-    svg.addEventListener('keydown', function (e) {
-      if (e.key !== 'Enter' && e.key !== ' ') return;
-      if (activate(e.target, true)) e.preventDefault();
+    state.world.addEventListener('click', function (e) { if (!state.dragged) activate(e.target); });
+    state.world.addEventListener('keydown', function (e) {
+      // Buttons fire their own click on Enter and Space.
+      if ((e.key !== 'Enter' && e.key !== ' ') || e.target.tagName === 'BUTTON') return;
+      if (activate(e.target)) e.preventDefault();
     });
     $('drawer').addEventListener('click', function (e) {
       var b = e.target.closest('button');
@@ -650,8 +679,8 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
       if (e.key === 'Enter') { e.preventDefault(); next(e.shiftKey ? -1 : 1); }
       else if (e.key === 'Escape') { e.target.value = ''; search(''); e.target.blur(); }
     });
-    $('collapse-all').addEventListener('click', function () { setAll(true); });
-    $('expand-all').addEventListener('click', function () { setAll(false); });
+    $('collapse-all').addEventListener('click', function () { setAll(false); });
+    $('expand-all').addEventListener('click', function () { setAll(true); });
     $('theme').addEventListener('click', toggleTheme);
     $('zoom-in').addEventListener('click', function () { zoomBy(1.25); });
     $('zoom-out').addEventListener('click', function () { zoomBy(0.8); });

@@ -1,10 +1,12 @@
 ## Input
 
-- `GET /health`.
+`GET /health`, no fields.
 
 ## Output
 
-- HTTP 200 with `{ "status": "ok" }`.
+| Status | Body | When |
+| --- | --- | --- |
+| 200 | `{ "status": "ok" }` | The API runs. |
 
 ## Dependencies
 

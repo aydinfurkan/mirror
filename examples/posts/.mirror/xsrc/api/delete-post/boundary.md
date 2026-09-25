@@ -1,12 +1,18 @@
 ## Input
 
-- `DELETE /posts/:id`. No body.
+`DELETE /posts/:id`, no body:
+
+| Field | Type | Required | Validation |
+| --- | --- | --- | --- |
+| `id` (path) | string | yes | — |
 
 ## Output
 
-- HTTP 204 with no body.
-- HTTP 404 with `{ error: { code: "not-found", field: "id", message } }`.
-- HTTP 500 with `{ error: { code: "unexpected", field: "server", message } }`.
+| Status | Body | When |
+| --- | --- | --- |
+| 204 | none | The post is deleted. |
+| 404 | `{ error: { code: "not-found", field: "id", message } }` | No post has this id. |
+| 500 | `{ error: { code: "unexpected", field: "server", message } }` | The server fails. |
 
 ## Dependencies
 

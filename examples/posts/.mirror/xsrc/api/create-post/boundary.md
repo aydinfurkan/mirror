@@ -1,12 +1,20 @@
 ## Input
 
-- `POST /posts` with the JSON body `{ "title": string, "body": string, "authorId": non-empty string }`.
+`POST /posts`, JSON body:
+
+| Field | Type | Required | Validation |
+| --- | --- | --- | --- |
+| `title` | string | yes | 1–120 characters, at least one visible character |
+| `body` | string | yes | 1–10000 characters, at least one visible character |
+| `authorId` | string | yes | not empty |
 
 ## Output
 
-- HTTP 201 with `{ id, title, body, authorId, createdAt, updatedAt }`. `updatedAt` equals `createdAt`.
-- HTTP 400 with `{ error: { code: "validation", field, message } }`.
-- HTTP 500 with `{ error: { code: "unexpected", field: "server", message } }`.
+| Status | Body | When |
+| --- | --- | --- |
+| 201 | `Post` (`updatedAt` equals `createdAt`) | The post is created. |
+| 400 | `{ error: { code: "validation", field, message } }` | A field fails its validation. |
+| 500 | `{ error: { code: "unexpected", field: "server", message } }` | The server fails. |
 
 ## Dependencies
 
