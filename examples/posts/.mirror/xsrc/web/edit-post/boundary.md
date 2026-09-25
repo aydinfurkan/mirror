@@ -1,13 +1,21 @@
 ## Input
 
-- Route `/posts/:id/edit`.
-- The title and the body that the user types.
+Route `/posts/:id/edit`, form fields:
+
+| Field | Type | Required | Validation |
+| --- | --- | --- | --- |
+| `id` (route) | text | yes | — |
+| `title` | text | yes | Checked by the API. |
+| `body` | text | yes | Checked by the API. |
 
 ## Output
 
-- A move to `/posts/:id` after the save.
-- An alert on the form with the API message when the save fails.
-- An alert when the post does not exist.
+| Result | Shows | When |
+| --- | --- | --- |
+| Form | The current title and body. | The post loads. |
+| Go to `/posts/:id` | The updated post. | The API saves the change. |
+| Alert on the form | The API error message. | The API rejects the change. |
+| Alert | "Could not find this post." | The post does not exist. |
 
 ## Dependencies
 

@@ -1,12 +1,20 @@
 ## Input
 
-- Route `/posts/new`.
-- The title, the body and the author id that the user types.
+Route `/posts/new`, form fields:
+
+| Field | Type | Required | Validation |
+| --- | --- | --- | --- |
+| `title` | text | yes | Checked by the API. |
+| `body` | text | yes | Checked by the API. |
+| `authorId` | text | yes | Checked by the API. |
 
 ## Output
 
-- A move to `/posts/<new id>` after the create.
-- An alert on the form with the API message when the create fails.
+| Result | Shows | When |
+| --- | --- | --- |
+| Go to `/posts/<new id>` | The new post. | The API creates the post. |
+| Alert on the form | The API error message. | The API rejects the post. |
+| Alert on the form | "Could not reach the server." | The request fails. |
 
 ## Dependencies
 

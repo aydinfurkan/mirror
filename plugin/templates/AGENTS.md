@@ -70,7 +70,8 @@ Create a user account.
 ```
 
 For a page, the Input table lists the route params, the query and the form fields. The
-Output table lists what the page shows and where it goes. The Dependencies list the API
+Output table has the columns `Result`, `Shows` and `When`: one row for each view, move to
+another route, and alert. The Dependencies list the API
 flows that the page calls.
 
 `rules.md`: a bullet list of business rules, then `## Acceptance criteria`. Put the shape

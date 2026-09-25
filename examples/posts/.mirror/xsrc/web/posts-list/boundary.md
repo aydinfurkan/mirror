@@ -1,13 +1,19 @@
 ## Input
 
-- Route `/`, with the optional query `?authorId=<id>`.
-- The author id that the user types.
+Route `/`:
+
+| Field | Type | Required | Validation |
+| --- | --- | --- | --- |
+| `authorId` (query and text field) | text | no | An empty value shows all posts. |
 
 ## Output
 
-- A list of posts. Each post links to `/posts/:id`.
-- A "New post" link to `/posts/new`.
-- "Loading…" while the posts load. "No posts yet." for an empty list. An alert when the load fails.
+| Result | Shows | When |
+| --- | --- | --- |
+| List | Each post as a link to `/posts/:id`, and a "New post" link to `/posts/new`. | The posts load. |
+| Text | "Loading…" | The posts are loading. |
+| Text | "No posts yet." | The list is empty. |
+| Alert | "Could not load the posts." | The request fails. |
 
 ## Dependencies
 
