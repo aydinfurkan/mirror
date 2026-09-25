@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mirror</title>
+<style>
+/* MIRROR:TOKENS:START */
+:root {
+  --bg: #0f1115;  --panel: #171a21;  --text: #e6e6e6;  --muted: #8a8f98;
+  --project: #6c8cff;  --flow: #3fb68b;  --page: #e0a84f;  --step: #8a8f98;
+  --added: #2ea043;  --changed: #d29922;  --removed: #f85149;
+  --box-w: 220px;  --box-h: 56px;  --gap-x: 80px;  --gap-y: 24px;
+  --radius: 8px;  --font: system-ui, sans-serif;
+}
+/* MIRROR:TOKENS:END */
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--bg); color: var(--text); font-family: var(--font); display: flex; flex-direction: column; }
+header { display: flex; gap: 16px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--panel); }
+header h1 { font-size: 16px; margin: 0; }
+.meta { color: var(--muted); font-size: 12px; }
+#legend { display: none; gap: 12px; margin-left: auto; font-size: 12px; }
+#legend.on { display: flex; }
+#legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; background: var(--c); }
+main { flex: 1; display: flex; min-height: 0; }
+#canvas { flex: 1; overflow: auto; }
+#canvas svg { display: block; }
+.node { cursor: pointer; }
+.node rect { fill: var(--panel); stroke: var(--c); stroke-width: 2; }
+.node text { fill: var(--text); font-size: 13px; pointer-events: none; }
+.node text.sub { fill: var(--muted); font-size: 11px; }
+.node.project { --c: var(--project); }
+.node.flow { --c: var(--flow); }
+.node.page { --c: var(--page); }
+.node.step { --c: var(--step); }
+.node.st-added rect { stroke: var(--added); stroke-width: 3; }
+.node.st-changed rect { stroke: var(--changed); stroke-width: 3; }
+.node.st-removed { opacity: .6; }
+.node.st-removed rect { stroke: var(--removed); stroke-width: 3; stroke-dasharray: 6 4; }
+.node.sel rect { stroke-width: 4; }
+.edge { fill: none; stroke: var(--muted); stroke-width: 1.5; opacity: .6; }
+#panel { width: 380px; max-width: 45vw; overflow: auto; background: var(--panel); padding: 16px; }
+#panel h2 { font-size: 15px; margin: 0 0 4px; }
+#panel h3 { font-size: 12px; text-transform: uppercase; color: var(--muted); margin: 18px 0 6px; }
+#panel code { background: var(--bg); padding: 1px 4px; border-radius: 4px; }
+#panel pre { background: var(--bg); padding: 8px; overflow: auto; }
+@media (max-width: 700px) {
+  main { flex-direction: column; }
+  #panel { width: auto; max-width: none; max-height: 45vh; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">Mirror</h1>
+  <span class="meta" id="meta"></span>
+  <div id="legend">
+    <span style="--c: var(--added)">added</span>
+    <span style="--c: var(--changed)">changed</span>
+    <span style="--c: var(--removed)">removed</span>
+  </div>
+</header>
+<main>
+  <div id="canvas"></div>
+  <aside id="panel"><p class="meta">Click a box to see its details.</p></aside>
+</main>
+<script type="application/json" id="mirror-data">
+{"generated":"","title":"Mirror","projects":[]}
+</script>
+<script id="mirror-app">
+(function () {
+  'use strict';
+
+  function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function inline(s) {
+    return esc(s)
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  }
+
+  // Headings, bullet and numbered lists, code fences, paragraphs. Input is escaped first.
+  function renderMd(text) {
+    var out = [], list = null, code = null;
+    function closeList() { if (list) { out.push('</' + list + '>'); list = null; } }
+    function openList(tag) { if (list !== tag) { closeList(); list = tag; out.push('<' + tag + '>'); } }
+    String(text || '').split(/\r?\n/).forEach(function (line) {
+      var m;
+      if (code !== null) {
+        if (/^```/.test(line)) { out.push('<pre><code>' + esc(code.join('\n')) + '</code></pre>'); code = null; }
+        else code.push(line);
+        return;
+      }
+      if (/^```/.test(line)) { closeList(); code = []; return; }
+      if ((m = /^(#{1,6})\s+(.*)$/.exec(line))) {
+        closeList();
+        var lv = Math.min(m[1].length + 3, 6);
+        out.push('<h' + lv + '>' + inline(m[2]) + '</h' + lv + '>');
+        return;
+      }
+      if ((m = /^\s*[-*]\s+(.*)$/.exec(line))) { openList('ul'); out.push('<li>' + inline(m[1]) + '</li>'); return; }
+      if ((m = /^\s*\d+\.\s+(.*)$/.exec(line))) { openList('ol'); out.push('<li>' + inline(m[1]) + '</li>'); return; }
+      closeList();
+      if (line.trim()) out.push('<p>' + inline(line) + '</p>');
+    });
+    closeList();
+    if (code !== null) out.push('<pre><code>' + esc(code.join('\n')) + '</code></pre>');
+    return out.join('');
+  }
+
+  // Columns: project, flow/page, step. Each step takes one row; a parent sits at the middle of its children.
+  function layout(data, t) {
+    var nodes = [], edges = [], row = 0;
+    var rowH = t.boxH + t.gapY, colW = t.boxW + t.gapX;
+    function add(n, col, y) { n.x = col * colW; n.y = y; nodes.push(n); return n; }
+    function mid(list) { return (list[0].y + list[list.length - 1].y) / 2; }
+    (data.projects || []).forEach(function (p) {
+      var flowNodes = [];
+      (p.flows || []).forEach(function (f) {
+        var stepNodes = (f.steps || []).map(function (s) {
+          return add({ type: 'step', title: s.n + '. ' + s.text, sub: s.ref || '', status: s.status || null, item: s, parent: f }, 2, row++ * rowH);
+        });
+        var fn = add({ type: f.kind === 'page' ? 'page' : 'flow', title: f.id, sub: f.entry || '', status: f.status || null, item: f },
+          1, stepNodes.length ? mid(stepNodes) : row++ * rowH);
+        stepNodes.forEach(function (s) { edges.push([fn, s]); });
+        flowNodes.push(fn);
+      });
+      var pn = add({ type: 'project', title: p.id, sub: (p.kinds || []).join(', '), status: p.status || null, item: p },
+        0, flowNodes.length ? mid(flowNodes) : row++ * rowH);
+      flowNodes.forEach(function (f) { edges.push([pn, f]); });
+      row++; // empty row between projects
+    });
+    return { nodes: nodes, edges: edges, width: 3 * colW - t.gapX, height: Math.max(row * rowH, t.boxH) };
+  }
+
+  var SVG = 'http://www.w3.org/2000/svg';
+  function el(name, attrs) {
+    var e = document.createElementNS(SVG, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+  function clip(s, max) { s = String(s || ''); return s.length > max ? s.slice(0, max - 1) + '…' : s; }
+
+  function tokens() {
+    var cs = getComputedStyle(document.documentElement);
+    function n(name) { return parseFloat(cs.getPropertyValue(name)) || 0; }
+    return { boxW: n('--box-w'), boxH: n('--box-h'), gapX: n('--gap-x'), gapY: n('--gap-y'), radius: n('--radius') };
+  }
+
+  function show(n) {
+    var it = n.item, h = ['<h2>' + esc(n.title) + '</h2>'];
+    if (n.type === 'step') {
+      h.push('<h3>Code</h3><p><code>' + esc(it.ref || '') + '</code></p>', '<h3>Flow</h3><p>' + esc(n.parent.id) + '</p>');
+    } else {
+      if (n.sub) h.push('<p class="meta">' + esc(n.sub) + '</p>');
+      [['Definition', it.definition], ['Boundary', it.boundary], ['Rules', it.rules]].forEach(function (s) {
+        if (s[1]) h.push('<h3>' + s[0] + '</h3>' + renderMd(s[1]));
+      });
+    }
+    if (it.status) h.push('<p class="meta">status: ' + esc(it.status) + '</p>');
+    document.getElementById('panel').innerHTML = h.join('');
+  }
+
+  function main() {
+    var data = JSON.parse(document.getElementById('mirror-data').textContent);
+    document.title = data.title || 'Mirror';
+    document.getElementById('title').textContent = data.title || 'Mirror';
+    document.getElementById('meta').textContent = data.generated ? 'generated ' + data.generated : '';
+    var t = tokens(), g = layout(data, t), pad = 16;
+    var svg = el('svg', { width: g.width + 2 * pad, height: g.height + 2 * pad });
+    var root = el('g', { transform: 'translate(' + pad + ',' + pad + ')' });
+    svg.appendChild(root);
+    g.edges.forEach(function (e) {
+      var a = e[0], b = e[1], x1 = a.x + t.boxW, y1 = a.y + t.boxH / 2, x2 = b.x, y2 = b.y + t.boxH / 2, mx = (x1 + x2) / 2;
+      root.appendChild(el('path', { 'class': 'edge', d: 'M' + x1 + ' ' + y1 + ' C' + mx + ' ' + y1 + ' ' + mx + ' ' + y2 + ' ' + x2 + ' ' + y2 }));
+    });
+    var chars = Math.floor((t.boxW - 20) / 7), selected = null, anyStatus = false;
+    g.nodes.forEach(function (n) {
+      if (n.status) anyStatus = true;
+      var ge = el('g', { 'class': 'node ' + n.type + (n.status ? ' st-' + n.status : ''), transform: 'translate(' + n.x + ',' + n.y + ')' });
+      ge.appendChild(el('rect', { width: t.boxW, height: t.boxH, rx: t.radius }));
+      var title = el('text', { x: 10, y: n.sub ? t.boxH / 2 - 4 : t.boxH / 2 + 4 });
+      title.textContent = clip(n.title, chars);
+      ge.appendChild(title);
+      if (n.sub) {
+        var sub = el('text', { x: 10, y: t.boxH / 2 + 14, 'class': 'sub' });
+        sub.textContent = clip(n.sub, chars + 4);
+        ge.appendChild(sub);
+      }
+      var tip = el('title', {});
+      tip.textContent = n.title + (n.sub ? '\n' + n.sub : '');
+      ge.appendChild(tip);
+      ge.addEventListener('click', function () {
+        if (selected) selected.classList.remove('sel');
+        selected = ge;
+        ge.classList.add('sel');
+        show(n);
+      });
+      root.appendChild(ge);
+    });
+    document.getElementById('canvas').appendChild(svg);
+    if (anyStatus) document.getElementById('legend').classList.add('on');
+  }
+
+  globalThis.MirrorViewer = { esc: esc, renderMd: renderMd, layout: layout };
+  if (typeof document !== 'undefined') main();
+})();
+</script>
+</body>
+</html>
