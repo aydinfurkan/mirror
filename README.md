@@ -26,7 +26,6 @@ draws it as a graph in one HTML file.
 | `.claude-plugin/marketplace.json` | The marketplace. It points to `plugin/`. |
 | `plugin/` | The plugin: `skills/`, `templates/`, `references/`, `.claude-plugin/plugin.json`. Only this folder is installed. |
 | `examples/bubbles/` | A demo API (`code/`) and its mirror (`.mirror/`). Open `examples/bubbles/.mirror/visualize.html` to see the viewer. |
-| `docs/` | Design specs and plans. |
 
 Check the viewer or a built page:
 
