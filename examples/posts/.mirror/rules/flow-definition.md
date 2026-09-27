@@ -11,10 +11,4 @@ Path: `.mirror/xsrc/<project>/<flow-or-page>/definition.md`.
 
 ## Example
 
-```markdown
----
-trigger: http
-entry: POST /users
----
-Create a user account.
-```
+See `.mirror/rules/examples/flow-definition.md`.

@@ -10,13 +10,4 @@ Path: `.mirror/xsrc/<project>/<flow-or-page>/rules.md`.
 
 ## Example
 
-```markdown
-## Business rules
-
-- Only the author can delete a post.
-
-## Acceptance criteria
-
-- Delete the post when the author asks.
-- Return HTTP 403 when another user asks.
-```
+See `.mirror/rules/examples/rules.md`.

@@ -8,6 +8,12 @@ Route `/posts/new`, form fields:
 | `body` | text | yes | Checked by the API. |
 | `authorId` | text | yes | Checked by the API. |
 
+Example:
+
+```json
+{ "title": "Hello", "body": "My first post.", "authorId": "u1" }
+```
+
 ## Output
 
 | Result | Shows | When |

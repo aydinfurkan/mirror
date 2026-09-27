@@ -6,6 +6,12 @@ Route `/`:
 | --- | --- | --- | --- |
 | `authorId` (query and text field) | text | no | An empty value shows all posts. |
 
+Example:
+
+```text
+/?authorId=u1
+```
+
 ## Output
 
 | Result | Shows | When |

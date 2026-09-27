@@ -22,12 +22,13 @@ change the mirror, get a review, then change the code.
 
 ## File formats
 
-Read the rule of a document before you write or change it.
+Read the rule and the example of a document before you write or change it. The rules are in
+`.mirror/rules/`. The examples are in `.mirror/rules/examples/`.
 
-| Document                              | Rule                                  |
-| ------------------------------------- | ------------------------------------- |
-| `xsrc/<project>/definition.md`        | `.mirror/rules/project-definition.md` |
-| `xsrc/<project>/<flow>/definition.md` | `.mirror/rules/flow-definition.md`    |
-| `xsrc/<project>/<flow>/steps.md`      | `.mirror/rules/steps.md`              |
-| `xsrc/<project>/<flow>/boundary.md`   | `.mirror/rules/boundary.md`           |
-| `xsrc/<project>/<flow>/rules.md`      | `.mirror/rules/rules.md`              |
+| Document                              | Rule                    | Example                                                  |
+| ------------------------------------- | ----------------------- | -------------------------------------------------------- |
+| `xsrc/<project>/definition.md`        | `project-definition.md` | `examples/project-definition.md`                         |
+| `xsrc/<project>/<flow>/definition.md` | `flow-definition.md`    | `examples/flow-definition.md`                            |
+| `xsrc/<project>/<flow>/steps.md`      | `steps.md`              | `examples/steps.md`                                      |
+| `xsrc/<project>/<flow>/boundary.md`   | `boundary.md`           | `examples/boundary-rest.md`, `examples/boundary-consumer.md` |
+| `xsrc/<project>/<flow>/rules.md`      | `rules.md`              | `examples/rules.md`                                      |

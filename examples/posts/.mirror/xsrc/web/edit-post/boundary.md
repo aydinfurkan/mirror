@@ -8,6 +8,12 @@ Route `/posts/:id/edit`, form fields:
 | `title` | text | yes | Checked by the API. |
 | `body` | text | yes | Checked by the API. |
 
+Example:
+
+```json
+{ "title": "Hello again", "body": "Updated text." }
+```
+
 ## Output
 
 | Result | Shows | When |
