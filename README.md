@@ -18,8 +18,8 @@ draws it as a graph in one HTML file.
 ## How it works
 
 1. Run `mirror:init` once. It finds the projects and the flows, writes the documents,
-   draws the graph, and adds `.mirror/AGENTS.md` and `.mirror/BUILD.md`.
-2. After that, every change follows the workflow in `.mirror/AGENTS.md`: change the
+   draws the graph, and adds `.mirror/AGENTS.md`, `.mirror/WORKFLOW.md`, `.mirror/BUILD.md` and `.mirror/rules/`.
+2. After that, every change follows the workflow in `.mirror/WORKFLOW.md`: change the
    mirror, review the change on `.mirror/features/NNNN-<slug>.html`, then change the code.
 
 A `SessionStart` hook loads `.mirror/AGENTS.md` into each Claude Code session of a

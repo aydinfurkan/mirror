@@ -65,8 +65,9 @@ Follow the rule of each document in `${CLAUDE_PLUGIN_ROOT}/templates/rules/`.
 ## 4. Agent rules and build guide
 
 1. Copy `${CLAUDE_PLUGIN_ROOT}/templates/AGENTS.md` to `.mirror/AGENTS.md` if it does not exist.
-2. Copy `${CLAUDE_PLUGIN_ROOT}/templates/BUILD.md` to `.mirror/BUILD.md` if it does not exist.
-3. Copy each file of `${CLAUDE_PLUGIN_ROOT}/templates/rules/` to `.mirror/rules/` if it does
+2. Copy `${CLAUDE_PLUGIN_ROOT}/templates/WORKFLOW.md` to `.mirror/WORKFLOW.md` if it does not exist.
+3. Copy `${CLAUDE_PLUGIN_ROOT}/templates/BUILD.md` to `.mirror/BUILD.md` if it does not exist.
+4. Copy each file of `${CLAUDE_PLUGIN_ROOT}/templates/rules/` to `.mirror/rules/` if it does
    not exist.
 
 ## 5. Draw

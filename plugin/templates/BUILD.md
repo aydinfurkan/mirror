@@ -1,6 +1,6 @@
 # Build visualize.html
 
-`.mirror/AGENTS.md` and the Mirror `init` skill use this procedure.
+`.mirror/WORKFLOW.md` and the Mirror `init` skill use this procedure.
 
 ## Inputs
 
