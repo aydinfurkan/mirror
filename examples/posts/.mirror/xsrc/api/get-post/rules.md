@@ -1,3 +1,5 @@
+## Business rules
+
 - Return the post with the given id.
 
 ## Acceptance criteria

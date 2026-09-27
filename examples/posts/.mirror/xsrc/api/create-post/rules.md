@@ -1,3 +1,5 @@
+## Business rules
+
 - Create a post when a user supplies a title, a body and an author id.
 - Give the post a unique id. Record the creation time.
 - Reject a title that contains no visible characters or is longer than 120 characters.

@@ -52,23 +52,22 @@ Show the list per project to the user. Wait for an OK. The user can rename, merg
 
 ## 3. Write the documents
 
-1. Write `.mirror/xsrc/<project>/definition.md`:
-   - The first paragraph: what the project is for.
-   - `## Stack`: language, framework, main libraries, how to start it.
-   - `## Technical decisions`: the choices that apply to many flows (storage, validation,
-     error mapping, auth).
+Follow the rule of each document in `${CLAUDE_PLUGIN_ROOT}/templates/rules/`.
+
+1. Write `.mirror/xsrc/<project>/definition.md`. Use `rules/project-definition.md`.
 2. For each flow or page, trace the code from the entry point. Then write the four files in
-   `.mirror/xsrc/<project>/<flow>/`. Use the formats in "File formats" of
-   `${CLAUDE_PLUGIN_ROOT}/templates/AGENTS.md`.
-3. Write one step per function that does a distinct part of the work.
-4. Read the request schemas and validators to fill the Input table of `boundary.md`. Read the
+   `.mirror/xsrc/<project>/<flow>/`. Use `rules/flow-definition.md`, `rules/steps.md`,
+   `rules/boundary.md` and `rules/rules.md`.
+3. Read the request schemas and validators to fill the Input table of `boundary.md`. Read the
    error mapping to fill the Output table.
-5. Read the tests to find the business rules and the acceptance criteria.
+4. Read the tests to find the business rules and the acceptance criteria.
 
 ## 4. Agent rules and build guide
 
 1. Copy `${CLAUDE_PLUGIN_ROOT}/templates/AGENTS.md` to `.mirror/AGENTS.md` if it does not exist.
 2. Copy `${CLAUDE_PLUGIN_ROOT}/templates/BUILD.md` to `.mirror/BUILD.md` if it does not exist.
+3. Copy each file of `${CLAUDE_PLUGIN_ROOT}/templates/rules/` to `.mirror/rules/` if it does
+   not exist.
 
 ## 5. Draw
 

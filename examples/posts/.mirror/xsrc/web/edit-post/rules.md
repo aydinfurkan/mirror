@@ -1,3 +1,5 @@
+## Business rules
+
 - Do not let the user change the author of a post.
 - Let the API validate the change. Show its message to the user.
 

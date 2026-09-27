@@ -5,6 +5,7 @@ draws it as a graph in one HTML file.
 
 - `.mirror/xsrc/<project>/` holds one folder per flow (backend, worker, consumer) or page
   (frontend, Expo), with `definition.md`, `steps.md`, `boundary.md`, `rules.md`.
+- `.mirror/rules/` holds one format rule per document.
 - `.mirror/visualize.html` draws them. `.mirror/visualize.md` sets its colors and sizes.
 
 ## Install

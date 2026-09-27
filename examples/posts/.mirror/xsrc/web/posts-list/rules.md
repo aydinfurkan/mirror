@@ -1,3 +1,5 @@
+## Business rules
+
 - Show the posts in the order that the API returns: newest first.
 - Keep the author filter in the URL, so a user can share the filtered list.
 

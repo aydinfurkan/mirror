@@ -25,10 +25,12 @@
    - `definition`: the text of `definition.md` after the frontmatter.
    - `boundary`, `rules`: the full text of `boundary.md` and `rules.md`.
    - `status`: `null`.
-   - `steps`: one entry for each numbered item in `steps.md`, in order.
-     - `n`: the number of the item.
-     - `ref`: the text of the last backtick span on the line, when that span contains `#`. Use `""` when there is none.
-     - `text`: the item text without that backtick span, trimmed.
+   - `steps`: one entry for each `## N. <step>` header in `steps.md`, in order.
+     - `n`: the number `N`.
+     - `ref`: the backtick span of the `- Code:` bullet under the header, without the
+       backticks. Use `""` when there is none.
+     - `text`: the header text after `N.`, then each other bullet under the header, joined
+       with a space. End each part with a period.
      - `status`: `null`.
 3. Set `generated` to today in the form `YYYY-MM-DD`. Set `title` to the repository folder name.
 4. Write the data as JSON. Replace each `<` with `<`.

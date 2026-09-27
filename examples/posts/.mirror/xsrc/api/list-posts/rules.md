@@ -1,3 +1,5 @@
+## Business rules
+
 - List all posts when the request names no author.
 - List only the posts of the author when the request names one.
 - Show the newest post first.

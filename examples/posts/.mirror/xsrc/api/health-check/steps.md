@@ -1,1 +1,2 @@
-1. Return HTTP 200 with `{ "status": "ok" }`. `src/api/server.ts#createServer`
+## 1. Return HTTP 200 with `{ "status": "ok" }`
+- Code: `src/api/server.ts#createServer`

@@ -1,3 +1,5 @@
+## Business rules
+
 - Let the API validate the post. Show its message to the user.
 - Disable the submit button while the request runs.
 

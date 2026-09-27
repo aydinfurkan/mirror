@@ -14,6 +14,12 @@
 | 404 | `{ error: { code: "not-found", field: "id", message } }` | No post has this id. |
 | 500 | `{ error: { code: "unexpected", field: "server", message } }` | The server fails. |
 
+Example (404):
+
+```json
+{ "error": { "code": "not-found", "field": "id", "message": "Find no post with this id." } }
+```
+
 ## Dependencies
 
 - `PostRepository.remove` (in memory).

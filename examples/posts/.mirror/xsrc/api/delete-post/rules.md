@@ -1,3 +1,5 @@
+## Business rules
+
 - Remove the post with the given id.
 
 ## Acceptance criteria

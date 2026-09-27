@@ -1,3 +1,5 @@
+## Business rules
+
 - Answer without a call to the repository.
 
 ## Acceptance criteria

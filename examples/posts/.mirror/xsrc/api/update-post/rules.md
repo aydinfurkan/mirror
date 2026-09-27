@@ -1,3 +1,5 @@
+## Business rules
+
 - Change only the fields that the request sets.
 - Record the update time. Keep the creation time.
 - Use the same title and body limits as when a post is created.

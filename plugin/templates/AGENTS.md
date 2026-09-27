@@ -9,6 +9,7 @@ change the mirror, get a review, then change the code.
 - `.mirror/xsrc/<project>/definition.md`: what the project is for, its stack, its technical decisions.
 - `.mirror/xsrc/<project>/<flow-or-page>/`: `definition.md`, `steps.md`, `boundary.md`, `rules.md`.
 - `.mirror/visualize.html`: the current graph. `.mirror/visualize.md`: its colors and sizes.
+- `.mirror/rules/`: the format of each document.
 - `.mirror/BUILD.md`: how to build the graph and a review page.
 - `.mirror/features/`: the review page of each past change.
 
@@ -18,65 +19,18 @@ change the mirror, get a review, then change the code.
 2. Write one imperative instruction per sentence, in the active voice.
 3. Use the change workflow below for every change to the code. Do not change code before the
    user approves the review.
-4. Keep each code reference in `steps.md` true. The form is `path#function`. The path is
-   relative to the project root in `.mirror/config.json`.
 
 ## File formats
 
-`definition.md` of a flow or page:
+Read the rule of a document before you write or change it.
 
-```markdown
----
-trigger: http            # http | main | message | schedule | page
-entry: POST /users       # endpoint, script, cron, queue or topic, or route path
----
-Create a user account.
-```
-
-`steps.md`: a numbered list. End each step with the code reference in backticks.
-
-```markdown
-1. Validate the request body. `src/users/users.schema.ts#parseCreateUser`
-2. Save the user. `src/users/users.service.ts#createUser`
-```
-
-`boundary.md`: the contract of the flow, in three sections.
-
-- `## Input`: the trigger line (endpoint, queue, script or route), then one table row per
-  input field: path, query, body or message field. Put the shape limits (type, required,
-  length, format) in the Validation column.
-- `## Output`: one table row per result: each status code, event or effect, with each error.
-- `## Dependencies`: a bullet list of databases, queues, external APIs, and other flows.
-
-```markdown
-## Input
-
-`POST /users`, JSON body:
-
-| Field | Type | Required | Validation |
-| --- | --- | --- | --- |
-| `email` | string | yes | valid email, at most 254 characters |
-
-## Output
-
-| Status | Body | When |
-| --- | --- | --- |
-| 201 | `User` | The user is created. |
-| 400 | `{ error: { code: "validation", field, message } }` | A field fails its validation. |
-
-## Dependencies
-
-- `UserRepository.save`
-```
-
-For a page, the Input table lists the route params, the query and the form fields. The
-Output table has the columns `Result`, `Shows` and `When`: one row for each view, move to
-another route, and alert. The Dependencies list the API
-flows that the page calls.
-
-`rules.md`: a bullet list of business rules, then `## Acceptance criteria`. Put the shape
-limits in `boundary.md`, not here. Put here the rules that need state or context: for
-example "only the author can delete a post".
+| Document                              | Rule                                  |
+| ------------------------------------- | ------------------------------------- |
+| `xsrc/<project>/definition.md`        | `.mirror/rules/project-definition.md` |
+| `xsrc/<project>/<flow>/definition.md` | `.mirror/rules/flow-definition.md`    |
+| `xsrc/<project>/<flow>/steps.md`      | `.mirror/rules/steps.md`              |
+| `xsrc/<project>/<flow>/boundary.md`   | `.mirror/rules/boundary.md`           |
+| `xsrc/<project>/<flow>/rules.md`      | `.mirror/rules/rules.md`              |
 
 ## Change workflow
 
@@ -95,7 +49,7 @@ example "only the author can delete a post".
    - A new flow or page: create its folder with the four files.
    - A changed flow or page: edit its files.
    - A removed flow or page: delete its folder.
-3. Name the function of each new step, also when the function does not exist yet.
+3. Follow the rule in `.mirror/rules/` for each file that you write.
 4. If no file under `.mirror/xsrc/` changes, tell the user that the change does not touch the
    mirror. Ask for an OK to change the code without a review page.
 

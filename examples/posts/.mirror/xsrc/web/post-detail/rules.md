@@ -1,3 +1,5 @@
+## Business rules
+
 - Delete a post only after the user confirms it.
 
 ## Acceptance criteria
