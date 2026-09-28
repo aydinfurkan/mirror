@@ -1,0 +1,6 @@
+{
+  "name": "mirror",
+  "version": "0.1.0",
+  "description": "Keep the intent of each flow and page next to the code, and draw it as a graph.",
+  "author": { "name": "Furkan Aydın" }
+}

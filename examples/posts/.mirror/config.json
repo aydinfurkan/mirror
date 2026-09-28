@@ -1,0 +1,6 @@
+{
+  "projects": {
+    "api": { "root": "code", "kinds": ["backend"] },
+    "web": { "root": "web", "kinds": ["frontend"] }
+  }
+}

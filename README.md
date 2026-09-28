@@ -1,14 +1,43 @@
 # Mirror
 
-Every code file has a mirror prompt. The graph links them, and drift tells you when they disagree.
+A Claude Code plugin. Mirror keeps the intent of each flow and page next to the code, and
+draws it as a graph in one HTML file.
 
-- `code/` holds the implementation.
-- `.mirror/docs/` holds the intent.
-- `.mirror/visualize/` builds the graph and draws it.
+- `.mirror/xsrc/<project>/` holds one folder per flow (backend, worker, consumer) or page
+  (frontend, Expo), with `definition.md`, `steps.md`, `boundary.md`, `rules.md`.
+- `.mirror/rules/` holds one format rule per document.
+- `.mirror/visualize.html` draws them. `.mirror/visualize.md` sets its colors and sizes.
+
+## Install
 
 ```sh
-pnpm -C .mirror/visualize check:drift   # fail if intent and code disagree
-pnpm -C .mirror/visualize dev           # open the canvas
+/plugin marketplace add aydinfurkan/mirror
+/plugin install mirror@mirror
 ```
 
-See [.mirror/STRUCTURE.md](.mirror/STRUCTURE.md).
+## How it works
+
+1. Run `mirror:init` once. It finds the projects and the flows, writes the documents,
+   draws the graph, and adds `.mirror/AGENTS.md`, `.mirror/WORKFLOW.md`, `.mirror/BUILD.md` and `.mirror/rules/`.
+2. After that, every change follows the workflow in `.mirror/WORKFLOW.md`: change the
+   mirror, review the change on `.mirror/features/NNNN-<slug>.html`, then change the code.
+
+A `SessionStart` hook loads `.mirror/AGENTS.md` into each Claude Code session of a
+project that has a mirror.
+
+## This repository
+
+| Path | Holds |
+| --- | --- |
+| `.claude-plugin/marketplace.json` | The marketplace. It points to `plugin/`. |
+| `plugin/` | The plugin: `skills/`, `hooks/`, `templates/`, `.claude-plugin/plugin.json`. Only this folder is installed. |
+| `examples/posts/` | A demo API (`code/`), a web app (`web/`), and their mirror (`.mirror/`). Open `examples/posts/.mirror/visualize.html` to see the viewer. |
+
+Check the viewer or a built page:
+
+```sh
+node plugin/templates/visualize.check.mjs [page.html]
+```
+
+Try the workflow on the example: open Claude Code in `examples/posts/` and ask for a
+change, for example "add comments to posts".
