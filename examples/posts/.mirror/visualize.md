@@ -6,21 +6,21 @@ sizes. `:root[data-theme="dark"]` holds the dark theme colors.
 
 ```css
 :root {
-  --bg: #f6f7f9;  --surface: #ffffff;  --panel: #ffffff;  --border: #e4e7ec;
-  --text: #111827;  --muted: #6b7280;  --edge: #c3cad4;  --accent: #4f6bff;
-  --shadow: 0 1px 2px rgb(16 24 40 / .05), 0 4px 12px rgb(16 24 40 / .07);
-  --project: #4f6bff;  --flow: #12a37a;  --page: #d98a1c;  --step: #94a3b8;  --group: #7c5cd6;
-  --added: #16a34a;  --changed: #d97706;  --removed: #dc2626;
+  --bg: #f8fafc;  --surface: #ffffff;  --panel: #ffffff;  --border: #e2e8f0;
+  --text: #0f172a;  --muted: #64748b;  --edge: #cbd5e1;  --accent: #2563eb;
+  --shadow: 0 1px 2px rgb(15 23 42 / .05), 0 4px 12px rgb(15 23 42 / .07);
+  --project: #2563eb;  --flow: #0ea5e9;  --page: #f59e0b;  --step: #94a3b8;  --group: #64748b;
+  --added: #16a34a;  --changed: #eab308;  --removed: #dc2626;
   --box-w: 260px;  --box-h: 88px;  --gap-x: 20px;  --gap-y: 56px;  --radius: 12px;
   --font: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
 }
 :root[data-theme="dark"] {
-  --bg: #0b0d12;  --surface: #151922;  --panel: #11151c;  --border: #262c38;
-  --text: #e6e9ef;  --muted: #8b93a3;  --edge: #3a4252;  --accent: #7b8cff;
+  --bg: #020617;  --surface: #0f172a;  --panel: #0b1222;  --border: #1e293b;
+  --text: #e2e8f0;  --muted: #94a3b8;  --edge: #334155;  --accent: #60a5fa;
   --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 6px 16px rgb(0 0 0 / .35);
-  --project: #7b8cff;  --flow: #34d399;  --page: #fbbf24;  --step: #64748b;  --group: #a78bfa;
-  --added: #22c55e;  --changed: #f59e0b;  --removed: #f87171;
+  --project: #60a5fa;  --flow: #38bdf8;  --page: #fbbf24;  --step: #64748b;  --group: #94a3b8;
+  --added: #22c55e;  --changed: #facc15;  --removed: #f87171;
 }
 ```
 

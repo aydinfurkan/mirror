@@ -80,4 +80,7 @@ The shape:
      or step list: set `status` to `changed`.
    - A project in both with a different `definition` or with a flow that is not `null`: set
      `status` to `changed`.
+   - For each `changed` project or flow, add `old`: an object with the old value of each of
+     `trigger`, `entry`, `group`, `definition`, `boundary` and `rules` that is different. The
+     page shows the old lines crossed out and the new lines in yellow.
 4. Write the page with "Write the page" to `.mirror/features/NNNN-<slug>.html`.

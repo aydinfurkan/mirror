@@ -73,4 +73,8 @@ assert.equal(hasChanges(sample), false);
 assert.equal(hasChanges({ flows: [{ steps: [{ status: 'removed' }] }] }), true);
 assert.equal(hasChanges({ status: 'bogus', flows: [] }), false);
 
+// A diff keeps same lines, crosses out old lines, and marks new lines.
+assert.equal(ctx.MirrorViewer.diffHtml('a\nb\nc', 'a\nx\nc'), '<div class="diff"><span>a</span><ins>x</ins><del>b</del><span>c</span></div>');
+assert.equal(ctx.MirrorViewer.diffHtml('<a>', '<a>'), '<div class="diff"><span>&lt;a&gt;</span></div>');
+
 console.log('ok');

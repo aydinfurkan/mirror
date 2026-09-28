@@ -27,11 +27,18 @@ existing files. Skip each existing `config.json` entry, `definition.md` and flow
    - `consumer`: it handles messages from a queue or a topic.
    - `frontend`: a web app with pages.
    - `expo`: an Expo or React Native app with screens.
-3. Show the list to the user as a table. Wait for an OK. Apply the changes the user asks for.
-4. Write `.mirror/config.json`:
+3. Split a full-stack app into one project for each kind. Examples are Next.js, Nuxt,
+   Remix and SvelteKit. Give each part the id `<app>-<kind>`, the same `root`, and one kind.
+   - `<app>-backend`: the API routes, the route handlers and the server actions.
+   - `<app>-frontend`: the pages.
+4. Show the list to the user as a table. Wait for an OK. Apply the changes the user asks for.
+5. Write `.mirror/config.json`:
 
 ```json
-{ "projects": { "<id>": { "root": "<path>", "kinds": ["backend"] } } }
+{ "projects": {
+  "web-backend": { "root": "apps/web", "kinds": ["backend"] },
+  "web-frontend": { "root": "apps/web", "kinds": ["frontend"] }
+} }
 ```
 
 ## 2. Find the entry points
@@ -81,9 +88,8 @@ Follow the rule of each document in `${CLAUDE_PLUGIN_ROOT}/templates/rules/`.
 
 ## 6. Report
 
-1. Open `.mirror/visualize.html` in the default browser. Use `start "" <file>` on Windows,
-   `open <file>` on macOS, and `xdg-open <file>` on Linux. If the command fails, tell the
-   user to open the file.
+1. Open `.mirror/visualize.html` in VS Code with `code -r <file>`. If `code` is not found,
+   tell the user to open the file.
 2. Tell the user the number of projects, flows and pages. Tell the user to commit `.mirror/`. From now on, each
 change goes through the change workflow in `.mirror/AGENTS.md`: mirror first, then review,
 then code.

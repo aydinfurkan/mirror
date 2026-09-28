@@ -28,9 +28,8 @@ Do not change code before the user approves the review.
 1. Find the next free number `NNNN` in `.mirror/features/`. Start at `0001`. Make a
    kebab-case `<slug>` from the change name.
 2. Build `.mirror/features/NNNN-<slug>.html` with "Review page" in `.mirror/BUILD.md`.
-3. Open the page in the default browser. Use `start "" <file>` on Windows, `open <file>`
-   on macOS, and `xdg-open <file>` on Linux. If the command fails, tell the user to open
-   the page. List the added, changed and removed flows and steps.
+3. Open the page in VS Code with `code -r <file>`. If `code` is not found, tell the user to
+   open the page. List the added, changed and removed flows and steps.
 4. Stop and wait for the answer.
    - The user asks for changes: edit the files under `.mirror/xsrc/`. Build the same review
      page again. Ask again.
