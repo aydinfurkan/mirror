@@ -13,7 +13,7 @@ for (const p of data.projects) for (const f of p.flows) assert.ok(Array.isArray(
 
 const ctx = {};
 runInNewContext(html.match(/<script id="mirror-app">([\s\S]*?)<\/script>/)[1], ctx);
-const { renderMd, summary, model, cardHtml, matches, hasChanges } = ctx.MirrorViewer;
+const { groups, renderMd, summary, model, cardHtml, matches, hasChanges } = ctx.MirrorViewer;
 
 assert.equal(renderMd('<b>'), '<p>&lt;b&gt;</p>');
 assert.equal(
@@ -41,6 +41,11 @@ const at = (title) => m.all.find((n) => n.title === title);
 assert.deepEqual(Array.from(m.all, (n) => n.key), ['api', 'api/a', 'api/a#0', 'api/a#1', 'api/b']);
 assert.deepEqual([at('a').type, at('a').badge, at('b').type, at('b').badge], ['flow', 'HTTP', 'page', 'PAGE']);
 assert.equal(m.flows[0].steps.length, 2);
+
+// Flows go into groups by first use; flows without a group go last, in "other".
+const gs = (list) => Array.from(groups(list.map((g, i) => ({ key: i, item: { group: g } }))), (g) => g.name + ':' + g.flows.map((f) => f.key).join(''));
+assert.deepEqual(gs(['b', 'a', '', 'b']), ['b:03', 'a:1', 'other:2']);
+assert.deepEqual(gs(['', undefined]), [':01']);
 
 // A flow card holds its definition and a step toggle; the steps show only when it is open.
 const closed = cardHtml(m.flows[0], false);

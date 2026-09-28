@@ -20,7 +20,8 @@
    - `flows`: see step 2.
 2. Make one flow entry for each sub-folder of `xsrc/<project>/`. Sort by folder name.
    - `id`: the folder name.
-   - `trigger`, `entry`: the values from the frontmatter of `definition.md`.
+   - `trigger`, `entry`, `group`: the values from the frontmatter of `definition.md`, trimmed.
+     Use `""` for a missing `group`.
    - `kind`: `page` when `trigger` is `page`. Else `flow`.
    - `definition`: the text of `definition.md` after the frontmatter.
    - `boundary`, `rules`: the full text of `boundary.md` and `rules.md`.
@@ -47,7 +48,7 @@ The shape:
   "projects": [{
     "id": "api", "kinds": ["backend"], "definition": "…", "status": null,
     "flows": [{
-      "id": "create-user", "kind": "flow", "trigger": "http", "entry": "POST /users",
+      "id": "create-user", "kind": "flow", "trigger": "http", "entry": "POST /users", "group": "users",
       "definition": "…", "boundary": "…", "rules": "…", "status": null,
       "steps": [{ "n": 1, "title": "Validate the body.", "text": "Validate the body.", "details": [], "ref": "src/users/route.ts#postUser", "status": null }]
     }]
@@ -75,7 +76,7 @@ The shape:
    - A project, flow or step only in the new data: set `status` to `added`.
    - A project, flow or step only in the old data: copy it into the new data at its old
      position and set `status` to `removed`. Set each descendant of a removed item (its flows and their steps) to `removed`.
-   - A flow in both with a different `trigger`, `entry`, `definition`, `boundary`, `rules`
+   - A flow in both with a different `trigger`, `entry`, `group`, `definition`, `boundary`, `rules`
      or step list: set `status` to `changed`.
    - A project in both with a different `definition` or with a flow that is not `null`: set
      `status` to `changed`.

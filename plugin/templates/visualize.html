@@ -7,20 +7,20 @@
 <style>
 /* MIRROR:TOKENS:START */
 :root {
-  --bg: #f6f7f9;  --grid: #d5dae1;  --surface: #ffffff;  --panel: #ffffff;  --border: #e4e7ec;
+  --bg: #f6f7f9;  --surface: #ffffff;  --panel: #ffffff;  --border: #e4e7ec;
   --text: #111827;  --muted: #6b7280;  --edge: #c3cad4;  --accent: #4f6bff;
   --shadow: 0 1px 2px rgb(16 24 40 / .05), 0 4px 12px rgb(16 24 40 / .07);
-  --project: #4f6bff;  --flow: #12a37a;  --page: #d98a1c;  --step: #94a3b8;
+  --project: #4f6bff;  --flow: #12a37a;  --page: #d98a1c;  --step: #94a3b8;  --group: #7c5cd6;
   --added: #16a34a;  --changed: #d97706;  --removed: #dc2626;
   --box-w: 260px;  --box-h: 88px;  --gap-x: 20px;  --gap-y: 56px;  --radius: 12px;
   --font: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
 }
 :root[data-theme="dark"] {
-  --bg: #0b0d12;  --grid: #222835;  --surface: #151922;  --panel: #11151c;  --border: #262c38;
+  --bg: #0b0d12;  --surface: #151922;  --panel: #11151c;  --border: #262c38;
   --text: #e6e9ef;  --muted: #8b93a3;  --edge: #3a4252;  --accent: #7b8cff;
   --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 6px 16px rgb(0 0 0 / .35);
-  --project: #7b8cff;  --flow: #34d399;  --page: #fbbf24;  --step: #64748b;
+  --project: #7b8cff;  --flow: #34d399;  --page: #fbbf24;  --step: #64748b;  --group: #a78bfa;
   --added: #22c55e;  --changed: #f59e0b;  --removed: #f87171;
 }
 /* MIRROR:TOKENS:END */
@@ -49,13 +49,20 @@ header { display: flex; align-items: center; gap: 12px; padding: 10px 16px; back
 .ptab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .ptab .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--changed); }
 main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
-#canvas { position: absolute; inset: 0; overflow: hidden; cursor: grab; touch-action: none; background-color: var(--bg); background-image: radial-gradient(var(--grid) 1px, transparent 1.3px); }
+#canvas { position: absolute; inset: 0; overflow: hidden; cursor: grab; touch-action: none; background-color: var(--bg); }
 #canvas.panning { cursor: grabbing; }
 #world { position: absolute; left: 0; top: 0; transform-origin: 0 0; user-select: none; }
 .edges { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
 .edge { fill: none; stroke: var(--edge); stroke-width: 1.5; }
-.row { display: flex; align-items: flex-start; justify-content: center; gap: var(--gap-x); }
+.row { display: flex; align-items: flex-start; justify-content: flex-start; gap: calc(var(--gap-x) * 2); }
 .row + .row { margin-top: var(--gap-y); }
+.row.groups { flex-direction: column; align-items: flex-start; gap: calc(var(--gap-y) / 2); padding-left: 32px; }
+.group { display: flex; flex-direction: column; gap: 12px; padding: 12px 14px 14px; background: color-mix(in srgb, var(--group) 7%, transparent); border: 1.5px solid color-mix(in srgb, var(--group) 45%, transparent); border-radius: calc(var(--radius) + 6px); }
+.gh { align-self: flex-start; display: flex; align-items: center; gap: 8px; padding: 4px 6px 4px 10px; border-radius: 999px; background: var(--group); color: #fff; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.gh small { min-width: 18px; padding: 1px 6px; border-radius: 999px; background: rgb(255 255 255 / .25); font-size: 11px; text-align: center; letter-spacing: 0; }
+:root[data-theme="dark"] .gh { color: #111827; }
+:root[data-theme="dark"] .gh small { background: rgb(0 0 0 / .18); }
+.gflows { display: flex; align-items: flex-start; gap: var(--gap-x); }
 .empty-state { padding: 40px; color: var(--muted); }
 /* Cards */
 .card { flex: none; width: var(--box-w); min-height: var(--box-h); padding: 10px 12px 12px; background: var(--surface); border: 1px solid var(--border); border-top: 4px solid var(--c); border-radius: var(--radius); box-shadow: var(--shadow); cursor: pointer; outline: none; transition: border-color .15s, box-shadow .15s; }
@@ -258,7 +265,20 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
       });
       return fn;
     });
-    return { project: pn, flows: flows, all: all };
+    return { project: pn, flows: flows, groups: groups(flows), all: all };
+  }
+
+  // Flows by the group of their frontmatter, in order of first use. Flows without a group go last.
+  function groups(flows) {
+    var out = [], by = {}, other = [];
+    flows.forEach(function (f) {
+      var g = String(f.item.group || '').trim();
+      if (!g) { other.push(f); return; }
+      if (!by[g]) out.push(by[g] = { name: g, flows: [] });
+      by[g].flows.push(f);
+    });
+    if (other.length) out.push({ name: out.length ? 'other' : '', flows: other });
+    return out;
   }
 
   function statusClass(n) { return STATUS[n.status] ? ' st-' + n.status : ''; }
@@ -298,7 +318,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     });
   }
 
-  globalThis.MirrorViewer = { esc: esc, renderMd: renderMd, summary: summary, model: model, cardHtml: cardHtml, matches: matches, hasChanges: hasChanges };
+  globalThis.MirrorViewer = { esc: esc, renderMd: renderMd, summary: summary, model: model, groups: groups, cardHtml: cardHtml, matches: matches, hasChanges: hasChanges };
   if (typeof document === 'undefined') return;
 
   // ---- Browser only below ----
@@ -433,17 +453,21 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     }).join('');
   }
 
-  // Lines from the bottom center of the project card to the top center of each flow card.
+  // A spine from the bottom of the project card down the left of the stacked group boxes,
+  // with a branch into the header of each box.
   function drawEdges() {
     var w = state.world, svg = w.querySelector('.edges'), top = nodeEl(state.m.project.key);
     svg.setAttribute('width', w.offsetWidth);
     svg.setAttribute('height', w.offsetHeight);
-    var a = box(top), x1 = a.x + a.w / 2, y1 = a.y + a.h;
-    state.m.flows.forEach(function (f) {
-      var b = box(nodeEl(f.key)), x2 = b.x + b.w / 2, y2 = b.y, my = (y1 + y2) / 2;
+    var y1 = box(top).y + box(top).h;
+    var gs = state.world.querySelectorAll('.group');
+    if (!gs.length) return;
+    var sx = box(gs[0]).x - 16;
+    gs.forEach(function (g) {
+      var b = box(g), gy = b.y + 22;
       var path = document.createElementNS(SVG, 'path');
       path.setAttribute('class', 'edge');
-      path.setAttribute('d', 'M' + x1 + ' ' + y1 + ' C' + x1 + ' ' + my + ' ' + x2 + ' ' + my + ' ' + x2 + ' ' + y2);
+      path.setAttribute('d', 'M' + sx + ' ' + y1 + ' V' + gy + ' H' + b.x);
       svg.appendChild(path);
     });
   }
@@ -462,7 +486,11 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     state.hits = m.all.filter(function (n) { return matches(n, state.q); });
     if (state.hit >= state.hits.length) state.hit = state.hits.length - 1;
     w.innerHTML = '<svg class="edges" aria-hidden="true"></svg><div class="row">' + cardHtml(m.project) + '</div>' +
-      (m.flows.length ? '<div class="row">' + m.flows.map(function (f) { return cardHtml(f, state.expanded[f.key]); }).join('') + '</div>' : '');
+      (m.flows.length ? '<div class="row groups">' + m.groups.map(function (g) {
+        return '<div class="group" role="group" aria-label="' + esc(g.name || 'flows') + '">' +
+          (g.name ? '<div class="gh">' + esc(g.name) + ' <small>' + g.flows.length + '</small></div>' : '') +
+          '<div class="gflows">' + g.flows.map(function (f) { return cardHtml(f, state.expanded[f.key]); }).join('') + '</div></div>';
+      }).join('') + '</div>' : '');
     state.hits.forEach(function (n, i) {
       var e = nodeEl(n.key);
       if (e) e.classList.add('match', i === state.hit ? 'current' : 'match');
