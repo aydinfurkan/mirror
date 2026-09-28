@@ -29,6 +29,9 @@
      - `n`: the number `N`.
      - `ref`: the backtick span of the `- Code:` bullet under the header, without the
        backticks. Use `""` when there is none.
+     - `title`: the header text after `N.`. End it with a period. The graph shows only it.
+     - `details`: each other bullet under the header, in order, without the `- `. End each
+       with a period. The step detail shows them as bullets. Use `[]` when there is none.
      - `text`: the header text after `N.`, then each other bullet under the header, joined
        with a space. End each part with a period.
      - `status`: `null`.
@@ -46,7 +49,7 @@ The shape:
     "flows": [{
       "id": "create-user", "kind": "flow", "trigger": "http", "entry": "POST /users",
       "definition": "…", "boundary": "…", "rules": "…", "status": null,
-      "steps": [{ "n": 1, "text": "Validate the body.", "ref": "src/users/route.ts#postUser", "status": null }]
+      "steps": [{ "n": 1, "title": "Validate the body.", "text": "Validate the body.", "details": [], "ref": "src/users/route.ts#postUser", "status": null }]
     }]
   }]
 }

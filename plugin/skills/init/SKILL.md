@@ -60,7 +60,8 @@ Follow the rule of each document in `${CLAUDE_PLUGIN_ROOT}/templates/rules/`.
    `rules/boundary.md` and `rules/rules.md`.
 3. Read the request schemas and validators to fill the Input table of `boundary.md`. Read the
    error mapping to fill the Output table.
-4. Read the tests to find the business rules and the acceptance criteria.
+4. Read the tests to find the constraints and the acceptance criteria. Ask the user for the
+   context, the goal and the non-goal when the code does not show them.
 
 ## 4. Agent rules and build guide
 

@@ -33,7 +33,7 @@ assert.equal(summary(''), '');
 
 const sample = { id: 'api', kinds: ['backend'], definition: 'The API.', flows: [
   { id: 'a', kind: 'flow', trigger: 'http', entry: 'POST /a', definition: 'Do <a>.',
-    steps: [{ n: 1, text: 's1', ref: '' }, { n: 2, text: 's2', ref: 'src/a.ts#postUser' }] },
+    steps: [{ n: 1, text: 's1', ref: '' }, { n: 2, title: 'Save.', text: 'Save. Return 400.', details: ['Return 400.'], ref: 'src/a.ts#postUser' }] },
   { id: 'b', kind: 'page', trigger: 'page', entry: '/b', steps: [] },
 ] };
 const m = model(sample);
@@ -50,13 +50,16 @@ assert.match(closed, /data-toggle="api\/a" aria-expanded="false">▸ 2 steps<\/b
 assert.doesNotMatch(closed, /<ol/);
 const open = cardHtml(m.flows[0], true);
 assert.match(open, /aria-expanded="true">▾ 2 steps/);
-assert.match(open, /<li class="step" data-key="api\/a#1"[^>]*>.*s2<code class="ref">src\/a\.ts#postUser<\/code>/);
+// A card step shows only its title; the drawer holds the details and the code link.
+assert.match(open, /<li class="step" data-key="api\/a#1"[^>]*><span class="n">2<\/span><span class="body">Save\.<\/span><\/li>/);
+assert.match(open, /<span class="body">s1<\/span>/);
 assert.doesNotMatch(cardHtml(m.flows[1], true), /data-toggle/);
 assert.match(cardHtml({ ...m.flows[0], status: 'added' }, false), /class="card flow st-added"/);
 
 // Search matches title, sub (code ref, entry) and trigger, case-insensitive.
 assert.equal(matches(at('1. s1'), 'S1'), true);
-assert.equal(matches(at('2. s2'), 'postuser'), true);
+assert.equal(matches(at('2. Save. Return 400.'), 'postuser'), true);
+assert.equal(matches(at('2. Save. Return 400.'), 'return 400'), true);
 assert.equal(matches(at('a'), 'zzz'), false);
 assert.equal(matches(at('a'), '  '), false);
 
