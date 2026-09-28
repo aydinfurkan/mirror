@@ -81,7 +81,9 @@ Follow the rule of each document in `${CLAUDE_PLUGIN_ROOT}/templates/rules/`.
 
 ## 6. Report
 
-Tell the user the number of projects, flows and pages. Tell the user to open
-`.mirror/visualize.html` in a browser. Tell the user to commit `.mirror/`. From now on, each
+1. Open `.mirror/visualize.html` in the default browser. Use `start "" <file>` on Windows,
+   `open <file>` on macOS, and `xdg-open <file>` on Linux. If the command fails, tell the
+   user to open the file.
+2. Tell the user the number of projects, flows and pages. Tell the user to commit `.mirror/`. From now on, each
 change goes through the change workflow in `.mirror/AGENTS.md`: mirror first, then review,
 then code.
