@@ -1,0 +1,38 @@
+{
+  "projects": {
+    "web": {
+      "root": "web",
+      "kind": "frontend"
+    },
+    "api": {
+      "root": "api",
+      "kind": "backend"
+    },
+    "worker": {
+      "root": "worker",
+      "kind": "consumer"
+    }
+  },
+  "external": {
+    "shop-db": {
+      "kind": "database",
+      "name": "Postgres"
+    },
+    "product-cache": {
+      "kind": "cache",
+      "name": "Redis"
+    },
+    "order-events": {
+      "kind": "queue",
+      "name": "Kafka topic order.events"
+    },
+    "stripe": {
+      "kind": "api",
+      "name": "Stripe API"
+    },
+    "mailer": {
+      "kind": "api",
+      "name": "SendGrid"
+    }
+  }
+}
