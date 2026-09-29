@@ -38,12 +38,8 @@
      - `text`: the header text after `N.`, then each other bullet under the header, joined
        with a space. End each part with a period.
      - `status`: `null`.
-3. Make one external entry for each key in `external` of `config.json`. Keep the key order.
-   Use `[]` when `external` does not exist.
-   - `id`: the key.
-   - `kind`, `name`: the values from `config.json`.
-4. Set `generated` to today in the form `YYYY-MM-DD`. Set `title` to the repository folder name.
-5. Write the data as JSON. Replace each `<` with `<`.
+3. Set `generated` to today in the form `YYYY-MM-DD`. Set `title` to the repository folder name.
+4. Write the data as JSON. Replace each `<` with `<`.
 
 The shape:
 
@@ -51,7 +47,6 @@ The shape:
 {
   "generated": "2026-09-25",
   "title": "my-repo",
-  "external": [{ "id": "users-db", "kind": "database", "name": "Postgres" }],
   "projects": [{
     "id": "api", "kind": "backend", "definition": "…", "status": null,
     "flows": [{
@@ -62,10 +57,6 @@ The shape:
   }]
 }
 ```
-
-The data holds no links. The page reads them from the `## Dependencies` section of each
-`boundary`, or from the `Call:` bullets of `actions` for a page. It also finds the incoming
-links and the lines between projects.
 
 ### Page actions
 
@@ -91,8 +82,6 @@ A page without `actions.md` builds its `steps` from `steps.md`.
 4. Check the page. When the Mirror plugin is installed, run
    `node <plugin root>/templates/visualize.check.mjs <target path>`. It must print `ok`.
    Else make sure that the data block is valid JSON.
-5. When the check prints a link error, fix the `boundary.md` or the `external` map in
-   `config.json`. Then build the page again.
 
 ## Review page
 
@@ -102,8 +91,6 @@ A page without `actions.md` builds its `steps` from `steps.md`.
 2. Build the new data from `.mirror/xsrc/` with "Build the data".
 3. Compare project by `id`, flow by project `id` + flow `id`, and step by `ref` + `text`.
    - A project, flow or step only in the new data: set `status` to `added`.
-   - An external system only in the old data: copy it into `external` of the new data at its
-     old position and set `status` to `removed`. The page then draws its old lines in red.
    - A project, flow or step only in the old data: copy it into the new data at its old
      position and set `status` to `removed`. Set each descendant of a removed item (its flows and their steps) to `removed`.
    - A flow in both with a different `trigger`, `entry`, `group`, `definition`, `boundary`, `rules`,
@@ -112,6 +99,5 @@ A page without `actions.md` builds its `steps` from `steps.md`.
      `status` to `changed`.
    - For each `changed` project or flow, add `old`: an object with the old value of each of
      `trigger`, `entry`, `group`, `definition`, `boundary`, `rules` and `actions` that is
-     different. The page shows the old lines crossed out and the new lines in yellow. When the
-     old flow has no `actions` and the new one has, set `old.actions` to `null`.
+     different. The page shows the old lines crossed out and the new lines in yellow.
 4. Write the page with "Write the page" to `.mirror/features/NNNN-<slug>.html`.

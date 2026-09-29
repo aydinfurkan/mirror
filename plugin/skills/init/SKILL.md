@@ -95,7 +95,7 @@ Follow the rule of each document in `${CLAUDE_PLUGIN_ROOT}/templates/rules/`.
 2. Build `.mirror/visualize.html` with "Build the data" and "Write the page" in
    `.mirror/BUILD.md`. Use `${CLAUDE_PLUGIN_ROOT}/templates/visualize.html` as the template.
 3. Run `node "${CLAUDE_PLUGIN_ROOT}/templates/visualize.check.mjs" .mirror/visualize.html`.
-   It must print `ok`. Fix each link error that it prints.
+   It must print `ok`.
 
 ## 6. Report
 

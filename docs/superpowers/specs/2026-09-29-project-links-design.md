@@ -2,6 +2,10 @@
 
 Date: 2026-09-29
 
+> **Superseded in part (2026-09-29):** the viewer does not read or draw links. It only shows the
+> md files. Sections "Built data", "Check" and "2. Viewer" no longer apply. The link format, the
+> `external` map in `config.json`, and the workflow use of links stay.
+
 ## Goal
 
 Define the connections between projects, and between projects and external systems.
