@@ -13,7 +13,7 @@ for (const p of data.projects) for (const f of p.flows) assert.ok(Array.isArray(
 
 const ctx = {};
 runInNewContext(html.match(/<script id="mirror-app">([\s\S]*?)<\/script>/)[1], ctx);
-const { groups, renderMd, summary, model, cardHtml, matches, hasChanges, parseLinks, linkIndex, systemEdges, linkErrors } = ctx.MirrorViewer;
+const { groups, renderMd, summary, model, cardHtml, matches, hasChanges, parseLinks, linkIndex, systemEdges, linkErrors, systemModel, tabFromHash } = ctx.MirrorViewer;
 const plain = (x) => JSON.parse(JSON.stringify(x));
 
 // The links of the page under check must be valid.
@@ -163,5 +163,41 @@ assert.deepEqual(plain(systemEdges(rev)), [
   { from: 'web', to: 'api', status: 'added', label: '1 calls' },
   { from: 'web', to: 'ext:db', status: null, label: '1 reads' },
 ]);
+
+// A flow card shows its links as chips that jump to the target. Two links to one target show one chip.
+const newCard = cardHtml(model(sys.projects[1], idx).flows[0], false);
+assert.match(newCard, /<div class="lchips"><button type="button" class="lchip" data-goto="api\/create" title="calls">→ api\/create<\/button><\/div>/);
+assert.equal(newCard.match(/→ api\/create/g).length, 1);
+const apiModel = model(sys.projects[0], idx);
+const apiCard = cardHtml(apiModel.flows[0], false);
+assert.match(apiCard, /data-goto="ext:posts-db" title="writes">→ posts-db</);
+assert.match(apiCard, /data-goto="api\/other" title="calls">→ api\/other</);
+assert.match(apiCard, /data-goto="web\/new" title="calls">← web\/new</);
+assert.match(cardHtml(apiModel.flows[1], false), /data-goto="api\/create" title="calls">← api\/create</);
+assert.doesNotMatch(cardHtml(m.flows[0], false), /lchips/);
+assert.doesNotMatch(cardHtml(model(sys.projects[0]).flows[0], false), /lchips/);
+
+// The System tab holds each project and each external system as a card.
+const sm = systemModel(sys, idx);
+assert.deepEqual(Array.from(sm.all, (n) => n.key), ['api', 'web', 'ext:posts-db']);
+const extCard = cardHtml(sm.externals[0]);
+assert.match(extCard, /class="card external" data-key="ext:posts-db"/);
+assert.match(extCard, /<span class="badge">DATABASE<\/span>/);
+assert.match(extCard, /<div class="sub">Postgres<\/div>/);
+assert.doesNotMatch(extCard, /lchips/);
+assert.deepEqual(Array.from(sm.externals[0].into, (l) => l.from), ['api/create', 'web/list']);
+assert.equal(sm.edges.length, 3);
+assert.deepEqual(plain(systemModel({}, linkIndex({}))), { projects: [], externals: [], all: [], edges: [] });
+
+// An external card has a color even when an older visualize.md has no --external token.
+assert.match(html, /\.card\.external \{ --c: var\(--external, #[0-9a-f]{6}\); \}/);
+
+// The hash picks the tab: a project id opens it; empty or unknown opens System (-1).
+const ps = [{ id: 'api' }, { id: 'web app' }];
+assert.equal(tabFromHash('#api', ps), 0);
+assert.equal(tabFromHash('#web%20app', ps), 1);
+assert.equal(tabFromHash('', ps), -1);
+assert.equal(tabFromHash('#nope', ps), -1);
+assert.equal(tabFromHash('#%E0%A4%A', ps), -1);
 
 console.log('ok');

@@ -13,7 +13,7 @@
   --bg: #fafafa;  --surface: #ffffff;  --panel: #ffffff;  --border: #e4e4e7;
   --text: #09090b;  --muted: #52525b;  --edge: #a1a1aa;  --accent: #09090b;
   --shadow: 0 0 #0000;
-  --project: #09090b;  --flow: #2563eb;  --page: #d97706;  --step: #71717a;  --group: #3f3f46;
+  --project: #09090b;  --flow: #2563eb;  --page: #d97706;  --step: #71717a;  --group: #3f3f46;  --external: #7c3aed;
   --added: #16a34a;  --changed: #eab308;  --removed: #dc2626;
   --box-w: 340px;  --box-h: 112px;  --gap-x: 20px;  --gap-y: 56px;  --radius: 14px;
   --font: Geist, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -23,7 +23,7 @@
   --bg: #09090b;  --surface: #18181b;  --panel: #111113;  --border: #27272a;
   --text: #fafafa;  --muted: #a1a1aa;  --edge: #52525b;  --accent: #fafafa;
   --shadow: 0 0 #0000;
-  --project: #fafafa;  --flow: #60a5fa;  --page: #fbbf24;  --step: #71717a;  --group: #52525b;
+  --project: #fafafa;  --flow: #60a5fa;  --page: #fbbf24;  --step: #71717a;  --group: #52525b;  --external: #a78bfa;
   --added: #22c55e;  --changed: #facc15;  --removed: #f87171;
 }
 /* MIRROR:TOKENS:END */
@@ -72,6 +72,17 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 .card.project { --c: var(--project); }
 .card.flow { --c: var(--flow); }
 .card.page { --c: var(--page); }
+.card.external { --c: var(--external, #7c3aed); }
+.lchips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.lchip { max-width: 100%; padding: 1px 8px; border: 1px solid var(--border); border-radius: 999px; background: var(--bg); font: 14px var(--mono); color: var(--muted); text-align: left; overflow-wrap: anywhere; cursor: pointer; }
+.lchip:hover, .lchip:focus-visible { color: var(--text); border-color: var(--accent); outline: none; }
+.row.system { gap: calc(var(--gap-x) * 3); }
+.row.system.top { margin-top: 110px; }
+.row.system + .row.system { margin-top: calc(var(--gap-y) * 2); }
+.edge.st-added { stroke: var(--added); stroke-width: 2.5; }
+.edge.st-removed { stroke: var(--removed); stroke-width: 2.5; stroke-dasharray: 6 4; }
+.arrow { fill: var(--edge); }
+.elabel { font: 14px var(--font); fill: var(--muted); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; }
 .card:hover { border-color: var(--c); }
 .ch { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .name { font-size: 17px; font-weight: 650; overflow-wrap: anywhere; }
@@ -258,15 +269,21 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
   var BADGE = { http: 'HTTP', main: 'MAIN', message: 'MSG', schedule: 'CRON', page: 'PAGE' };
   var STATUS = { added: 1, changed: 1, removed: 1 };
 
-  // One project as cards: the project, its flows, and the steps inside each flow.
-  function model(p) {
-    var pn = { key: p.id, type: 'project', title: p.id, label: p.id, sub: (p.kind || ''),
+  function projectNode(p) {
+    return { key: p.id, type: 'project', title: p.id, label: p.id, sub: (p.kind || ''),
       badge: 'PROJECT', status: p.status || null, item: p };
+  }
+
+  // One project as cards: the project, its flows, and the steps inside each flow.
+  // idx (from linkIndex) adds the outgoing and incoming links of each flow.
+  function model(p, idx) {
+    var pn = projectNode(p);
     var all = [pn];
     var flows = (p.flows || []).map(function (f) {
       var key = p.id + '/' + f.id;
       var fn = { key: key, type: f.kind === 'page' ? 'page' : 'flow', title: f.id, label: f.id, sub: f.entry || '',
         badge: BADGE[f.trigger] || '', status: f.status || null, item: f };
+      if (idx) { fn.out = idx.out[key] || []; fn.into = idx.into[key] || []; }
       all.push(fn);
       fn.steps = (f.steps || []).map(function (s, i) {
         var sn = { key: key + '#' + i, type: 'step', title: s.n + '. ' + s.text, label: s.title || s.text, num: s.n, sub: s.ref || '',
@@ -292,6 +309,24 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     return out;
   }
 
+  // The System tab as cards: each project, then each external system.
+  function systemModel(data, idx) {
+    var projects = (data.projects || []).map(projectNode);
+    var externals = (data.external || []).map(function (x) {
+      var key = 'ext:' + x.id;
+      return { key: key, type: 'external', title: x.id, label: x.id, sub: x.name || '', badge: String(x.kind || '').toUpperCase(),
+        status: null, item: x, out: [], into: idx.into[key] || [] };
+    });
+    return { projects: projects, externals: externals, all: projects.concat(externals), edges: systemEdges(data) };
+  }
+
+  // The tab of a URL hash: the index of the project it names, or -1 for the System tab.
+  function tabFromHash(hash, projects) {
+    var id;
+    try { id = decodeURIComponent(String(hash || '').slice(1)); } catch (e) { return -1; }
+    return (projects || []).map(function (p) { return p.id; }).indexOf(id);
+  }
+
   function statusClass(n) { return STATUS[n.status] ? ' st-' + n.status : ''; }
 
   // A card as HTML. open: show the step titles of a flow inside the card.
@@ -302,6 +337,18 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     if (n.sub) h += '<div class="sub">' + esc(n.sub) + '</div>';
     var def = summary(n.item.definition);
     if (def) h += '<p class="def">' + inline(def) + '</p>';
+    // Link chips. An external card on the System tab shows none: its lines show the links.
+    var seen = {}, chips = [];
+    function chip(key, text, verb) {
+      if (seen[text]) return;
+      seen[text] = 1;
+      chips.push('<button type="button" class="lchip" data-goto="' + esc(key) + '" title="' + esc(verb) + '">' + esc(text) + '</button>');
+    }
+    if (n.type !== 'external') {
+      (n.out || []).forEach(function (l) { chip(l.key, '→ ' + l.to, l.verb); });
+      (n.into || []).forEach(function (l) { chip(l.from, '← ' + l.from, l.verb); });
+    }
+    if (chips.length) h += '<div class="lchips">' + chips.join('') + '</div>';
     var steps = n.steps || [];
     if (steps.length) {
       h += '<button type="button" class="toggle" data-toggle="' + esc(n.key) + '" aria-expanded="' + !!open + '">' +
@@ -446,7 +493,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
   }
 
   globalThis.MirrorViewer = { esc: esc, renderMd: renderMd, summary: summary, model: model, groups: groups, cardHtml: cardHtml, matches: matches, hasChanges: hasChanges, diffHtml: diffHtml,
-    parseLinks: parseLinks, linkIndex: linkIndex, systemEdges: systemEdges, linkErrors: linkErrors };
+    parseLinks: parseLinks, linkIndex: linkIndex, systemEdges: systemEdges, linkErrors: linkErrors, systemModel: systemModel, tabFromHash: tabFromHash };
   if (typeof document === 'undefined') return;
 
   // ---- Browser only below ----
@@ -573,12 +620,15 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 
   function renderTabs() {
     var projects = state.data.projects || [];
-    $('ptabs').innerHTML = projects.map(function (p, i) {
+    function tab(i, label, kind, dot) {
       var on = i === state.pi;
       return '<button class="ptab' + (on ? ' on' : '') + '" role="tab" aria-selected="' + on + '" tabindex="' + (on ? 0 : -1) +
-        '" data-pi="' + i + '">' + esc(p.id) + ' <small>' + esc((p.kind || '')) + '</small>' +
-        (hasChanges(p) ? '<span class="dot" title="Has changes"></span>' : '') + '</button>';
-    }).join('');
+        '" data-pi="' + i + '">' + esc(label) + (kind ? ' <small>' + esc(kind) + '</small>' : '') +
+        (dot ? '<span class="dot" title="Has changes"></span>' : '') + '</button>';
+    }
+    $('ptabs').innerHTML = !projects.length ? '' :
+      tab(-1, 'System', '', state.sys.edges.some(function (e) { return STATUS[e.status]; })) +
+      projects.map(function (p, i) { return tab(i, p.id, p.kind || '', hasChanges(p)); }).join('');
   }
 
   // A spine from the bottom of the project card down the left of the stacked group boxes,
@@ -600,34 +650,76 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     });
   }
 
+  // Project cards sit in the top row and external cards in the row below. A line between two
+  // projects arcs above the top row. A line to an external goes down. Each line has its label.
+  function drawSystemEdges(edges) {
+    var w = state.world, svg = w.querySelector('.edges');
+    svg.setAttribute('width', w.offsetWidth);
+    svg.setAttribute('height', w.offsetHeight);
+    edges.forEach(function (e, i) {
+      var ea = nodeEl(e.from), eb = nodeEl(e.to);
+      if (!ea || !eb) return;
+      var a = box(ea), b = box(eb), ax = a.x + a.w / 2, bx = b.x + b.w / 2, d, ly;
+      if (e.to.indexOf('ext:') === 0) {
+        var y1 = a.y + a.h, y2 = b.y, my = (y1 + y2) / 2;
+        d = 'M' + ax + ' ' + y1 + ' C' + ax + ' ' + my + ' ' + bx + ' ' + my + ' ' + bx + ' ' + y2;
+        ly = my;
+      } else {
+        var y = a.y, top = y - 40 - 24 * (i % 3);
+        d = 'M' + ax + ' ' + y + ' C' + ax + ' ' + top + ' ' + bx + ' ' + top + ' ' + bx + ' ' + y;
+        ly = 0.25 * y + 0.75 * top;
+      }
+      var path = document.createElementNS(SVG, 'path');
+      path.setAttribute('class', 'edge' + (STATUS[e.status] ? ' st-' + e.status : ''));
+      path.setAttribute('d', d);
+      path.setAttribute('marker-end', 'url(#arrow)');
+      svg.appendChild(path);
+      var t = document.createElementNS(SVG, 'text');
+      t.setAttribute('class', 'elabel');
+      t.setAttribute('x', (ax + bx) / 2);
+      t.setAttribute('y', ly - 4);
+      t.setAttribute('text-anchor', 'middle');
+      t.textContent = e.label;
+      svg.appendChild(t);
+    });
+  }
+
   function draw() {
-    var p = currentProject(), w = state.world;
-    if (!p) {
+    var w = state.world, sys = state.pi < 0;
+    if (!(state.data.projects || []).length) {
       state.m = null;
       state.byKey = {};
       w.innerHTML = '<p class="empty-state">No projects yet. Run mirror:init.</p>';
       return;
     }
-    var m = state.m = model(p);
+    var m = state.m = sys ? state.sys : model(currentProject(), state.links);
     state.byKey = {};
     m.all.forEach(function (n) { state.byKey[n.key] = n; });
     state.hits = m.all.filter(function (n) { return matches(n, state.q); });
     if (state.hit >= state.hits.length) state.hit = state.hits.length - 1;
-    w.innerHTML = '<svg class="edges" aria-hidden="true"></svg><div class="row">' + cardHtml(m.project) + '</div>' +
-      (m.flows.length ? '<div class="row groups">' + m.groups.map(function (g) {
-        return '<div class="group" role="group" aria-label="' + esc(g.name || 'flows') + '">' +
-          (g.name ? '<div class="gh">' + esc(g.name) + ' <small>' + g.flows.length + '</small></div>' : '') +
-          '<div class="gflows">' + g.flows.map(function (f) { return cardHtml(f, state.expanded[f.key]); }).join('') + '</div></div>';
-      }).join('') + '</div>' : '');
+    if (sys) {
+      w.innerHTML = '<svg class="edges" aria-hidden="true"><defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" ' +
+        'markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow" d="M0 0L10 5L0 10z"/></marker></defs></svg>' +
+        '<div class="row system top">' + m.projects.map(function (n) { return cardHtml(n); }).join('') + '</div>' +
+        (m.externals.length ? '<div class="row system">' + m.externals.map(function (n) { return cardHtml(n); }).join('') + '</div>' : '');
+    } else {
+      w.innerHTML = '<svg class="edges" aria-hidden="true"></svg><div class="row">' + cardHtml(m.project) + '</div>' +
+        (m.flows.length ? '<div class="row groups">' + m.groups.map(function (g) {
+          return '<div class="group" role="group" aria-label="' + esc(g.name || 'flows') + '">' +
+            (g.name ? '<div class="gh">' + esc(g.name) + ' <small>' + g.flows.length + '</small></div>' : '') +
+            '<div class="gflows">' + g.flows.map(function (f) { return cardHtml(f, state.expanded[f.key]); }).join('') + '</div></div>';
+        }).join('') + '</div>' : '');
+    }
     state.hits.forEach(function (n, i) {
       var e = nodeEl(n.key);
       if (e) e.classList.add('match', i === state.hit ? 'current' : 'match');
     });
     var s = state.sel && nodeEl(state.sel);
     if (s) s.classList.add('sel');
-    drawEdges();
+    if (sys) drawSystemEdges(m.edges); else drawEdges();
     $('qcount').textContent = state.q.trim() ? (state.hits.length ? (state.hit + 1) + '/' + state.hits.length : '0') : '';
-    $('legend').classList.toggle('on', m.all.some(function (n) { return STATUS[n.status]; }));
+    $('legend').classList.toggle('on', m.all.some(function (n) { return STATUS[n.status]; }) ||
+      (m.edges || []).some(function (e) { return STATUS[e.status]; }));
   }
 
   function toggleFlow(key) {
@@ -647,10 +739,10 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 
   function setAll(open) {
     state.expanded = {};
-    if (open && state.m) state.m.flows.forEach(function (f) { if (f.steps.length) state.expanded[f.key] = true; });
+    if (open && state.m && state.m.flows) state.m.flows.forEach(function (f) { if (f.steps.length) state.expanded[f.key] = true; });
     if (!open && state.open && state.open.type === 'step') closeDrawer();
     draw();
-    if (open && state.m) state.m.flows.forEach(function (f) { animateSteps(nodeEl(f.key)); });
+    if (open && state.m && state.m.flows) state.m.flows.forEach(function (f) { animateSteps(nodeEl(f.key)); });
     initialView();
   }
 
@@ -666,7 +758,18 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     if (center) centerOn(key);
   }
 
+  function projectIndex(id) {
+    return (state.data.projects || []).map(function (p) { return p.id; }).indexOf(id);
+  }
+
+  // The tab that shows a key: a flow or a step in its project; a bare project or an external on System.
+  function tabOf(key) {
+    return key.indexOf('ext:') === 0 || key.indexOf('/') < 0 ? -1 : projectIndex(key.split('/')[0]);
+  }
+
   function goto(key) {
+    var t = tabOf(key);
+    if (t !== state.pi) switchProject(t, false);
     var n = state.byKey[key];
     if (n && n.type === 'step' && !state.expanded[n.parentKey]) {
       state.expanded[n.parentKey] = true;
@@ -677,11 +780,11 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 
   function switchProject(i, focus) {
     var projects = state.data.projects || [];
-    if (i < 0 || i >= projects.length) return;
+    if (i < -1 || i >= projects.length) return;
     closeDrawer();
     state.pi = i;
     state.hit = -1;
-    try { history.replaceState(null, '', '#' + encodeURIComponent(projects[i].id)); } catch (e) { /* file:// in some browsers */ }
+    try { history.replaceState(null, '', i < 0 ? location.pathname + location.search : '#' + encodeURIComponent(projects[i].id)); } catch (e) { /* file:// in some browsers */ }
     renderTabs();
     draw();
     initialView();
@@ -689,9 +792,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
   }
 
   function projectFromHash() {
-    var id = decodeURIComponent(location.hash.slice(1));
-    var i = (state.data.projects || []).map(function (p) { return p.id; }).indexOf(id);
-    return i < 0 ? 0 : i;
+    return tabFromHash(location.hash, state.data.projects);
   }
 
   // ---- Search ----
@@ -728,6 +829,13 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     return d.length ? '<ul class="details">' + d.map(function (x) { return '<li>' + inline(x) + '</li>'; }).join('') + '</ul>' : '';
   }
 
+  function linkList(items) {
+    return items.length ? '<ul class="list">' + items.map(function (x) {
+      return '<li><div><span class="meta">' + esc(x.verb) + '</span> <button class="link" data-goto="' + esc(x.key) + '">' + esc(x.text) + '</button>' +
+        (x.note ? '<div class="meta">' + inline(x.note) + '</div>' : '') + '</div></li>';
+    }).join('') + '</ul>' : '<p class="empty">None.</p>';
+  }
+
   function body(n, tab) {
     var it = n.item;
     if (tab === 'step') {
@@ -748,6 +856,11 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
           inline(s.title || s.text) + '</button>' + detailsHtml(s) + refHtml(s.ref) + '</div></li>';
       }).join('') + '</ol>' : '<p class="empty">No steps.</p>';
     }
+    if (tab === 'links') {
+      var used = '<h5>Used by</h5>' + linkList((n.into || []).map(function (l) { return { key: l.from, text: l.from, verb: l.verb, note: l.note }; }));
+      if (n.type === 'external') return used;
+      return '<h5>Uses</h5>' + linkList((n.out || []).map(function (l) { return { key: l.key, text: l.to, verb: l.verb, note: l.note }; })) + used;
+    }
     // A changed item keeps its old values in `old`: show the changed lines of this tab.
     if (it.old) {
       var before = tabText(Object.assign({}, it, it.old), tab), after = tabText(it, tab);
@@ -757,7 +870,8 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
   }
 
   function openDrawer(n) {
-    var tabs = n.type === 'project' ? ['definition', 'flows'] : n.type === 'step' ? [] : ['definition', 'steps', 'boundary', 'rules'];
+    var tabs = n.type === 'project' ? ['definition', 'flows'] : n.type === 'step' ? [] : n.type === 'external' ? ['links'] :
+      ['definition', 'steps', 'boundary', 'links', 'rules'];
     if (tabs.length && tabs.indexOf(state.tab) < 0) state.tab = tabs[0];
     var h = ['<div class="dh"><div>', '<span class="chip" style="--c: var(--' + n.type + ')">' + esc(n.badge || n.type.toUpperCase()) + '</span>'];
     if (STATUS[n.status]) h.push('<span class="chip" style="--c: var(--' + n.status + ')">' + n.status + '</span>');
@@ -805,11 +919,16 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
   // ---- Wiring ----
 
   function activate(target) {
+    var g = target.closest('[data-goto]');
+    if (g) { goto(g.getAttribute('data-goto')); return true; }
     var tg = target.closest('[data-toggle]');
     if (tg) { toggleFlow(tg.getAttribute('data-toggle')); return true; }
     var node = target.closest('[data-key]');
-    if (node) { select(node.getAttribute('data-key'), false); return true; }
-    return false;
+    if (!node) return false;
+    var key = node.getAttribute('data-key'), n = state.byKey[key];
+    if (state.pi < 0 && n && n.type === 'project') switchProject(projectIndex(key), false);
+    else select(key, false);
+    return true;
   }
 
   function main() {
@@ -817,6 +936,8 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     if (media && media.addEventListener) media.addEventListener('change', applyTheme);
     state.data = JSON.parse($('mirror-data').textContent);
     state.world = $('world');
+    state.links = linkIndex(state.data);
+    state.sys = systemModel(state.data, state.links);
     document.body.classList.toggle('review', (state.data.projects || []).some(hasChanges));
     document.title = state.data.title || 'Mirror';
     $('title').textContent = state.data.title || 'Mirror';
