@@ -21,7 +21,3 @@ Example:
 | Go to `/posts/<new id>` | The new post. | The API creates the post. |
 | Alert on the form | The API error message. | The API rejects the post. |
 | Alert on the form | "Could not reach the server." | The request fails. |
-
-## Dependencies
-
-- calls `api/create-post`: `POST /api/posts` with the form values.

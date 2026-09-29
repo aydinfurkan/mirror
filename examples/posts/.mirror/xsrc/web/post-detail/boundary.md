@@ -15,8 +15,3 @@ Route `/posts/:id`:
 | Go to `/` | The list. | The API deletes the post. |
 | Alert | "Could not find this post." | The post does not exist. |
 | Alert | "Could not delete this post." | The delete fails. |
-
-## Dependencies
-
-- calls `api/get-post`: `GET /api/posts/:id` to show the post.
-- calls `api/delete-post`: `DELETE /api/posts/:id` when the user deletes the post.

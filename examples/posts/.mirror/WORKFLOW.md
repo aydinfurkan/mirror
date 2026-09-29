@@ -21,7 +21,8 @@ Do not change code before the user approves the review.
    commit or stash those changes first. If the repository does not use git, skip this
    check, and undo your own mirror edits by hand on a cancel.
 2. Change only files under `.mirror/xsrc/`. Do not change code in this step.
-   - A new flow or page: create its folder with the four files.
+   - A new flow or page: create its folder with the four files. A page has `actions.md` in
+     place of `steps.md`.
    - A changed flow or page: edit its files.
    - A removed flow or page: delete its folder.
 3. When the change breaks a contract of a flow (it removes a field, adds a required field, or
@@ -52,7 +53,7 @@ Do not change code before the user approves the review.
 3. Remove the code and the tests of each removed flow.
 4. Run the full test suite of each changed project and of each project with an affected flow.
    Make sure that all tests pass.
-5. For each changed `steps.md`, make sure that each `path#function` exists in the code. Fix
+5. For each changed `steps.md` and `actions.md`, make sure that each `path#function` exists in the code. Fix
    the document or the code when they do not agree.
 6. Build `.mirror/visualize.html` with "Build the data" and "Write the page" in
    `.mirror/BUILD.md`.

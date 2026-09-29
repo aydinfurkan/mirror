@@ -1,6 +1,7 @@
 # Rule: `steps.md`
 
-Path: `.mirror/xsrc/<project>/<flow-or-page>/steps.md`.
+Path: `.mirror/xsrc/<project>/<flow>/steps.md`. Use it for `backend`, `worker` and `consumer`
+flows. Pages use `actions.md`.
 
 ## Sections
 

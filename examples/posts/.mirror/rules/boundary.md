@@ -10,7 +10,8 @@ Path: `.mirror/xsrc/<project>/<flow-or-page>/boundary.md`. The contract of the f
 - `## Output`: one table row per result: each status code, event or effect, with each error.
   Then one example of the success result and one example of an error.
 - `## Dependencies`: one bullet per link to another flow, project or external system. Write
-  other needs (a helper, a repository in memory) as plain bullets. See "Links".
+  other needs (a helper, a repository in memory) as plain bullets. See "Links". A page has no
+  Dependencies section: its calls are in `actions.md`.
 
 ## Links
 
@@ -62,7 +63,8 @@ Write each link as one bullet:
 - The Input table lists the route params, the query and the form fields.
 - The Output table has the columns `Result`, `Shows` and `When`: one row for each view,
   move to another route, and alert.
-- The Dependencies list a `calls` link to each API flow that the page calls.
+- Do not write a `## Dependencies` section. Write each call of the page as a `Call:` bullet in
+  `actions.md`.
 
 ## Examples
 

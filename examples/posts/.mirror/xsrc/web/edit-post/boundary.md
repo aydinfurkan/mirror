@@ -22,8 +22,3 @@ Example:
 | Go to `/posts/:id` | The updated post. | The API saves the change. |
 | Alert on the form | The API error message. | The API rejects the change. |
 | Alert | "Could not find this post." | The post does not exist. |
-
-## Dependencies
-
-- calls `api/get-post`: `GET /api/posts/:id` to fill the form.
-- calls `api/update-post`: `PATCH /api/posts/:id` with the changed fields.

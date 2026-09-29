@@ -20,7 +20,3 @@ Example:
 | Text | "Loading…" | The posts are loading. |
 | Text | "No posts yet." | The list is empty. |
 | Alert | "Could not load the posts." | The request fails. |
-
-## Dependencies
-
-- calls `api/list-posts`: `GET /api/posts` to show the list.
