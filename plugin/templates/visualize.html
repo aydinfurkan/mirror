@@ -428,6 +428,30 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     return out;
   }
 
+  var CALL = /^\s*[-*]\s+Call:\s*`([^`]+)`\s*(?::\s*(.*?))?\s*$/i;
+
+  // The `Call:` bullets of an actions text, as `calls` links. A `Call:` bullet that does not match
+  // the call form is `bad`. Other bullets are not links.
+  function parseCalls(md) {
+    var out = [];
+    String(md || '').split(/\r?\n/).forEach(function (line) {
+      if (!/^\s*[-*]\s+Call:/i.test(line)) return;
+      var m = CALL.exec(line);
+      out.push(m ? { verb: 'calls', to: m[1].trim(), note: m[2] || '' } : { bad: true, call: true, text: line.trim() });
+    });
+    return out;
+  }
+
+  // The links of a flow: the `Call:` lines of its actions when it has actions, else the
+  // Dependencies of its boundary. old: use the values before a review change. `old.actions: null`
+  // means the old flow had no actions.
+  function flowLinks(f, old) {
+    var o = old && f.old ? f.old : {};
+    var actions = 'actions' in o ? o.actions : f.actions;
+    var boundary = 'boundary' in o ? o.boundary : f.boundary;
+    return typeof actions === 'string' ? parseCalls(actions) : parseLinks(boundary);
+  }
+
   function extIds(data) {
     var ext = {};
     (data.external || []).forEach(function (x) { ext[x.id] = 1; });
@@ -440,7 +464,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     (data.projects || []).forEach(function (p) {
       (p.flows || []).forEach(function (f) {
         var from = p.id + '/' + f.id;
-        out[from] = parseLinks(f.boundary).filter(function (l) { return !l.bad; }).map(function (l) {
+        out[from] = flowLinks(f).filter(function (l) { return !l.bad; }).map(function (l) {
           var key = ext[l.to] ? 'ext:' + l.to : l.to;
           (into[key] = into[key] || []).push({ from: from, verb: l.verb, note: l.note });
           return { verb: l.verb, to: l.to, note: l.note, key: key };
@@ -465,9 +489,8 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     }
     (data.projects || []).forEach(function (p) {
       (p.flows || []).forEach(function (f) {
-        var old = f.old && f.old.boundary !== undefined ? f.old.boundary : f.boundary;
-        if (f.status !== 'added') parseLinks(old).forEach(function (l) { add('old', p.id, l); });
-        if (f.status !== 'removed') parseLinks(f.boundary).forEach(function (l) { add('now', p.id, l); });
+        if (f.status !== 'added') flowLinks(f, true).forEach(function (l) { add('old', p.id, l); });
+        if (f.status !== 'removed') flowLinks(f).forEach(function (l) { add('now', p.id, l); });
       });
     });
     return edges.map(function (e) {
@@ -492,17 +515,22 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
       (p.flows || []).forEach(function (f) {
         if (f.status === 'removed') return;
         var at = p.id + '/' + f.id + ': ';
-        parseLinks(f.boundary).forEach(function (l) {
-          if (l.bad) errs.push(at + 'write the link as "- <verb> `<target>`: <note>": ' + l.text);
+        flowLinks(f).forEach(function (l) {
+          if (l.bad && l.call) errs.push(at + 'write the call as "- Call: `<target>`: <note>": ' + l.text);
+          else if (l.bad) errs.push(at + 'write the link as "- <verb> `<target>`: <note>": ' + l.text);
           else if (!ids[l.to]) errs.push(at + 'unknown target `' + l.to + '`');
         });
+        if (typeof f.actions === 'string' && parseLinks(f.boundary).length) {
+          errs.push(at + 'move the links of boundary.md to `Call:` lines in actions.md');
+        }
       });
     });
     return errs;
   }
 
   globalThis.MirrorViewer = { esc: esc, renderMd: renderMd, summary: summary, model: model, groups: groups, cardHtml: cardHtml, matches: matches, hasChanges: hasChanges, diffHtml: diffHtml,
-    parseLinks: parseLinks, linkIndex: linkIndex, systemEdges: systemEdges, linkErrors: linkErrors, systemModel: systemModel, tabFromHash: tabFromHash, firstTabWithMatch: firstTabWithMatch };
+    parseLinks: parseLinks, linkIndex: linkIndex, systemEdges: systemEdges, linkErrors: linkErrors, systemModel: systemModel, tabFromHash: tabFromHash, firstTabWithMatch: firstTabWithMatch,
+    parseCalls: parseCalls, flowLinks: flowLinks };
   if (typeof document === 'undefined') return;
 
   // ---- Browser only below ----

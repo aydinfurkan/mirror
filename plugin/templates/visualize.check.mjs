@@ -13,7 +13,7 @@ for (const p of data.projects) for (const f of p.flows) assert.ok(Array.isArray(
 
 const ctx = {};
 runInNewContext(html.match(/<script id="mirror-app">([\s\S]*?)<\/script>/)[1], ctx);
-const { groups, renderMd, summary, model, cardHtml, matches, hasChanges, parseLinks, linkIndex, systemEdges, linkErrors, systemModel, tabFromHash, firstTabWithMatch } = ctx.MirrorViewer;
+const { groups, renderMd, summary, model, cardHtml, matches, hasChanges, parseLinks, linkIndex, systemEdges, linkErrors, systemModel, tabFromHash, firstTabWithMatch, parseCalls, flowLinks } = ctx.MirrorViewer;
 const plain = (x) => JSON.parse(JSON.stringify(x));
 
 // The links of the page under check must be valid.
@@ -181,6 +181,64 @@ assert.equal(firstTabWithMatch(sys, 'LIST'), 1);
 assert.equal(firstTabWithMatch(sys, 'create'), 0);
 assert.equal(firstTabWithMatch(sys, 'zzz'), -1);
 assert.equal(firstTabWithMatch(sys, ' '), -1);
+
+// Actions: each `Call:` bullet is a `calls` link. Other bullets are not links. A broken Call is bad.
+const acts = '## Open the page\r\n- Call: `api/get`: load it.\r\n- Then: show it.\n- Fail: show an alert.\n- Code: `src/p.tsx#P`\n\n' +
+  '## Click "Pay"\n- call: `stripe`\n- Call: api/x\n- Then: open `/done`.\n- Code: `src/p.tsx#pay`';
+assert.deepEqual(plain(parseCalls(acts)), [
+  { verb: 'calls', to: 'api/get', note: 'load it.' },
+  { verb: 'calls', to: 'stripe', note: '' },
+  { bad: true, call: true, text: '- Call: api/x' },
+]);
+assert.deepEqual(plain(parseCalls(undefined)), []);
+
+// A flow with `actions` takes its links from the actions; else from the boundary.
+const pg = { id: 'p', kind: 'page', actions: '## Open\n- Call: `api/get`\n- Code: `a#b`', boundary: '' };
+assert.deepEqual(plain(flowLinks(pg)), [{ verb: 'calls', to: 'api/get', note: '' }]);
+assert.deepEqual(plain(flowLinks({ boundary: '## Dependencies\n- calls `api/get`' })), [{ verb: 'calls', to: 'api/get', note: '' }]);
+// Old values: `old.actions` when present; `old.actions: null` means the old page had no actions.
+assert.deepEqual(plain(flowLinks({ actions: '', old: { actions: '## A\n- Call: `api`\n- Code: `a#b`' } }, true)), [{ verb: 'calls', to: 'api', note: '' }]);
+assert.deepEqual(plain(flowLinks({ actions: '## A\n- Call: `api`\n- Code: `a#b`', boundary: '',
+  old: { actions: null, boundary: '## Dependencies\n- calls `api`' } }, true)), [{ verb: 'calls', to: 'api', note: '' }]);
+
+const pages = { external: [{ id: 'stripe', kind: 'api' }], projects: [
+  { id: 'api', flows: [{ id: 'get', boundary: '' }] },
+  { id: 'web', flows: [
+    { id: 'shop', kind: 'page', actions: '## Open\n- Call: `api/get`\n- Code: `a#b`\n## Click "Pay"\n- Call: `stripe`: pay.\n- Code: `a#c`', boundary: '' },
+    { id: 'old', kind: 'page', boundary: '## Dependencies\n- calls `api/get`', steps: [] },
+  ] },
+] };
+const pidx = linkIndex(pages);
+assert.deepEqual(plain(pidx.out['web/shop']).map((l) => l.key), ['api/get', 'ext:stripe']);
+assert.deepEqual(plain(pidx.into['api/get']).map((l) => l.from), ['web/shop', 'web/old']);
+assert.deepEqual(plain(systemEdges(pages)), [
+  { from: 'web', to: 'api', status: null, label: '2 calls' },
+  { from: 'web', to: 'ext:stripe', status: null, label: '1 calls' },
+]);
+assert.equal(linkErrors(pages).length, 0);
+
+// A page that moves from steps.md to actions.md in a review keeps its line (no added/removed flip).
+const moved = { projects: [{ id: 'api', flows: [{ id: 'get', boundary: '' }] }, { id: 'web', status: 'changed', flows: [
+  { id: 'p', kind: 'page', status: 'changed', actions: '## Open\n- Call: `api/get`\n- Code: `a#b`', boundary: '',
+    old: { actions: null, boundary: '## Dependencies\n- calls `api/get`' } },
+] }] };
+assert.deepEqual(plain(systemEdges(moved)), [{ from: 'web', to: 'api', status: null, label: '1 calls' }]);
+
+// A Call removed in a review draws a removed line.
+const dropped = { external: [{ id: 'stripe' }], projects: [{ id: 'web', status: 'changed', flows: [
+  { id: 'p', kind: 'page', status: 'changed', actions: '## Open\n- Code: `a#b`', old: { actions: '## Open\n- Call: `stripe`\n- Code: `a#b`' } },
+] }] };
+assert.deepEqual(plain(systemEdges(dropped)), [{ from: 'web', to: 'ext:stripe', status: 'removed', label: '1 calls' }]);
+
+// Errors: a broken Call, an unknown Call target, boundary links on a page with actions.
+const perr = { projects: [{ id: 'api', flows: [] }, { id: 'web', flows: [
+  { id: 'a', kind: 'page', actions: '## Open\n- Call: api/x\n- Call: `api/nope`\n- Code: `a#b`', boundary: '## Dependencies\n- calls `api`' },
+] }] };
+assert.deepEqual(Array.from(linkErrors(perr)), [
+  'web/a: write the call as "- Call: `<target>`: <note>": - Call: api/x',
+  'web/a: unknown target `api/nope`',
+  'web/a: move the links of boundary.md to `Call:` lines in actions.md',
+]);
 
 // A flow card shows its links as chips that jump to the target. Two links to one target show one chip.
 const newCard = cardHtml(model(sys.projects[1], idx).flows[0], false);
