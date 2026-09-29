@@ -61,23 +61,30 @@ Grammar: `- <verb> \`<target>\`[: <note>]`
 - A bullet that does not start with a known verb followed by a backtick span is a plain note.
   The build skips it. Use plain bullets for in-process helpers such as `now()` or `newId()`.
 
+- The verb is matched without case (`Calls` = `calls`). A bullet whose first word is not a known
+  verb is a plain note, so `- Topic \`x\`` stays prose.
+- A bullet that starts with a known verb and has a backtick, but does not match the grammar
+  (for example `- reads \`db\` (in memory).`), is an error.
+
 ### Built data
 
-The JSON in `visualize.html` gets:
+The JSON in `visualize.html` gets one new top-level field:
 
-- Top level `external`: `[{ "id", "kind", "name" }]`, in `config.json` key order. `[]` when absent.
-- On each flow, `links`: `[{ "verb", "to", "note" }]`, in bullet order. `note` is `""` when absent.
-  `[]` when there are no links.
+- `external`: `[{ "id", "kind", "name" }]`, in `config.json` key order. `[]` when absent.
 
-The data does not hold project links or incoming links. The viewer derives both.
+The data holds no links. The viewer parses them from each flow's `boundary` text, which the data
+already holds. So a review page gets the old links for free from `old.boundary`, and the builder
+cannot get the links wrong. The viewer also derives the incoming links and the project lines.
 
 ### Check
 
 `visualize.check.mjs` fails when:
 
-- a `verb` is not in the list;
-- a `to` does not match a flow `<project>/<flow>`, a project id, or an external id;
+- a link bullet does not match the grammar (see above);
+- a `to` does not match a live flow `<project>/<flow>`, a project id, or an external id;
 - an external id equals a project id.
+
+Links of `removed` flows are not checked.
 
 ## 2. Viewer
 
@@ -97,6 +104,7 @@ The data does not hold project links or incoming links. The viewer derives both.
 - Each flow card shows chips at the bottom:
   - outgoing: `→ <to>`;
   - incoming: `← <project>/<flow>`, derived by reversing all links whose target is this flow.
+  - Two links to the same target show one chip. The drawer lists each link.
 - Click a chip on a flow target to switch to its tab, center the card and highlight it.
   A chip on a project or external target switches to the System tab and highlights that card.
 - No lines are drawn across tabs.
@@ -134,8 +142,8 @@ The data does not hold project links or incoming links. The viewer derives both.
 
 ### `BUILD.md`
 
-- "Build the data": add `external` and `links` as defined above.
-- "Review page": add the System tab line comparison.
+- "Build the data": add `external` as defined above.
+- "Review page": no change. The viewer compares the old and new links from `old.boundary`.
 
 ### Rules, examples, agent file
 
@@ -158,7 +166,7 @@ Add to `visualize.check.mjs`:
 - incoming links are derived for a flow target;
 - project lines are derived and counted by verb, including links to a bare project target;
 - project-to-external lines;
-- an unknown verb and an unknown target fail the check;
+- a bad link bullet and an unknown target fail the check; an unknown verb is a plain note;
 - a review page marks added and removed System lines.
 
 Run the check on `plugin/templates/visualize.html` and on
