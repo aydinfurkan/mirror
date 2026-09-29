@@ -24,4 +24,4 @@ Example:
 
 ## Dependencies
 
-- `POST /api/posts` (flow `api/create-post`).
+- calls `api/create-post`: `POST /api/posts` with the form values.

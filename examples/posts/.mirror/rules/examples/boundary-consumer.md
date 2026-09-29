@@ -28,4 +28,5 @@ Example (published):
 
 ## Dependencies
 
-- Topic `welcome-email.requested`.
+- consumes `user-created`: the message that starts this flow.
+- publishes `welcome-email-requested`: when the message is valid.

@@ -33,4 +33,4 @@ Example (400):
 
 ## Dependencies
 
-- `UserRepository.save`
+- writes `users-db`: saves the user with `UserRepository.save`.

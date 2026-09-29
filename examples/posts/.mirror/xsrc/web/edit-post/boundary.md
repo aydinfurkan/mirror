@@ -25,5 +25,5 @@ Example:
 
 ## Dependencies
 
-- `GET /api/posts/:id` (flow `api/get-post`).
-- `PATCH /api/posts/:id` (flow `api/update-post`).
+- calls `api/get-post`: `GET /api/posts/:id` to fill the form.
+- calls `api/update-post`: `PATCH /api/posts/:id` with the changed fields.

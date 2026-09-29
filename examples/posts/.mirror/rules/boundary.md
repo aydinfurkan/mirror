@@ -9,7 +9,37 @@ Path: `.mirror/xsrc/<project>/<flow-or-page>/boundary.md`. The contract of the f
   length, format) in the Validation column. Then one example of the input.
 - `## Output`: one table row per result: each status code, event or effect, with each error.
   Then one example of the success result and one example of an error.
-- `## Dependencies`: a bullet list of databases, queues, external APIs, and other flows.
+- `## Dependencies`: one bullet per link to another flow, project or external system. Write
+  other needs (a helper, a repository in memory) as plain bullets. See "Links".
+
+## Links
+
+Write each link as one bullet:
+
+```md
+- calls `api/create-post`: sends the form values.
+- writes `posts-db`: saves the post.
+- publishes `post-events`
+```
+
+- Start the bullet with one verb: `calls`, `publishes`, `consumes`, `reads` or `writes`.
+- Put the target in backticks: `<project>/<flow>`, `<project>` when the flow is not known, or the
+  id of an external system in `config.json`.
+- Add `: <note>` to tell why. The note is optional.
+- Do not add text after the target without `: `. The check fails on ``- reads `db` (in memory).``
+- Add each database, queue, cache, storage or API outside the repository to `external` in
+  `.mirror/config.json` before you link to it:
+
+```json
+"external": {
+  "posts-db": { "kind": "database", "name": "Postgres" },
+  "post-events": { "kind": "queue", "name": "Kafka topic post.events" }
+}
+```
+
+- Use one of these kinds: `database`, `queue`, `cache`, `storage`, `api`, `service`.
+- Do not give an external system the id of a project.
+- A bullet that does not start with a verb is a plain note. The viewer does not draw it.
 
 ## Example blocks
 
@@ -32,7 +62,7 @@ Path: `.mirror/xsrc/<project>/<flow-or-page>/boundary.md`. The contract of the f
 - The Input table lists the route params, the query and the form fields.
 - The Output table has the columns `Result`, `Shows` and `When`: one row for each view,
   move to another route, and alert.
-- The Dependencies list the API flows that the page calls.
+- The Dependencies list a `calls` link to each API flow that the page calls.
 
 ## Examples
 

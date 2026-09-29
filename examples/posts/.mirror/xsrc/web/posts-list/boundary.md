@@ -23,4 +23,4 @@ Example:
 
 ## Dependencies
 
-- `GET /api/posts` (flow `api/list-posts`).
+- calls `api/list-posts`: `GET /api/posts` to show the list.

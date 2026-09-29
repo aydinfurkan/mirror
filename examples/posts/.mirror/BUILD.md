@@ -36,8 +36,12 @@
      - `text`: the header text after `N.`, then each other bullet under the header, joined
        with a space. End each part with a period.
      - `status`: `null`.
-3. Set `generated` to today in the form `YYYY-MM-DD`. Set `title` to the repository folder name.
-4. Write the data as JSON. Replace each `<` with `<`.
+3. Make one external entry for each key in `external` of `config.json`. Keep the key order.
+   Use `[]` when `external` does not exist.
+   - `id`: the key.
+   - `kind`, `name`: the values from `config.json`.
+4. Set `generated` to today in the form `YYYY-MM-DD`. Set `title` to the repository folder name.
+5. Write the data as JSON. Replace each `<` with `<`.
 
 The shape:
 
@@ -45,6 +49,7 @@ The shape:
 {
   "generated": "2026-09-25",
   "title": "my-repo",
+  "external": [{ "id": "users-db", "kind": "database", "name": "Postgres" }],
   "projects": [{
     "id": "api", "kind": "backend", "definition": "…", "status": null,
     "flows": [{
@@ -56,6 +61,9 @@ The shape:
 }
 ```
 
+The data holds no links. The page reads them from the `## Dependencies` section of each
+`boundary`. It also finds the incoming links and the lines between projects.
+
 ## Write the page
 
 1. Copy the template to the target path.
@@ -65,6 +73,8 @@ The shape:
 4. Check the page. When the Mirror plugin is installed, run
    `node <plugin root>/templates/visualize.check.mjs <target path>`. It must print `ok`.
    Else make sure that the data block is valid JSON.
+5. When the check prints a link error, fix the `boundary.md` or the `external` map in
+   `config.json`. Then build the page again.
 
 ## Review page
 

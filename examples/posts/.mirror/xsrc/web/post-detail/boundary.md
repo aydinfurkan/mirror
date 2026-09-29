@@ -18,5 +18,5 @@ Route `/posts/:id`:
 
 ## Dependencies
 
-- `GET /api/posts/:id` (flow `api/get-post`).
-- `DELETE /api/posts/:id` (flow `api/delete-post`).
+- calls `api/get-post`: `GET /api/posts/:id` to show the post.
+- calls `api/delete-post`: `DELETE /api/posts/:id` when the user deletes the post.
