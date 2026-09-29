@@ -8,5 +8,11 @@
   "homepage": "https://github.com/aydinfurkan/mirror",
   "repository": "https://github.com/aydinfurkan/mirror",
   "license": "MIT",
-  "keywords": ["mirror-driven-development", "documentation", "architecture", "flows", "visualization", "workflow"]
+  "keywords": [
+    "documentation",
+    "architecture",
+    "flows",
+    "visualization",
+    "workflow"
+  ]
 }
