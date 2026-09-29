@@ -27,7 +27,7 @@ Write each link as one bullet:
 - Put the target in backticks: `<project>/<flow>`, `<project>` when the flow is not known, or the
   id of an external system in `config.json`.
 - Add `: <note>` to tell why. The note is optional.
-- Do not add text after the target without `: `. Do not write ``- reads `db` (in memory).``
+- Do not add text after the target without `: `. The check fails on ``- reads `db` (in memory).``
 - Add each database, queue, cache, storage or API outside the repository to `external` in
   `.mirror/config.json` before you link to it:
 

@@ -13,7 +13,7 @@
   --bg: #fafafa;  --surface: #ffffff;  --panel: #ffffff;  --border: #e4e4e7;
   --text: #09090b;  --muted: #52525b;  --edge: #a1a1aa;  --accent: #09090b;
   --shadow: 0 0 #0000;
-  --project: #09090b;  --flow: #2563eb;  --page: #d97706;  --step: #71717a;  --group: #3f3f46;
+  --project: #09090b;  --flow: #2563eb;  --page: #d97706;  --step: #71717a;  --group: #3f3f46;  --external: #7c3aed;
   --added: #16a34a;  --changed: #eab308;  --removed: #dc2626;
   --box-w: 340px;  --box-h: 112px;  --gap-x: 20px;  --gap-y: 56px;  --radius: 14px;
   --font: Geist, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -23,7 +23,7 @@
   --bg: #09090b;  --surface: #18181b;  --panel: #111113;  --border: #27272a;
   --text: #fafafa;  --muted: #a1a1aa;  --edge: #52525b;  --accent: #fafafa;
   --shadow: 0 0 #0000;
-  --project: #fafafa;  --flow: #60a5fa;  --page: #fbbf24;  --step: #71717a;  --group: #52525b;
+  --project: #fafafa;  --flow: #60a5fa;  --page: #fbbf24;  --step: #71717a;  --group: #52525b;  --external: #a78bfa;
   --added: #22c55e;  --changed: #facc15;  --removed: #f87171;
 }
 /* MIRROR:TOKENS:END */
@@ -72,6 +72,17 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 .card.project { --c: var(--project); }
 .card.flow { --c: var(--flow); }
 .card.page { --c: var(--page); }
+.card.external { --c: var(--external, #7c3aed); }
+.lchips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.lchip { max-width: 100%; padding: 1px 8px; border: 1px solid var(--border); border-radius: 999px; background: var(--bg); font: 14px var(--mono); color: var(--muted); text-align: left; overflow-wrap: anywhere; cursor: pointer; }
+.lchip:hover, .lchip:focus-visible { color: var(--text); border-color: var(--accent); outline: none; }
+.row.system { gap: calc(var(--gap-x) * 3); }
+.row.system.top { margin-top: 110px; }
+.row.system + .row.system { margin-top: calc(var(--gap-y) * 2); }
+.edge.st-added { stroke: var(--added); stroke-width: 2.5; }
+.edge.st-removed { stroke: var(--removed); stroke-width: 2.5; stroke-dasharray: 6 4; }
+.arrow { fill: var(--edge); }
+.elabel { font: 14px var(--font); fill: var(--muted); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; }
 .card:hover { border-color: var(--c); }
 .ch { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .name { font-size: 17px; font-weight: 650; overflow-wrap: anywhere; }
@@ -183,7 +194,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
   <aside id="drawer" aria-hidden="true"></aside>
 </main>
 <script type="application/json" id="mirror-data">
-{"generated":"2026-09-29","title":"posts","projects":[{"id":"api","kind":"backend","definition":"The `api` project is an HTTP API for posts. An author creates, reads, updates and deletes posts.\n\n## Stack\n\n- TypeScript on Node 20 or later. Express 4. zod. vitest and supertest for the tests.\n- Start it with `npm -C code run dev`. It reads the port from `PORT`. The default port is 3000.\n\n## Technical decisions\n\n- Keep the posts in memory behind the `PostRepository` port in `src/domain/post.port.ts`. The service restarts empty. A real store can replace `src/infra/post.repo.memory.ts` later.\n- Parse the shape of each request body with zod at the route (`src/api/routes/posts.schema.ts`). Keep the business rules in `src/domain/post.rules.ts`.\n- Return a `ServiceResult` from each service function. `src/api/http.ts` maps the error codes to HTTP: `validation` 400, `not-found` 404, an unexpected error 500.","status":null,"flows":[{"id":"create-post","kind":"flow","trigger":"http","entry":"POST /posts","group":"posts","definition":"Create a post for an author.","boundary":"## Input\n\n`POST /posts`, JSON body:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `title` | string | yes | 1–120 characters, at least one visible character |\n| `body` | string | yes | 1–10000 characters, at least one visible character |\n| `authorId` | string | yes | not empty |\n\nExample:\n\n```json\n{ \"title\": \"Hello\", \"body\": \"My first post.\", \"authorId\": \"u1\" }\n```\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 201 | `Post` (`updatedAt` equals `createdAt`) | The post is created. |\n| 400 | `{ error: { code: \"validation\", field, message } }` | A field fails its validation. |\n| 500 | `{ error: { code: \"unexpected\", field: \"server\", message } }` | The server fails. |\n\nExample (201):\n\n```json\n{\n  \"id\": \"p1\",\n  \"title\": \"Hello\",\n  \"body\": \"My first post.\",\n  \"authorId\": \"u1\",\n  \"createdAt\": \"2026-09-27T10:00:00.000Z\",\n  \"updatedAt\": \"2026-09-27T10:00:00.000Z\"\n}\n```\n\nExample (400):\n\n```json\n{ \"error\": { \"code\": \"validation\", \"field\": \"title\", \"message\": \"Enter a title.\" } }\n```\n\n## Dependencies\n\n- `PostRepository.save` (in memory).\n- `now()` and `newId()` from `src/infra/system.deps.ts`.\n","rules":"**Relates to:** `web/new-post`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nAn author writes a post in the web app. The API stores it in memory.\n\n## Goal\n\n- Create a post when a user supplies a title, a body and an author id.\n- Give the post a unique id. Record the creation time.\n\n## Non-goal\n\n- Check that the author exists.\n- Keep the posts after a restart.\n\n## Constraints\n\n- Reject a title that contains no visible characters or is longer than 120 characters.\n- Reject a body that contains no visible characters or is longer than 10000 characters.\n\n## Acceptance criteria\n\n- Return the new post with `updatedAt` equal to `createdAt`.\n- Store the new post in the repository.\n- Accept a title of exactly 120 characters.\n- Reject a title of 121 characters.\n- Reject an empty body.\n- Store nothing when the input is invalid.\n\n## Open Questions\n\n- None.","status":null,"steps":[{"n":1,"title":"Receive the request.","text":"Receive the request.","details":[],"ref":"src/api/routes/posts.route.ts#handleCreatePost","status":null},{"n":2,"title":"Parse the body shape.","text":"Parse the body shape. Return HTTP 400 when it is wrong.","details":["Return HTTP 400 when it is wrong."],"ref":"src/api/routes/posts.schema.ts#parseCreatePostBody","status":null},{"n":3,"title":"Validate the title.","text":"Validate the title. Return HTTP 400 when it is not valid.","details":["Return HTTP 400 when it is not valid."],"ref":"src/domain/post.rules.ts#validateTitle","status":null},{"n":4,"title":"Validate the body.","text":"Validate the body. Return HTTP 400 when it is not valid.","details":["Return HTTP 400 when it is not valid."],"ref":"src/domain/post.rules.ts#validateBody","status":null},{"n":5,"title":"Make the post with a new id and the creation time.","text":"Make the post with a new id and the creation time. Save it.","details":["Save it."],"ref":"src/domain/post.service.ts#createPost","status":null},{"n":6,"title":"Return HTTP 201 with the post.","text":"Return HTTP 201 with the post.","details":[],"ref":"src/api/http.ts#sendJson","status":null}]},{"id":"delete-post","kind":"flow","trigger":"http","entry":"DELETE /posts/:id","group":"posts","definition":"Delete a post.","boundary":"## Input\n\n`DELETE /posts/:id`, no body:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `id` (path) | string | yes | — |\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 204 | none | The post is deleted. |\n| 404 | `{ error: { code: \"not-found\", field: \"id\", message } }` | No post has this id. |\n| 500 | `{ error: { code: \"unexpected\", field: \"server\", message } }` | The server fails. |\n\nExample (404):\n\n```json\n{ \"error\": { \"code\": \"not-found\", \"field\": \"id\", \"message\": \"Find no post with this id.\" } }\n```\n\n## Dependencies\n\n- `PostRepository.remove` (in memory).\n","rules":"**Relates to:** `web/post-detail`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nAn author removes a post that they do not want to show.\n\n## Goal\n\n- Remove the post with the given id.\n\n## Non-goal\n\n- Check who asks for the delete.\n- Keep a deleted post for a restore.\n\n## Constraints\n\n- Delete only a post that exists.\n\n## Acceptance criteria\n\n- Remove the post from the repository.\n- Return not-found for the post after the delete.\n- Report a not-found error for an unknown id.\n\n## Open Questions\n\n- Should only the author be able to delete a post?","status":null,"steps":[{"n":1,"title":"Receive the request.","text":"Receive the request. Read `id` from the path.","details":["Read `id` from the path."],"ref":"src/api/routes/posts.route.ts#handleDeletePost","status":null},{"n":2,"title":"Remove the post.","text":"Remove the post. Return HTTP 404 when it does not exist.","details":["Return HTTP 404 when it does not exist."],"ref":"src/domain/post.service.ts#deletePost","status":null},{"n":3,"title":"Return HTTP 204 with no body.","text":"Return HTTP 204 with no body.","details":[],"ref":"src/api/http.ts#sendNoContent","status":null}]},{"id":"get-post","kind":"flow","trigger":"http","entry":"GET /posts/:id","group":"posts","definition":"Return one post.","boundary":"## Input\n\n`GET /posts/:id`:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `id` (path) | string | yes | — |\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 200 | `Post` | The post exists. |\n| 404 | `{ error: { code: \"not-found\", field: \"id\", message } }` | No post has this id. |\n| 500 | `{ error: { code: \"unexpected\", field: \"server\", message } }` | The server fails. |\n\nExample (200):\n\n```json\n{\n  \"id\": \"p1\",\n  \"title\": \"Hello\",\n  \"body\": \"My first post.\",\n  \"authorId\": \"u1\",\n  \"createdAt\": \"2026-09-27T10:00:00.000Z\",\n  \"updatedAt\": \"2026-09-27T10:00:00.000Z\"\n}\n```\n\nExample (404):\n\n```json\n{ \"error\": { \"code\": \"not-found\", \"field\": \"id\", \"message\": \"Find no post with this id.\" } }\n```\n\n## Dependencies\n\n- `PostRepository.findById` (in memory).\n","rules":"**Relates to:** `web/post-detail`, `web/edit-post`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nThe web app shows one post and fills the edit form with it.\n\n## Goal\n\n- Return the post with the given id.\n\n## Non-goal\n\n- Count the views of a post.\n\n## Constraints\n\n- Return only a post that exists.\n\n## Acceptance criteria\n\n- Return the post for a known id.\n- Report a not-found error for an unknown id.\n\n## Open Questions\n\n- None.","status":null,"steps":[{"n":1,"title":"Receive the request.","text":"Receive the request. Read `id` from the path.","details":["Read `id` from the path."],"ref":"src/api/routes/posts.route.ts#handleGetPost","status":null},{"n":2,"title":"Find the post.","text":"Find the post. Return HTTP 404 when it does not exist.","details":["Return HTTP 404 when it does not exist."],"ref":"src/domain/post.service.ts#getPost","status":null},{"n":3,"title":"Return HTTP 200 with the post.","text":"Return HTTP 200 with the post.","details":[],"ref":"src/api/http.ts#sendJson","status":null}]},{"id":"health-check","kind":"flow","trigger":"http","entry":"GET /health","group":"system","definition":"Tell a caller that the API runs.","boundary":"## Input\n\n`GET /health`, no fields.\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 200 | `{ \"status\": \"ok\" }` | The API runs. |\n\nExample (200):\n\n```json\n{ \"status\": \"ok\" }\n```\n\n## Dependencies\n\n- None.\n","rules":"**Relates to:** none\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA load balancer or a person checks that the API runs.\n\n## Goal\n\n- Tell the caller that the API runs.\n\n## Non-goal\n\n- Check the repository or other dependencies.\n\n## Constraints\n\n- Answer without a call to the repository.\n\n## Acceptance criteria\n\n- `GET /health` returns HTTP 200 with `{ \"status\": \"ok\" }`.\n\n## Open Questions\n\n- None.","status":null,"steps":[{"n":1,"title":"Return HTTP 200 with `{ \"status\": \"ok\" }`.","text":"Return HTTP 200 with `{ \"status\": \"ok\" }`.","details":[],"ref":"src/api/server.ts#createServer","status":null}]},{"id":"list-posts","kind":"flow","trigger":"http","entry":"GET /posts","group":"posts","definition":"List the posts, newest first. Filter by author when the request names one.","boundary":"## Input\n\n`GET /posts`:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `authorId` (query) | string | no | Ignored when it is not a single string. |\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 200 | `Post[]`, newest first, can be empty | Always, unless the server fails. |\n| 500 | `{ error: { code: \"unexpected\", field: \"server\", message } }` | The server fails. |\n\nExample (200):\n\n```json\n[\n  {\n    \"id\": \"p1\",\n    \"title\": \"Hello\",\n    \"body\": \"My first post.\",\n    \"authorId\": \"u1\",\n    \"createdAt\": \"2026-09-27T10:00:00.000Z\",\n    \"updatedAt\": \"2026-09-27T10:00:00.000Z\"\n  }\n]\n```\n\n## Dependencies\n\n- `PostRepository.findAll` (in memory).\n","rules":"**Relates to:** `web/posts-list`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nThe web app shows all posts, or the posts of one author.\n\n## Goal\n\n- List all posts when the request names no author.\n- List only the posts of the author when the request names one.\n\n## Non-goal\n\n- Split the list into pages.\n- Search the text of the posts.\n\n## Constraints\n\n- Show the newest post first.\n\n## Acceptance criteria\n\n- Order the posts by `createdAt`, newest first.\n- Return only the posts whose `authorId` matches the query.\n- Return an empty list for an author who has no posts.\n\n## Open Questions\n\n- When do we need pages for a long list?","status":null,"steps":[{"n":1,"title":"Receive the request.","text":"Receive the request. Read the optional `authorId` from the query.","details":["Read the optional `authorId` from the query."],"ref":"src/api/routes/posts.route.ts#handleListPosts","status":null},{"n":2,"title":"Load the posts.","text":"Load the posts. Keep only the posts of the author when `authorId` is set.","details":["Keep only the posts of the author when `authorId` is set."],"ref":"src/domain/post.service.ts#listPosts","status":null},{"n":3,"title":"Sort the posts newest first.","text":"Sort the posts newest first.","details":[],"ref":"src/domain/post.rules.ts#sortNewestFirst","status":null},{"n":4,"title":"Return HTTP 200 with the list.","text":"Return HTTP 200 with the list.","details":[],"ref":"src/api/http.ts#sendJson","status":null}]},{"id":"update-post","kind":"flow","trigger":"http","entry":"PATCH /posts/:id","group":"posts","definition":"Change the title, the body, or both, of a post.","boundary":"## Input\n\n`PATCH /posts/:id`, JSON body with at least one of `title` and `body`:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `id` (path) | string | yes | — |\n| `title` | string | no | 1–120 characters, at least one visible character |\n| `body` | string | no | 1–10000 characters, at least one visible character |\n\nExample:\n\n```json\n{ \"title\": \"Hello again\" }\n```\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 200 | `Post` with a new `updatedAt` | The post is updated. |\n| 400 | `{ error: { code: \"validation\", field, message } }` | No field is set, or a field fails its validation. |\n| 404 | `{ error: { code: \"not-found\", field: \"id\", message } }` | No post has this id. |\n| 500 | `{ error: { code: \"unexpected\", field: \"server\", message } }` | The server fails. |\n\nExample (200):\n\n```json\n{\n  \"id\": \"p1\",\n  \"title\": \"Hello again\",\n  \"body\": \"My first post.\",\n  \"authorId\": \"u1\",\n  \"createdAt\": \"2026-09-27T10:00:00.000Z\",\n  \"updatedAt\": \"2026-09-27T11:00:00.000Z\"\n}\n```\n\nExample (404):\n\n```json\n{ \"error\": { \"code\": \"not-found\", \"field\": \"id\", \"message\": \"Find no post with this id.\" } }\n```\n\n## Dependencies\n\n- `PostRepository.findById` and `PostRepository.save` (in memory).\n- `now()` from `src/infra/system.deps.ts`.\n","rules":"**Relates to:** `web/edit-post`\n**Inherits:** `api/create-post` (title and body limits)\n**Supersedes:** none\n\n## Context\n\nAn author fixes or changes the text of a post.\n\n## Goal\n\n- Change only the fields that the request sets.\n- Record the update time. Keep the creation time.\n\n## Non-goal\n\n- Change the author of a post.\n- Keep old versions of a post.\n\n## Constraints\n\n- Use the same title and body limits as when a post is created.\n- Reject a request that sets no field.\n\n## Acceptance criteria\n\n- Keep each field that the request does not set.\n- Set `updatedAt` to the update time.\n- Reject a request that sets no field.\n- Keep the post unchanged when a field is invalid.\n- Report a not-found error for an unknown id.\n\n## Open Questions\n\n- Should only the author be able to update a post?","status":null,"steps":[{"n":1,"title":"Receive the request.","text":"Receive the request. Read `id` from the path.","details":["Read `id` from the path."],"ref":"src/api/routes/posts.route.ts#handleUpdatePost","status":null},{"n":2,"title":"Parse the body shape.","text":"Parse the body shape. Return HTTP 400 when it has no field to change.","details":["Return HTTP 400 when it has no field to change."],"ref":"src/api/routes/posts.schema.ts#parseUpdatePostBody","status":null},{"n":3,"title":"Find the post.","text":"Find the post. Return HTTP 404 when it does not exist.","details":["Return HTTP 404 when it does not exist."],"ref":"src/domain/post.service.ts#updatePost","status":null},{"n":4,"title":"Validate the title when it is set.","text":"Validate the title when it is set. Return HTTP 400 when it is not valid.","details":["Return HTTP 400 when it is not valid."],"ref":"src/domain/post.rules.ts#validateTitle","status":null},{"n":5,"title":"Validate the body when it is set.","text":"Validate the body when it is set. Return HTTP 400 when it is not valid.","details":["Return HTTP 400 when it is not valid."],"ref":"src/domain/post.rules.ts#validateBody","status":null},{"n":6,"title":"Apply the given fields and record the update time.","text":"Apply the given fields and record the update time. Save the post.","details":["Save the post."],"ref":"src/domain/post.service.ts#updatePost","status":null},{"n":7,"title":"Return HTTP 200 with the post.","text":"Return HTTP 200 with the post.","details":[],"ref":"src/api/http.ts#sendJson","status":null}]}]},{"id":"web","kind":"frontend","definition":"The `web` project is a web app for posts. A user lists, reads, creates, edits and deletes posts through the `api` project.\n\n## Stack\n\n- TypeScript, React 18, React Router 6, Vite. vitest, jsdom and Testing Library for the tests.\n- Start it with `npm -C web run dev`. Start the `api` project on port 3000 first.\n\n## Technical decisions\n\n- Call the API only through `src/api/posts.api.ts`. Each call uses the base path `/api`. The Vite dev server sends `/api/*` to `http://localhost:3000`, so the browser needs no CORS.\n- Throw an `ApiError` with the status, the field and the message of the API error. A form shows that message.\n- Use one form component, `src/components/PostForm.tsx`, for the new-post page and the edit-post page.\n- Keep the state of each page in the page. The app has no global store.","status":null,"flows":[{"id":"edit-post","kind":"page","trigger":"page","entry":"/posts/:id/edit","group":"write","definition":"Let the user change the title and the body of a post.","boundary":"## Input\n\nRoute `/posts/:id/edit`, form fields:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `id` (route) | text | yes | — |\n| `title` | text | yes | Checked by the API. |\n| `body` | text | yes | Checked by the API. |\n\nExample:\n\n```json\n{ \"title\": \"Hello again\", \"body\": \"Updated text.\" }\n```\n\n## Output\n\n| Result | Shows | When |\n| --- | --- | --- |\n| Form | The current title and body. | The post loads. |\n| Go to `/posts/:id` | The updated post. | The API saves the change. |\n| Alert on the form | The API error message. | The API rejects the change. |\n| Alert | \"Could not find this post.\" | The post does not exist. |\n","rules":"**Relates to:** `api/get-post`, `api/update-post`\n**Inherits:** `web/new-post` (the form and its error messages)\n**Supersedes:** none\n\n## Context\n\nA user changes the title and the body of a post in the browser.\n\n## Goal\n\n- Let the user change the title and the body of a post.\n\n## Non-goal\n\n- Let the user change the author of a post.\n\n## Constraints\n\n- Let the API validate the change. Show its message to the user.\n\n## Acceptance criteria\n\n- Fill the form with the current title and body.\n- Send `PATCH /api/posts/\u003cid>`, then show the post with the new title.\n\n## Open Questions\n\n- None.","status":null,"steps":[{"n":1,"title":"Open the page.","details":["Call: `api/get-post`: `GET /api/posts/:id` with the route `id`.","Then: show the form with the current title and body.","Fail: show an alert when the post does not exist."],"ref":"src/pages/EditPostPage.tsx#EditPostPage","status":null,"text":"Open the page. Call: `api/get-post`: `GET /api/posts/:id` with the route `id`. Then: show the form with the current title and body. Fail: show an alert when the post does not exist."},{"n":2,"title":"Click \"Save\".","details":["Call: `api/update-post`: `PATCH /api/posts/:id` with the title and the body.","Then: open the detail page of the post.","Fail: show the error message of the API on the form."],"ref":"src/components/PostForm.tsx#PostForm","status":null,"text":"Click \"Save\". Call: `api/update-post`: `PATCH /api/posts/:id` with the title and the body. Then: open the detail page of the post. Fail: show the error message of the API on the form."}],"actions":"## Open the page\n- Call: `api/get-post`: `GET /api/posts/:id` with the route `id`.\n- Then: show the form with the current title and body.\n- Fail: show an alert when the post does not exist.\n- Code: `src/pages/EditPostPage.tsx#EditPostPage`\n\n## Click \"Save\"\n- Call: `api/update-post`: `PATCH /api/posts/:id` with the title and the body.\n- Then: open the detail page of the post.\n- Fail: show the error message of the API on the form.\n- Code: `src/components/PostForm.tsx#PostForm`\n"},{"id":"new-post","kind":"page","trigger":"page","entry":"/posts/new","group":"write","definition":"Let the user write and create a post.","boundary":"## Input\n\nRoute `/posts/new`, form fields:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `title` | text | yes | Checked by the API. |\n| `body` | text | yes | Checked by the API. |\n| `authorId` | text | yes | Checked by the API. |\n\nExample:\n\n```json\n{ \"title\": \"Hello\", \"body\": \"My first post.\", \"authorId\": \"u1\" }\n```\n\n## Output\n\n| Result | Shows | When |\n| --- | --- | --- |\n| Go to `/posts/\u003cnew id>` | The new post. | The API creates the post. |\n| Alert on the form | The API error message. | The API rejects the post. |\n| Alert on the form | \"Could not reach the server.\" | The request fails. |\n","rules":"**Relates to:** `api/create-post`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA user writes a post in the browser.\n\n## Goal\n\n- Let the user write and create a post.\n\n## Non-goal\n\n- Save a draft.\n- Check the fields in the browser before the API does.\n\n## Constraints\n\n- Let the API validate the post. Show its message to the user.\n- Disable the submit button while the request runs.\n\n## Acceptance criteria\n\n- Open the new post after a create.\n- Show \"Enter a title.\" and stay on the form when the title is empty.\n\n## Open Questions\n\n- Should the author id come from a login instead of a text field?","status":null,"steps":[{"n":1,"title":"Open the page.","details":["Then: show an empty form with a title, a body and an author id."],"ref":"src/pages/NewPostPage.tsx#NewPostPage","status":null,"text":"Open the page. Then: show an empty form with a title, a body and an author id."},{"n":2,"title":"Click \"Create\".","details":["Call: `api/create-post`: `POST /api/posts` with the form values.","Then: open the detail page of the new post.","Fail: show the error message of the API on the form."],"ref":"src/components/PostForm.tsx#PostForm","status":null,"text":"Click \"Create\". Call: `api/create-post`: `POST /api/posts` with the form values. Then: open the detail page of the new post. Fail: show the error message of the API on the form."}],"actions":"## Open the page\n- Then: show an empty form with a title, a body and an author id.\n- Code: `src/pages/NewPostPage.tsx#NewPostPage`\n\n## Click \"Create\"\n- Call: `api/create-post`: `POST /api/posts` with the form values.\n- Then: open the detail page of the new post.\n- Fail: show the error message of the API on the form.\n- Code: `src/components/PostForm.tsx#PostForm`\n"},{"id":"post-detail","kind":"page","trigger":"page","entry":"/posts/:id","group":"read","definition":"Show one post. Let the user edit or delete it.","boundary":"## Input\n\nRoute `/posts/:id`:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `id` (route) | text | yes | — |\n| Delete confirmation | yes / no | yes | The delete runs only on yes. |\n\n## Output\n\n| Result | Shows | When |\n| --- | --- | --- |\n| Post | Title, author, update time, body, and an \"Edit\" link to `/posts/:id/edit`. | The post loads. |\n| Go to `/` | The list. | The API deletes the post. |\n| Alert | \"Could not find this post.\" | The post does not exist. |\n| Alert | \"Could not delete this post.\" | The delete fails. |\n","rules":"**Relates to:** `api/get-post`, `api/delete-post`, `web/edit-post`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA user reads one post, and can edit or delete it.\n\n## Goal\n\n- Show one post.\n- Let the user delete it.\n\n## Non-goal\n\n- Show comments.\n\n## Constraints\n\n- Delete a post only after the user confirms it.\n\n## Acceptance criteria\n\n- Show the title as the page heading.\n- Send `DELETE /api/posts/\u003cid>` after the confirmation, then show the list without the post.\n- Show \"Could not find this post.\" for an unknown id.\n\n## Open Questions\n\n- None.","status":null,"steps":[{"n":1,"title":"Open the page.","details":["Call: `api/get-post`: `GET /api/posts/:id` with the route `id`.","Then: show the title, the author, the update time and the body.","Fail: show an alert when the post does not exist."],"ref":"src/pages/PostDetailPage.tsx#PostDetailPage","status":null,"text":"Open the page. Call: `api/get-post`: `GET /api/posts/:id` with the route `id`. Then: show the title, the author, the update time and the body. Fail: show an alert when the post does not exist."},{"n":2,"title":"Click \"Delete\".","details":["Call: `api/delete-post`: `DELETE /api/posts/:id` after the user confirms.","Then: go to the list."],"ref":"src/pages/PostDetailPage.tsx#PostDetailPage","status":null,"text":"Click \"Delete\". Call: `api/delete-post`: `DELETE /api/posts/:id` after the user confirms. Then: go to the list."}],"actions":"## Open the page\n- Call: `api/get-post`: `GET /api/posts/:id` with the route `id`.\n- Then: show the title, the author, the update time and the body.\n- Fail: show an alert when the post does not exist.\n- Code: `src/pages/PostDetailPage.tsx#PostDetailPage`\n\n## Click \"Delete\"\n- Call: `api/delete-post`: `DELETE /api/posts/:id` after the user confirms.\n- Then: go to the list.\n- Code: `src/pages/PostDetailPage.tsx#PostDetailPage`\n"},{"id":"posts-list","kind":"page","trigger":"page","entry":"/","group":"read","definition":"Show the list of posts. Let the user filter it by author.","boundary":"## Input\n\nRoute `/`:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `authorId` (query and text field) | text | no | An empty value shows all posts. |\n\nExample:\n\n```text\n/?authorId=u1\n```\n\n## Output\n\n| Result | Shows | When |\n| --- | --- | --- |\n| List | Each post as a link to `/posts/:id`, and a \"New post\" link to `/posts/new`. | The posts load. |\n| Text | \"Loading…\" | The posts are loading. |\n| Text | \"No posts yet.\" | The list is empty. |\n| Alert | \"Could not load the posts.\" | The request fails. |\n","rules":"**Relates to:** `api/list-posts`, `web/post-detail`, `web/new-post`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nThe home page of the web app. A user finds a post to read.\n\n## Goal\n\n- Show the list of posts.\n- Let the user filter it by author.\n\n## Non-goal\n\n- Split the list into pages.\n\n## Constraints\n\n- Show the posts in the order that the API returns: newest first.\n- Keep the author filter in the URL, so a user can share the filtered list.\n\n## Acceptance criteria\n\n- Show a link to `/posts/\u003cid>` for each post.\n- Request `GET /api/posts?authorId=\u003cid>` when the URL has an author id.\n- Show \"No posts yet.\" when the API returns an empty list.\n\n## Open Questions\n\n- None.","status":null,"steps":[{"n":1,"title":"Open the page.","details":["Call: `api/list-posts`: `GET /api/posts` with the optional `authorId` from the URL query.","Then: show each post as a link to its detail page. Show \"No posts yet.\" for an empty list."],"ref":"src/pages/PostsListPage.tsx#PostsListPage","status":null,"text":"Open the page. Call: `api/list-posts`: `GET /api/posts` with the optional `authorId` from the URL query. Then: show each post as a link to its detail page. Show \"No posts yet.\" for an empty list."},{"n":2,"title":"Type an author id.","details":["Call: `api/list-posts`: load the posts again with the new `authorId`.","Then: put the author id into the URL query."],"ref":"src/pages/PostsListPage.tsx#PostsListPage","status":null,"text":"Type an author id. Call: `api/list-posts`: load the posts again with the new `authorId`. Then: put the author id into the URL query."}],"actions":"## Open the page\n- Call: `api/list-posts`: `GET /api/posts` with the optional `authorId` from the URL query.\n- Then: show each post as a link to its detail page. Show \"No posts yet.\" for an empty list.\n- Code: `src/pages/PostsListPage.tsx#PostsListPage`\n\n## Type an author id\n- Call: `api/list-posts`: load the posts again with the new `authorId`.\n- Then: put the author id into the URL query.\n- Code: `src/pages/PostsListPage.tsx#PostsListPage`\n"}]}]}
+{"generated":"2026-09-29","title":"posts","projects":[{"id":"api","kind":"backend","definition":"The `api` project is an HTTP API for posts. An author creates, reads, updates and deletes posts.\n\n## Stack\n\n- TypeScript on Node 20 or later. Express 4. zod. vitest and supertest for the tests.\n- Start it with `npm -C code run dev`. It reads the port from `PORT`. The default port is 3000.\n\n## Technical decisions\n\n- Keep the posts in memory behind the `PostRepository` port in `src/domain/post.port.ts`. The service restarts empty. A real store can replace `src/infra/post.repo.memory.ts` later.\n- Parse the shape of each request body with zod at the route (`src/api/routes/posts.schema.ts`). Keep the business rules in `src/domain/post.rules.ts`.\n- Return a `ServiceResult` from each service function. `src/api/http.ts` maps the error codes to HTTP: `validation` 400, `not-found` 404, an unexpected error 500.","status":null,"flows":[{"id":"create-post","kind":"flow","trigger":"http","entry":"POST /posts","group":"posts","definition":"Create a post for an author.","boundary":"## Input\n\n`POST /posts`, JSON body:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `title` | string | yes | 1–120 characters, at least one visible character |\n| `body` | string | yes | 1–10000 characters, at least one visible character |\n| `authorId` | string | yes | not empty |\n\nExample:\n\n```json\n{ \"title\": \"Hello\", \"body\": \"My first post.\", \"authorId\": \"u1\" }\n```\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 201 | `Post` (`updatedAt` equals `createdAt`) | The post is created. |\n| 400 | `{ error: { code: \"validation\", field, message } }` | A field fails its validation. |\n| 500 | `{ error: { code: \"unexpected\", field: \"server\", message } }` | The server fails. |\n\nExample (201):\n\n```json\n{\n  \"id\": \"p1\",\n  \"title\": \"Hello\",\n  \"body\": \"My first post.\",\n  \"authorId\": \"u1\",\n  \"createdAt\": \"2026-09-27T10:00:00.000Z\",\n  \"updatedAt\": \"2026-09-27T10:00:00.000Z\"\n}\n```\n\nExample (400):\n\n```json\n{ \"error\": { \"code\": \"validation\", \"field\": \"title\", \"message\": \"Enter a title.\" } }\n```\n\n## Dependencies\n\n- `PostRepository.save` (in memory).\n- `now()` and `newId()` from `src/infra/system.deps.ts`.\n","rules":"**Relates to:** `web/new-post`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nAn author writes a post in the web app. The API stores it in memory.\n\n## Goal\n\n- Create a post when a user supplies a title, a body and an author id.\n- Give the post a unique id. Record the creation time.\n\n## Non-goal\n\n- Check that the author exists.\n- Keep the posts after a restart.\n\n## Constraints\n\n- Reject a title that contains no visible characters or is longer than 120 characters.\n- Reject a body that contains no visible characters or is longer than 10000 characters.\n\n## Acceptance criteria\n\n- Return the new post with `updatedAt` equal to `createdAt`.\n- Store the new post in the repository.\n- Accept a title of exactly 120 characters.\n- Reject a title of 121 characters.\n- Reject an empty body.\n- Store nothing when the input is invalid.\n\n## Open Questions\n\n- None.","status":null,"steps":[{"n":1,"title":"Receive the request.","text":"Receive the request.","details":[],"ref":"src/api/routes/posts.route.ts#handleCreatePost","status":null},{"n":2,"title":"Parse the body shape.","text":"Parse the body shape. Return HTTP 400 when it is wrong.","details":["Return HTTP 400 when it is wrong."],"ref":"src/api/routes/posts.schema.ts#parseCreatePostBody","status":null},{"n":3,"title":"Validate the title.","text":"Validate the title. Return HTTP 400 when it is not valid.","details":["Return HTTP 400 when it is not valid."],"ref":"src/domain/post.rules.ts#validateTitle","status":null},{"n":4,"title":"Validate the body.","text":"Validate the body. Return HTTP 400 when it is not valid.","details":["Return HTTP 400 when it is not valid."],"ref":"src/domain/post.rules.ts#validateBody","status":null},{"n":5,"title":"Make the post with a new id and the creation time.","text":"Make the post with a new id and the creation time. Save it.","details":["Save it."],"ref":"src/domain/post.service.ts#createPost","status":null},{"n":6,"title":"Return HTTP 201 with the post.","text":"Return HTTP 201 with the post.","details":[],"ref":"src/api/http.ts#sendJson","status":null}]},{"id":"delete-post","kind":"flow","trigger":"http","entry":"DELETE /posts/:id","group":"posts","definition":"Delete a post.","boundary":"## Input\n\n`DELETE /posts/:id`, no body:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `id` (path) | string | yes | — |\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 204 | none | The post is deleted. |\n| 404 | `{ error: { code: \"not-found\", field: \"id\", message } }` | No post has this id. |\n| 500 | `{ error: { code: \"unexpected\", field: \"server\", message } }` | The server fails. |\n\nExample (404):\n\n```json\n{ \"error\": { \"code\": \"not-found\", \"field\": \"id\", \"message\": \"Find no post with this id.\" } }\n```\n\n## Dependencies\n\n- `PostRepository.remove` (in memory).\n","rules":"**Relates to:** `web/post-detail`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nAn author removes a post that they do not want to show.\n\n## Goal\n\n- Remove the post with the given id.\n\n## Non-goal\n\n- Check who asks for the delete.\n- Keep a deleted post for a restore.\n\n## Constraints\n\n- Delete only a post that exists.\n\n## Acceptance criteria\n\n- Remove the post from the repository.\n- Return not-found for the post after the delete.\n- Report a not-found error for an unknown id.\n\n## Open Questions\n\n- Should only the author be able to delete a post?","status":null,"steps":[{"n":1,"title":"Receive the request.","text":"Receive the request. Read `id` from the path.","details":["Read `id` from the path."],"ref":"src/api/routes/posts.route.ts#handleDeletePost","status":null},{"n":2,"title":"Remove the post.","text":"Remove the post. Return HTTP 404 when it does not exist.","details":["Return HTTP 404 when it does not exist."],"ref":"src/domain/post.service.ts#deletePost","status":null},{"n":3,"title":"Return HTTP 204 with no body.","text":"Return HTTP 204 with no body.","details":[],"ref":"src/api/http.ts#sendNoContent","status":null}]},{"id":"get-post","kind":"flow","trigger":"http","entry":"GET /posts/:id","group":"posts","definition":"Return one post.","boundary":"## Input\n\n`GET /posts/:id`:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `id` (path) | string | yes | — |\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 200 | `Post` | The post exists. |\n| 404 | `{ error: { code: \"not-found\", field: \"id\", message } }` | No post has this id. |\n| 500 | `{ error: { code: \"unexpected\", field: \"server\", message } }` | The server fails. |\n\nExample (200):\n\n```json\n{\n  \"id\": \"p1\",\n  \"title\": \"Hello\",\n  \"body\": \"My first post.\",\n  \"authorId\": \"u1\",\n  \"createdAt\": \"2026-09-27T10:00:00.000Z\",\n  \"updatedAt\": \"2026-09-27T10:00:00.000Z\"\n}\n```\n\nExample (404):\n\n```json\n{ \"error\": { \"code\": \"not-found\", \"field\": \"id\", \"message\": \"Find no post with this id.\" } }\n```\n\n## Dependencies\n\n- `PostRepository.findById` (in memory).\n","rules":"**Relates to:** `web/post-detail`, `web/edit-post`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nThe web app shows one post and fills the edit form with it.\n\n## Goal\n\n- Return the post with the given id.\n\n## Non-goal\n\n- Count the views of a post.\n\n## Constraints\n\n- Return only a post that exists.\n\n## Acceptance criteria\n\n- Return the post for a known id.\n- Report a not-found error for an unknown id.\n\n## Open Questions\n\n- None.","status":null,"steps":[{"n":1,"title":"Receive the request.","text":"Receive the request. Read `id` from the path.","details":["Read `id` from the path."],"ref":"src/api/routes/posts.route.ts#handleGetPost","status":null},{"n":2,"title":"Find the post.","text":"Find the post. Return HTTP 404 when it does not exist.","details":["Return HTTP 404 when it does not exist."],"ref":"src/domain/post.service.ts#getPost","status":null},{"n":3,"title":"Return HTTP 200 with the post.","text":"Return HTTP 200 with the post.","details":[],"ref":"src/api/http.ts#sendJson","status":null}]},{"id":"health-check","kind":"flow","trigger":"http","entry":"GET /health","group":"system","definition":"Tell a caller that the API runs.","boundary":"## Input\n\n`GET /health`, no fields.\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 200 | `{ \"status\": \"ok\" }` | The API runs. |\n\nExample (200):\n\n```json\n{ \"status\": \"ok\" }\n```\n\n## Dependencies\n\n- None.\n","rules":"**Relates to:** none\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA load balancer or a person checks that the API runs.\n\n## Goal\n\n- Tell the caller that the API runs.\n\n## Non-goal\n\n- Check the repository or other dependencies.\n\n## Constraints\n\n- Answer without a call to the repository.\n\n## Acceptance criteria\n\n- `GET /health` returns HTTP 200 with `{ \"status\": \"ok\" }`.\n\n## Open Questions\n\n- None.","status":null,"steps":[{"n":1,"title":"Return HTTP 200 with `{ \"status\": \"ok\" }`.","text":"Return HTTP 200 with `{ \"status\": \"ok\" }`.","details":[],"ref":"src/api/server.ts#createServer","status":null}]},{"id":"list-posts","kind":"flow","trigger":"http","entry":"GET /posts","group":"posts","definition":"List the posts, newest first. Filter by author when the request names one.","boundary":"## Input\n\n`GET /posts`:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `authorId` (query) | string | no | Ignored when it is not a single string. |\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 200 | `Post[]`, newest first, can be empty | Always, unless the server fails. |\n| 500 | `{ error: { code: \"unexpected\", field: \"server\", message } }` | The server fails. |\n\nExample (200):\n\n```json\n[\n  {\n    \"id\": \"p1\",\n    \"title\": \"Hello\",\n    \"body\": \"My first post.\",\n    \"authorId\": \"u1\",\n    \"createdAt\": \"2026-09-27T10:00:00.000Z\",\n    \"updatedAt\": \"2026-09-27T10:00:00.000Z\"\n  }\n]\n```\n\n## Dependencies\n\n- `PostRepository.findAll` (in memory).\n","rules":"**Relates to:** `web/posts-list`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nThe web app shows all posts, or the posts of one author.\n\n## Goal\n\n- List all posts when the request names no author.\n- List only the posts of the author when the request names one.\n\n## Non-goal\n\n- Split the list into pages.\n- Search the text of the posts.\n\n## Constraints\n\n- Show the newest post first.\n\n## Acceptance criteria\n\n- Order the posts by `createdAt`, newest first.\n- Return only the posts whose `authorId` matches the query.\n- Return an empty list for an author who has no posts.\n\n## Open Questions\n\n- When do we need pages for a long list?","status":null,"steps":[{"n":1,"title":"Receive the request.","text":"Receive the request. Read the optional `authorId` from the query.","details":["Read the optional `authorId` from the query."],"ref":"src/api/routes/posts.route.ts#handleListPosts","status":null},{"n":2,"title":"Load the posts.","text":"Load the posts. Keep only the posts of the author when `authorId` is set.","details":["Keep only the posts of the author when `authorId` is set."],"ref":"src/domain/post.service.ts#listPosts","status":null},{"n":3,"title":"Sort the posts newest first.","text":"Sort the posts newest first.","details":[],"ref":"src/domain/post.rules.ts#sortNewestFirst","status":null},{"n":4,"title":"Return HTTP 200 with the list.","text":"Return HTTP 200 with the list.","details":[],"ref":"src/api/http.ts#sendJson","status":null}]},{"id":"update-post","kind":"flow","trigger":"http","entry":"PATCH /posts/:id","group":"posts","definition":"Change the title, the body, or both, of a post.","boundary":"## Input\n\n`PATCH /posts/:id`, JSON body with at least one of `title` and `body`:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `id` (path) | string | yes | — |\n| `title` | string | no | 1–120 characters, at least one visible character |\n| `body` | string | no | 1–10000 characters, at least one visible character |\n\nExample:\n\n```json\n{ \"title\": \"Hello again\" }\n```\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 200 | `Post` with a new `updatedAt` | The post is updated. |\n| 400 | `{ error: { code: \"validation\", field, message } }` | No field is set, or a field fails its validation. |\n| 404 | `{ error: { code: \"not-found\", field: \"id\", message } }` | No post has this id. |\n| 500 | `{ error: { code: \"unexpected\", field: \"server\", message } }` | The server fails. |\n\nExample (200):\n\n```json\n{\n  \"id\": \"p1\",\n  \"title\": \"Hello again\",\n  \"body\": \"My first post.\",\n  \"authorId\": \"u1\",\n  \"createdAt\": \"2026-09-27T10:00:00.000Z\",\n  \"updatedAt\": \"2026-09-27T11:00:00.000Z\"\n}\n```\n\nExample (404):\n\n```json\n{ \"error\": { \"code\": \"not-found\", \"field\": \"id\", \"message\": \"Find no post with this id.\" } }\n```\n\n## Dependencies\n\n- `PostRepository.findById` and `PostRepository.save` (in memory).\n- `now()` from `src/infra/system.deps.ts`.\n","rules":"**Relates to:** `web/edit-post`\n**Inherits:** `api/create-post` (title and body limits)\n**Supersedes:** none\n\n## Context\n\nAn author fixes or changes the text of a post.\n\n## Goal\n\n- Change only the fields that the request sets.\n- Record the update time. Keep the creation time.\n\n## Non-goal\n\n- Change the author of a post.\n- Keep old versions of a post.\n\n## Constraints\n\n- Use the same title and body limits as when a post is created.\n- Reject a request that sets no field.\n\n## Acceptance criteria\n\n- Keep each field that the request does not set.\n- Set `updatedAt` to the update time.\n- Reject a request that sets no field.\n- Keep the post unchanged when a field is invalid.\n- Report a not-found error for an unknown id.\n\n## Open Questions\n\n- Should only the author be able to update a post?","status":null,"steps":[{"n":1,"title":"Receive the request.","text":"Receive the request. Read `id` from the path.","details":["Read `id` from the path."],"ref":"src/api/routes/posts.route.ts#handleUpdatePost","status":null},{"n":2,"title":"Parse the body shape.","text":"Parse the body shape. Return HTTP 400 when it has no field to change.","details":["Return HTTP 400 when it has no field to change."],"ref":"src/api/routes/posts.schema.ts#parseUpdatePostBody","status":null},{"n":3,"title":"Find the post.","text":"Find the post. Return HTTP 404 when it does not exist.","details":["Return HTTP 404 when it does not exist."],"ref":"src/domain/post.service.ts#updatePost","status":null},{"n":4,"title":"Validate the title when it is set.","text":"Validate the title when it is set. Return HTTP 400 when it is not valid.","details":["Return HTTP 400 when it is not valid."],"ref":"src/domain/post.rules.ts#validateTitle","status":null},{"n":5,"title":"Validate the body when it is set.","text":"Validate the body when it is set. Return HTTP 400 when it is not valid.","details":["Return HTTP 400 when it is not valid."],"ref":"src/domain/post.rules.ts#validateBody","status":null},{"n":6,"title":"Apply the given fields and record the update time.","text":"Apply the given fields and record the update time. Save the post.","details":["Save the post."],"ref":"src/domain/post.service.ts#updatePost","status":null},{"n":7,"title":"Return HTTP 200 with the post.","text":"Return HTTP 200 with the post.","details":[],"ref":"src/api/http.ts#sendJson","status":null}]}]},{"id":"web","kind":"frontend","definition":"The `web` project is a web app for posts. A user lists, reads, creates, edits and deletes posts through the `api` project.\n\n## Stack\n\n- TypeScript, React 18, React Router 6, Vite. vitest, jsdom and Testing Library for the tests.\n- Start it with `npm -C web run dev`. Start the `api` project on port 3000 first.\n\n## Technical decisions\n\n- Call the API only through `src/api/posts.api.ts`. Each call uses the base path `/api`. The Vite dev server sends `/api/*` to `http://localhost:3000`, so the browser needs no CORS.\n- Throw an `ApiError` with the status, the field and the message of the API error. A form shows that message.\n- Use one form component, `src/components/PostForm.tsx`, for the new-post page and the edit-post page.\n- Keep the state of each page in the page. The app has no global store.","status":null,"flows":[{"id":"edit-post","kind":"page","trigger":"page","entry":"/posts/:id/edit","group":"write","definition":"Let the user change the title and the body of a post.","boundary":"## Input\n\nRoute `/posts/:id/edit`, form fields:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `id` (route) | text | yes | — |\n| `title` | text | yes | Checked by the API. |\n| `body` | text | yes | Checked by the API. |\n\nExample:\n\n```json\n{ \"title\": \"Hello again\", \"body\": \"Updated text.\" }\n```\n\n## Output\n\n| Result | Shows | When |\n| --- | --- | --- |\n| Form | The current title and body. | The post loads. |\n| Go to `/posts/:id` | The updated post. | The API saves the change. |\n| Alert on the form | The API error message. | The API rejects the change. |\n| Alert | \"Could not find this post.\" | The post does not exist. |\n","rules":"**Relates to:** `api/get-post`, `api/update-post`\n**Inherits:** `web/new-post` (the form and its error messages)\n**Supersedes:** none\n\n## Context\n\nA user changes the title and the body of a post in the browser.\n\n## Goal\n\n- Let the user change the title and the body of a post.\n\n## Non-goal\n\n- Let the user change the author of a post.\n\n## Constraints\n\n- Let the API validate the change. Show its message to the user.\n\n## Acceptance criteria\n\n- Fill the form with the current title and body.\n- Send `PATCH /api/posts/\u003cid>`, then show the post with the new title.\n\n## Open Questions\n\n- None.","status":null,"steps":[{"n":1,"title":"Open the page.","details":["Call: `api/get-post`: `GET /api/posts/:id` with the route `id`.","Then: show the form with the current title and body.","Fail: show an alert when the post does not exist."],"ref":"src/pages/EditPostPage.tsx#EditPostPage","status":null,"text":"Open the page. Call: `api/get-post`: `GET /api/posts/:id` with the route `id`. Then: show the form with the current title and body. Fail: show an alert when the post does not exist."},{"n":2,"title":"Click \"Save\".","details":["Call: `api/update-post`: `PATCH /api/posts/:id` with the title and the body.","Then: open the detail page of the post.","Fail: show the error message of the API on the form."],"ref":"src/components/PostForm.tsx#PostForm","status":null,"text":"Click \"Save\". Call: `api/update-post`: `PATCH /api/posts/:id` with the title and the body. Then: open the detail page of the post. Fail: show the error message of the API on the form."}],"actions":"## Open the page\n- Call: `api/get-post`: `GET /api/posts/:id` with the route `id`.\n- Then: show the form with the current title and body.\n- Fail: show an alert when the post does not exist.\n- Code: `src/pages/EditPostPage.tsx#EditPostPage`\n\n## Click \"Save\"\n- Call: `api/update-post`: `PATCH /api/posts/:id` with the title and the body.\n- Then: open the detail page of the post.\n- Fail: show the error message of the API on the form.\n- Code: `src/components/PostForm.tsx#PostForm`\n"},{"id":"new-post","kind":"page","trigger":"page","entry":"/posts/new","group":"write","definition":"Let the user write and create a post.","boundary":"## Input\n\nRoute `/posts/new`, form fields:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `title` | text | yes | Checked by the API. |\n| `body` | text | yes | Checked by the API. |\n| `authorId` | text | yes | Checked by the API. |\n\nExample:\n\n```json\n{ \"title\": \"Hello\", \"body\": \"My first post.\", \"authorId\": \"u1\" }\n```\n\n## Output\n\n| Result | Shows | When |\n| --- | --- | --- |\n| Go to `/posts/\u003cnew id>` | The new post. | The API creates the post. |\n| Alert on the form | The API error message. | The API rejects the post. |\n| Alert on the form | \"Could not reach the server.\" | The request fails. |\n","rules":"**Relates to:** `api/create-post`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA user writes a post in the browser.\n\n## Goal\n\n- Let the user write and create a post.\n\n## Non-goal\n\n- Save a draft.\n- Check the fields in the browser before the API does.\n\n## Constraints\n\n- Let the API validate the post. Show its message to the user.\n- Disable the submit button while the request runs.\n\n## Acceptance criteria\n\n- Open the new post after a create.\n- Show \"Enter a title.\" and stay on the form when the title is empty.\n\n## Open Questions\n\n- Should the author id come from a login instead of a text field?","status":null,"steps":[{"n":1,"title":"Open the page.","details":["Then: show an empty form with a title, a body and an author id."],"ref":"src/pages/NewPostPage.tsx#NewPostPage","status":null,"text":"Open the page. Then: show an empty form with a title, a body and an author id."},{"n":2,"title":"Click \"Create\".","details":["Call: `api/create-post`: `POST /api/posts` with the form values.","Then: open the detail page of the new post.","Fail: show the error message of the API on the form."],"ref":"src/components/PostForm.tsx#PostForm","status":null,"text":"Click \"Create\". Call: `api/create-post`: `POST /api/posts` with the form values. Then: open the detail page of the new post. Fail: show the error message of the API on the form."}],"actions":"## Open the page\n- Then: show an empty form with a title, a body and an author id.\n- Code: `src/pages/NewPostPage.tsx#NewPostPage`\n\n## Click \"Create\"\n- Call: `api/create-post`: `POST /api/posts` with the form values.\n- Then: open the detail page of the new post.\n- Fail: show the error message of the API on the form.\n- Code: `src/components/PostForm.tsx#PostForm`\n"},{"id":"post-detail","kind":"page","trigger":"page","entry":"/posts/:id","group":"read","definition":"Show one post. Let the user edit or delete it.","boundary":"## Input\n\nRoute `/posts/:id`:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `id` (route) | text | yes | — |\n| Delete confirmation | yes / no | yes | The delete runs only on yes. |\n\n## Output\n\n| Result | Shows | When |\n| --- | --- | --- |\n| Post | Title, author, update time, body, and an \"Edit\" link to `/posts/:id/edit`. | The post loads. |\n| Go to `/` | The list. | The API deletes the post. |\n| Alert | \"Could not find this post.\" | The post does not exist. |\n| Alert | \"Could not delete this post.\" | The delete fails. |\n","rules":"**Relates to:** `api/get-post`, `api/delete-post`, `web/edit-post`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA user reads one post, and can edit or delete it.\n\n## Goal\n\n- Show one post.\n- Let the user delete it.\n\n## Non-goal\n\n- Show comments.\n\n## Constraints\n\n- Delete a post only after the user confirms it.\n\n## Acceptance criteria\n\n- Show the title as the page heading.\n- Send `DELETE /api/posts/\u003cid>` after the confirmation, then show the list without the post.\n- Show \"Could not find this post.\" for an unknown id.\n\n## Open Questions\n\n- None.","status":null,"steps":[{"n":1,"title":"Open the page.","details":["Call: `api/get-post`: `GET /api/posts/:id` with the route `id`.","Then: show the title, the author, the update time and the body.","Fail: show an alert when the post does not exist."],"ref":"src/pages/PostDetailPage.tsx#PostDetailPage","status":null,"text":"Open the page. Call: `api/get-post`: `GET /api/posts/:id` with the route `id`. Then: show the title, the author, the update time and the body. Fail: show an alert when the post does not exist."},{"n":2,"title":"Click \"Delete\".","details":["Call: `api/delete-post`: `DELETE /api/posts/:id` after the user confirms.","Then: go to the list."],"ref":"src/pages/PostDetailPage.tsx#PostDetailPage","status":null,"text":"Click \"Delete\". Call: `api/delete-post`: `DELETE /api/posts/:id` after the user confirms. Then: go to the list."}],"actions":"## Open the page\n- Call: `api/get-post`: `GET /api/posts/:id` with the route `id`.\n- Then: show the title, the author, the update time and the body.\n- Fail: show an alert when the post does not exist.\n- Code: `src/pages/PostDetailPage.tsx#PostDetailPage`\n\n## Click \"Delete\"\n- Call: `api/delete-post`: `DELETE /api/posts/:id` after the user confirms.\n- Then: go to the list.\n- Code: `src/pages/PostDetailPage.tsx#PostDetailPage`\n"},{"id":"posts-list","kind":"page","trigger":"page","entry":"/","group":"read","definition":"Show the list of posts. Let the user filter it by author.","boundary":"## Input\n\nRoute `/`:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `authorId` (query and text field) | text | no | An empty value shows all posts. |\n\nExample:\n\n```text\n/?authorId=u1\n```\n\n## Output\n\n| Result | Shows | When |\n| --- | --- | --- |\n| List | Each post as a link to `/posts/:id`, and a \"New post\" link to `/posts/new`. | The posts load. |\n| Text | \"Loading…\" | The posts are loading. |\n| Text | \"No posts yet.\" | The list is empty. |\n| Alert | \"Could not load the posts.\" | The request fails. |\n","rules":"**Relates to:** `api/list-posts`, `web/post-detail`, `web/new-post`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nThe home page of the web app. A user finds a post to read.\n\n## Goal\n\n- Show the list of posts.\n- Let the user filter it by author.\n\n## Non-goal\n\n- Split the list into pages.\n\n## Constraints\n\n- Show the posts in the order that the API returns: newest first.\n- Keep the author filter in the URL, so a user can share the filtered list.\n\n## Acceptance criteria\n\n- Show a link to `/posts/\u003cid>` for each post.\n- Request `GET /api/posts?authorId=\u003cid>` when the URL has an author id.\n- Show \"No posts yet.\" when the API returns an empty list.\n\n## Open Questions\n\n- None.","status":null,"steps":[{"n":1,"title":"Open the page.","details":["Call: `api/list-posts`: `GET /api/posts` with the optional `authorId` from the URL query.","Then: show each post as a link to its detail page. Show \"No posts yet.\" for an empty list."],"ref":"src/pages/PostsListPage.tsx#PostsListPage","status":null,"text":"Open the page. Call: `api/list-posts`: `GET /api/posts` with the optional `authorId` from the URL query. Then: show each post as a link to its detail page. Show \"No posts yet.\" for an empty list."},{"n":2,"title":"Type an author id.","details":["Call: `api/list-posts`: load the posts again with the new `authorId`.","Then: put the author id into the URL query."],"ref":"src/pages/PostsListPage.tsx#PostsListPage","status":null,"text":"Type an author id. Call: `api/list-posts`: load the posts again with the new `authorId`. Then: put the author id into the URL query."}],"actions":"## Open the page\n- Call: `api/list-posts`: `GET /api/posts` with the optional `authorId` from the URL query.\n- Then: show each post as a link to its detail page. Show \"No posts yet.\" for an empty list.\n- Code: `src/pages/PostsListPage.tsx#PostsListPage`\n\n## Type an author id\n- Call: `api/list-posts`: load the posts again with the new `authorId`.\n- Then: put the author id into the URL query.\n- Code: `src/pages/PostsListPage.tsx#PostsListPage`\n"}]}],"external":[]}
 </script>
 <script id="mirror-app">
 (function () {
@@ -258,16 +269,22 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
   var BADGE = { http: 'HTTP', main: 'MAIN', message: 'MSG', schedule: 'CRON', page: 'PAGE' };
   var STATUS = { added: 1, changed: 1, removed: 1 };
 
-  // One project as cards: the project, its flows, and the steps inside each flow.
-  function model(p) {
-    var pn = { key: p.id, type: 'project', title: p.id, label: p.id, sub: (p.kind || ''),
+  function projectNode(p) {
+    return { key: p.id, type: 'project', title: p.id, label: p.id, sub: (p.kind || ''),
       badge: 'PROJECT', status: p.status || null, item: p };
+  }
+
+  // One project as cards: the project, its flows, and the steps inside each flow.
+  // idx (from linkIndex) adds the outgoing and incoming links of each flow.
+  function model(p, idx) {
+    var pn = projectNode(p);
     var all = [pn];
     var flows = (p.flows || []).map(function (f) {
       var key = p.id + '/' + f.id;
       var fn = { key: key, type: f.kind === 'page' ? 'page' : 'flow', title: f.id, label: f.id, sub: f.entry || '',
         badge: BADGE[f.trigger] || '', status: f.status || null, item: f };
       fn.unit = typeof f.actions === 'string' ? 'action' : 'step';
+      if (idx) { fn.out = idx.out[key] || []; fn.into = idx.into[key] || []; }
       all.push(fn);
       fn.steps = (f.steps || []).map(function (s, i) {
         var sn = { key: key + '#' + i, type: 'step', title: s.n + '. ' + s.text, label: s.title || s.text, num: s.n, sub: s.ref || '',
@@ -293,6 +310,33 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     return out;
   }
 
+  // The System tab as cards: each project, then each external system.
+  function systemModel(data, idx) {
+    var projects = (data.projects || []).map(projectNode);
+    var externals = (data.external || []).map(function (x) {
+      var key = 'ext:' + x.id;
+      return { key: key, type: 'external', title: x.id, label: x.id, sub: x.name || '', badge: String(x.kind || '').toUpperCase(),
+        status: x.status || null, item: x, out: [], into: idx.into[key] || [] };
+    });
+    return { projects: projects, externals: externals, all: projects.concat(externals), edges: systemEdges(data) };
+  }
+
+  // The index of the first project with a flow or step that matches the search, or -1.
+  function firstTabWithMatch(data, q) {
+    var ps = data.projects || [], i;
+    for (i = 0; i < ps.length; i++) {
+      if (model(ps[i]).all.some(function (n) { return n.type !== 'project' && matches(n, q); })) return i;
+    }
+    return -1;
+  }
+
+  // The tab of a URL hash: the index of the project it names, or -1 for the System tab.
+  function tabFromHash(hash, projects) {
+    var id;
+    try { id = decodeURIComponent(String(hash || '').slice(1)); } catch (e) { return -1; }
+    return (projects || []).map(function (p) { return p.id; }).indexOf(id);
+  }
+
   function statusClass(n) { return STATUS[n.status] ? ' st-' + n.status : ''; }
 
   // A card as HTML. open: show the step titles of a flow inside the card.
@@ -303,6 +347,18 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     if (n.sub) h += '<div class="sub">' + esc(n.sub) + '</div>';
     var def = summary(n.item.definition);
     if (def) h += '<p class="def">' + inline(def) + '</p>';
+    // Link chips. An external card on the System tab shows none: its lines show the links.
+    var seen = {}, chips = [];
+    function chip(key, text, verb) {
+      if (seen[text]) return;
+      seen[text] = 1;
+      chips.push('<button type="button" class="lchip" data-goto="' + esc(key) + '" title="' + esc(verb) + '">' + esc(text) + '</button>');
+    }
+    if (n.type !== 'external') {
+      (n.out || []).forEach(function (l) { chip(l.key, '→ ' + l.to, l.verb); });
+      (n.into || []).forEach(function (l) { chip(l.from, '← ' + l.from, l.verb); });
+    }
+    if (chips.length) h += '<div class="lchips">' + chips.join('') + '</div>';
     var steps = n.steps || [];
     if (steps.length) {
       // A page with actions: the actions have no order, so they show a mark, not a number.
@@ -319,12 +375,17 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     return h + '</div>';
   }
 
-  // The bullets of an action as HTML. Each `Call:`, `Then:` and `Fail:` bullet shows its label.
-  function actionDetails(details) {
+  // The bullets of an action as HTML. A `Call:` target is a link. keyOf maps a target to its key.
+  function actionDetails(details, keyOf) {
     var d = details || [];
     return d.length ? '<ul class="details">' + d.map(function (x) {
-      var m = /^(Call|Then|Fail):\s*(.*)$/i.exec(x);
-      return m ? '<li><span class="meta">' + esc(m[1]) + '</span> ' + inline(m[2]) + '</li>' : '<li>' + inline(x) + '</li>';
+      var m = /^(Call|Then|Fail):\s*(.*)$/.exec(x), c;
+      if (!m) return '<li>' + inline(x) + '</li>';
+      var h = '<li><span class="meta">' + m[1] + '</span> ';
+      if (m[1] === 'Call' && (c = /^`([^`]+)`\s*(?::\s*(.*)|\.)?$/.exec(m[2]))) {
+        return h + '<button class="link" data-goto="' + esc(keyOf(c[1])) + '">' + esc(c[1]) + '</button>' + (c[2] ? ' ' + inline(c[2]) : '') + '</li>';
+      }
+      return h + inline(m[2]) + '</li>';
     }).join('') + '</ul>' : '';
   }
 
@@ -365,7 +426,129 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     return ['trigger: ' + (it.trigger || ''), 'entry: ' + (it.entry || ''), 'group: ' + (it.group || ''), '', it.definition || ''].join('\n');
   }
 
-  globalThis.MirrorViewer = { esc: esc, renderMd: renderMd, summary: summary, model: model, groups: groups, cardHtml: cardHtml, matches: matches, hasChanges: hasChanges, diffHtml: diffHtml, actionDetails: actionDetails };
+  var VERBS = ['calls', 'publishes', 'consumes', 'reads', 'writes'];
+  var LINK = /^\s*[-*]\s+(\w+)\s+`([^`]+)`\s*(?::\s*(.*?))?\s*$/;
+
+  // The links in the `## Dependencies` section of a boundary text. A bullet that starts with a
+  // verb and has a backtick but does not match the link form is `bad`. Other bullets are notes.
+  function parseLinks(md) {
+    var out = [], on = false;
+    String(md || '').split(/\r?\n/).forEach(function (line) {
+      if (/^#{1,6}\s/.test(line)) { on = /^##\s+Dependencies\s*$/i.test(line); return; }
+      if (!on || !/^\s*[-*]\s/.test(line)) return;
+      var first = (/^\s*[-*]\s+(\w+)/.exec(line) || [])[1];
+      if (VERBS.indexOf(String(first).toLowerCase()) < 0) return;
+      var m = LINK.exec(line);
+      if (m) out.push({ verb: m[1].toLowerCase(), to: m[2].trim(), note: m[3] || '' });
+      else if (line.indexOf('`') >= 0) out.push({ bad: true, text: line.trim() });
+    });
+    return out;
+  }
+
+  var CALL = /^\s*[-*]\s+Call:\s*`([^`]+)`\s*(?::\s*(.*?))?\s*$/i;
+
+  // The `Call:` bullets of an actions text, as `calls` links. A bullet that starts like a call
+  // (`Calls:`, `Call` without a colon, `**Call:**`) but does not match the call form is `bad`.
+  // Other bullets are not links.
+  function parseCalls(md) {
+    var out = [];
+    String(md || '').split(/\r?\n/).forEach(function (line) {
+      if (!/^\s*[-*]\s+\**calls?\b/i.test(line)) return;
+      var m = CALL.exec(line);
+      out.push(m ? { verb: 'calls', to: m[1].trim(), note: m[2] || '' } : { bad: true, call: true, text: line.trim() });
+    });
+    return out;
+  }
+
+  // The links of a flow: the `Call:` lines of its actions when it has actions, else the
+  // Dependencies of its boundary. old: use the values before a review change. `old.actions: null`
+  // means the old flow had no actions.
+  function flowLinks(f, old) {
+    var o = old && f.old ? f.old : {};
+    var actions = 'actions' in o ? o.actions : f.actions;
+    var boundary = 'boundary' in o ? o.boundary : f.boundary;
+    return typeof actions === 'string' ? parseCalls(actions) : parseLinks(boundary);
+  }
+
+  function extIds(data) {
+    var ext = {};
+    (data.external || []).forEach(function (x) { ext[x.id] = 1; });
+    return ext;
+  }
+
+  // Each flow's outgoing links, and each target's incoming links. Keys: `p/f`, `p`, `ext:<id>`.
+  function linkIndex(data) {
+    var ext = extIds(data), out = {}, into = {};
+    (data.projects || []).forEach(function (p) {
+      (p.flows || []).forEach(function (f) {
+        var from = p.id + '/' + f.id;
+        out[from] = flowLinks(f).filter(function (l) { return !l.bad; }).map(function (l) {
+          var key = ext[l.to] ? 'ext:' + l.to : l.to;
+          (into[key] = into[key] || []).push({ from: from, verb: l.verb, note: l.note });
+          return { verb: l.verb, to: l.to, note: l.note, key: key };
+        });
+      });
+    });
+    return { out: out, into: into };
+  }
+
+  // The lines of the System tab: one per project pair or project-external pair, counted by verb.
+  // A line only in the new links is `added`. A line only in the old links (`old.boundary`) is `removed`.
+  function systemEdges(data) {
+    var ext = extIds(data), pids = {}, edges = [], by = {};
+    (data.projects || []).forEach(function (p) { pids[p.id] = 1; });
+    function add(side, from, l) {
+      if (l.bad) return;
+      var to = ext[l.to] ? 'ext:' + l.to : l.to.split('/')[0];
+      if (to === from || !(ext[l.to] || pids[to])) return;
+      var e = by[from + '>' + to];
+      if (!e) edges.push(e = by[from + '>' + to] = { from: from, to: to, old: {}, now: {} });
+      e[side][l.verb] = (e[side][l.verb] || 0) + 1;
+    }
+    (data.projects || []).forEach(function (p) {
+      (p.flows || []).forEach(function (f) {
+        if (f.status !== 'added') flowLinks(f, true).forEach(function (l) { add('old', p.id, l); });
+        if (f.status !== 'removed') flowLinks(f).forEach(function (l) { add('now', p.id, l); });
+      });
+    });
+    return edges.map(function (e) {
+      var had = Object.keys(e.old).length > 0, has = Object.keys(e.now).length > 0, c = has ? e.now : e.old;
+      return { from: e.from, to: e.to, status: had && has ? null : has ? 'added' : 'removed',
+        label: VERBS.filter(function (v) { return c[v]; }).map(function (v) { return c[v] + ' ' + v; }).join(' · ') };
+    });
+  }
+
+  // Problems in the links: an external with a project id, a bad bullet, an unknown target.
+  function linkErrors(data) {
+    var ids = {}, errs = [];
+    (data.projects || []).forEach(function (p) {
+      ids[p.id] = 1;
+      (p.flows || []).forEach(function (f) { if (f.status !== 'removed') ids[p.id + '/' + f.id] = 1; });
+    });
+    (data.external || []).forEach(function (x) {
+      if (ids[x.id]) errs.push('external `' + x.id + '` has the id of a project');
+      else if (x.status !== 'removed') ids[x.id] = 1;
+    });
+    (data.projects || []).forEach(function (p) {
+      (p.flows || []).forEach(function (f) {
+        if (f.status === 'removed') return;
+        var at = p.id + '/' + f.id + ': ';
+        flowLinks(f).forEach(function (l) {
+          if (l.bad && l.call) errs.push(at + 'write the call as "- Call: `<target>`: <note>": ' + l.text);
+          else if (l.bad) errs.push(at + 'write the link as "- <verb> `<target>`: <note>": ' + l.text);
+          else if (!ids[l.to]) errs.push(at + 'unknown target `' + l.to + '`');
+        });
+        if (typeof f.actions === 'string' && parseLinks(f.boundary).length) {
+          errs.push(at + 'move the links of boundary.md to `Call:` lines in actions.md');
+        }
+      });
+    });
+    return errs;
+  }
+
+  globalThis.MirrorViewer = { esc: esc, renderMd: renderMd, summary: summary, model: model, groups: groups, cardHtml: cardHtml, matches: matches, hasChanges: hasChanges, diffHtml: diffHtml,
+    parseLinks: parseLinks, linkIndex: linkIndex, systemEdges: systemEdges, linkErrors: linkErrors, systemModel: systemModel, tabFromHash: tabFromHash, firstTabWithMatch: firstTabWithMatch,
+    parseCalls: parseCalls, flowLinks: flowLinks, actionDetails: actionDetails };
   if (typeof document === 'undefined') return;
 
   // ---- Browser only below ----
@@ -492,12 +675,15 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 
   function renderTabs() {
     var projects = state.data.projects || [];
-    $('ptabs').innerHTML = projects.map(function (p, i) {
+    function tab(i, label, kind, dot) {
       var on = i === state.pi;
       return '<button class="ptab' + (on ? ' on' : '') + '" role="tab" aria-selected="' + on + '" tabindex="' + (on ? 0 : -1) +
-        '" data-pi="' + i + '">' + esc(p.id) + ' <small>' + esc((p.kind || '')) + '</small>' +
-        (hasChanges(p) ? '<span class="dot" title="Has changes"></span>' : '') + '</button>';
-    }).join('');
+        '" data-pi="' + i + '">' + esc(label) + (kind ? ' <small>' + esc(kind) + '</small>' : '') +
+        (dot ? '<span class="dot" title="Has changes"></span>' : '') + '</button>';
+    }
+    $('ptabs').innerHTML = !projects.length ? '' :
+      tab(-1, 'System', '', state.sys.edges.some(function (e) { return STATUS[e.status]; })) +
+      projects.map(function (p, i) { return tab(i, p.id, p.kind || '', hasChanges(p)); }).join('');
   }
 
   // A spine from the bottom of the project card down the left of the stacked group boxes,
@@ -519,34 +705,76 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     });
   }
 
+  // Project cards sit in the top row and external cards in the row below. A line between two
+  // projects arcs above the top row. A line to an external goes down. Each line has its label.
+  function drawSystemEdges(edges) {
+    var w = state.world, svg = w.querySelector('.edges');
+    svg.setAttribute('width', w.offsetWidth);
+    svg.setAttribute('height', w.offsetHeight);
+    edges.forEach(function (e, i) {
+      var ea = nodeEl(e.from), eb = nodeEl(e.to);
+      if (!ea || !eb) return;
+      var a = box(ea), b = box(eb), ax = a.x + a.w / 2, bx = b.x + b.w / 2, d, ly;
+      if (e.to.indexOf('ext:') === 0) {
+        var y1 = a.y + a.h, y2 = b.y, my = (y1 + y2) / 2;
+        d = 'M' + ax + ' ' + y1 + ' C' + ax + ' ' + my + ' ' + bx + ' ' + my + ' ' + bx + ' ' + y2;
+        ly = my;
+      } else {
+        var y = a.y, top = y - 40 - 24 * (i % 3);
+        d = 'M' + ax + ' ' + y + ' C' + ax + ' ' + top + ' ' + bx + ' ' + top + ' ' + bx + ' ' + y;
+        ly = 0.25 * y + 0.75 * top;
+      }
+      var path = document.createElementNS(SVG, 'path');
+      path.setAttribute('class', 'edge' + (STATUS[e.status] ? ' st-' + e.status : ''));
+      path.setAttribute('d', d);
+      path.setAttribute('marker-end', 'url(#arrow)');
+      svg.appendChild(path);
+      var t = document.createElementNS(SVG, 'text');
+      t.setAttribute('class', 'elabel');
+      t.setAttribute('x', (ax + bx) / 2);
+      t.setAttribute('y', ly - 4);
+      t.setAttribute('text-anchor', 'middle');
+      t.textContent = e.label;
+      svg.appendChild(t);
+    });
+  }
+
   function draw() {
-    var p = currentProject(), w = state.world;
-    if (!p) {
+    var w = state.world, sys = state.pi < 0;
+    if (!(state.data.projects || []).length) {
       state.m = null;
       state.byKey = {};
       w.innerHTML = '<p class="empty-state">No projects yet. Run mirror:init.</p>';
       return;
     }
-    var m = state.m = model(p);
+    var m = state.m = sys ? state.sys : model(currentProject(), state.links);
     state.byKey = {};
     m.all.forEach(function (n) { state.byKey[n.key] = n; });
     state.hits = m.all.filter(function (n) { return matches(n, state.q); });
     if (state.hit >= state.hits.length) state.hit = state.hits.length - 1;
-    w.innerHTML = '<svg class="edges" aria-hidden="true"></svg><div class="row">' + cardHtml(m.project) + '</div>' +
-      (m.flows.length ? '<div class="row groups">' + m.groups.map(function (g) {
-        return '<div class="group" role="group" aria-label="' + esc(g.name || 'flows') + '">' +
-          (g.name ? '<div class="gh">' + esc(g.name) + ' <small>' + g.flows.length + '</small></div>' : '') +
-          '<div class="gflows">' + g.flows.map(function (f) { return cardHtml(f, state.expanded[f.key]); }).join('') + '</div></div>';
-      }).join('') + '</div>' : '');
+    if (sys) {
+      w.innerHTML = '<svg class="edges" aria-hidden="true"><defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" ' +
+        'markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow" d="M0 0L10 5L0 10z"/></marker></defs></svg>' +
+        '<div class="row system top">' + m.projects.map(function (n) { return cardHtml(n); }).join('') + '</div>' +
+        (m.externals.length ? '<div class="row system">' + m.externals.map(function (n) { return cardHtml(n); }).join('') + '</div>' : '');
+    } else {
+      w.innerHTML = '<svg class="edges" aria-hidden="true"></svg><div class="row">' + cardHtml(m.project) + '</div>' +
+        (m.flows.length ? '<div class="row groups">' + m.groups.map(function (g) {
+          return '<div class="group" role="group" aria-label="' + esc(g.name || 'flows') + '">' +
+            (g.name ? '<div class="gh">' + esc(g.name) + ' <small>' + g.flows.length + '</small></div>' : '') +
+            '<div class="gflows">' + g.flows.map(function (f) { return cardHtml(f, state.expanded[f.key]); }).join('') + '</div></div>';
+        }).join('') + '</div>' : '');
+    }
     state.hits.forEach(function (n, i) {
       var e = nodeEl(n.key);
       if (e) e.classList.add('match', i === state.hit ? 'current' : 'match');
     });
     var s = state.sel && nodeEl(state.sel);
     if (s) s.classList.add('sel');
-    drawEdges();
+    if (sys) drawSystemEdges(m.edges); else drawEdges();
     $('qcount').textContent = state.q.trim() ? (state.hits.length ? (state.hit + 1) + '/' + state.hits.length : '0') : '';
-    $('legend').classList.toggle('on', m.all.some(function (n) { return STATUS[n.status]; }));
+    $('legend').classList.toggle('on', m.all.some(function (n) { return STATUS[n.status]; }) ||
+      (m.edges || []).some(function (e) { return STATUS[e.status]; }));
   }
 
   function toggleFlow(key) {
@@ -566,10 +794,10 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 
   function setAll(open) {
     state.expanded = {};
-    if (open && state.m) state.m.flows.forEach(function (f) { if (f.steps.length) state.expanded[f.key] = true; });
+    if (open && state.m && state.m.flows) state.m.flows.forEach(function (f) { if (f.steps.length) state.expanded[f.key] = true; });
     if (!open && state.open && state.open.type === 'step') closeDrawer();
     draw();
-    if (open && state.m) state.m.flows.forEach(function (f) { animateSteps(nodeEl(f.key)); });
+    if (open && state.m && state.m.flows) state.m.flows.forEach(function (f) { animateSteps(nodeEl(f.key)); });
     initialView();
   }
 
@@ -585,7 +813,18 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     if (center) centerOn(key);
   }
 
+  function projectIndex(id) {
+    return (state.data.projects || []).map(function (p) { return p.id; }).indexOf(id);
+  }
+
+  // The tab that shows a key: a flow or a step in its project; a bare project or an external on System.
+  function tabOf(key) {
+    return key.indexOf('ext:') === 0 || key.indexOf('/') < 0 ? -1 : projectIndex(key.split('/')[0]);
+  }
+
   function goto(key) {
+    var t = tabOf(key);
+    if (t !== state.pi) switchProject(t, false);
     var n = state.byKey[key];
     if (n && n.type === 'step' && !state.expanded[n.parentKey]) {
       state.expanded[n.parentKey] = true;
@@ -596,11 +835,11 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 
   function switchProject(i, focus) {
     var projects = state.data.projects || [];
-    if (i < 0 || i >= projects.length) return;
+    if (i < -1 || i >= projects.length) return;
     closeDrawer();
     state.pi = i;
     state.hit = -1;
-    try { history.replaceState(null, '', '#' + encodeURIComponent(projects[i].id)); } catch (e) { /* file:// in some browsers */ }
+    try { history.replaceState(null, '', i < 0 ? location.pathname + location.search : '#' + encodeURIComponent(projects[i].id)); } catch (e) { /* file:// in some browsers */ }
     renderTabs();
     draw();
     initialView();
@@ -608,15 +847,18 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
   }
 
   function projectFromHash() {
-    var id = decodeURIComponent(location.hash.slice(1));
-    var i = (state.data.projects || []).map(function (p) { return p.id; }).indexOf(id);
-    return i < 0 ? 0 : i;
+    return tabFromHash(location.hash, state.data.projects);
   }
 
   // ---- Search ----
 
   function search(q) {
     state.q = q;
+    // The System tab holds no flows: move to the first project tab with a match.
+    if (state.pi < 0 && q.trim() && !state.sys.all.some(function (n) { return matches(n, q); })) {
+      var t = firstTabWithMatch(state.data, q);
+      if (t >= 0) switchProject(t, false);
+    }
     var p = currentProject();
     if (q.trim() && p) {
       model(p).flows.forEach(function (f) {
@@ -647,8 +889,17 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     return d.length ? '<ul class="details">' + d.map(function (x) { return '<li>' + inline(x) + '</li>'; }).join('') + '</ul>' : '';
   }
 
-  // The bullets of a step, or of an action with its labels.
-  function bulletsHtml(s, isAction) { return isAction ? actionDetails(s.details) : detailsHtml(s); }
+  function linkList(items) {
+    return items.length ? '<ul class="list">' + items.map(function (x) {
+      return '<li><div><span class="meta">' + esc(x.verb) + '</span> <button class="link" data-goto="' + esc(x.key) + '">' + esc(x.text) + '</button>' +
+        (x.note ? '<div class="meta">' + inline(x.note) + '</div>' : '') + '</div></li>';
+    }).join('') + '</ul>' : '<p class="empty">None.</p>';
+  }
+
+  function keyOf(to) { return state.ext[to] ? 'ext:' + to : to; }
+
+  // The bullets of a step, or of an action with its Call links.
+  function bulletsHtml(s, isAction) { return isAction ? actionDetails(s.details, keyOf) : detailsHtml(s); }
 
   function body(n, tab) {
     var it = n.item, act;
@@ -672,6 +923,11 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
           inline(s.title || s.text) + '</button>' + bulletsHtml(s, act) + refHtml(s.ref) + '</div></li>';
       }).join('') + '</' + tag + '>' : '<p class="empty">' + (act ? 'No actions.' : 'No steps.') + '</p>';
     }
+    if (tab === 'links') {
+      var used = '<h5>Used by</h5>' + linkList((n.into || []).map(function (l) { return { key: l.from, text: l.from, verb: l.verb, note: l.note }; }));
+      if (n.type === 'external') return used;
+      return '<h5>Uses</h5>' + linkList((n.out || []).map(function (l) { return { key: l.key, text: l.to, verb: l.verb, note: l.note }; })) + used;
+    }
     // A changed item keeps its old values in `old`: show the changed lines of this tab.
     if (it.old) {
       var before = tabText(Object.assign({}, it, it.old), tab), after = tabText(it, tab);
@@ -681,8 +937,8 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
   }
 
   function openDrawer(n) {
-    var tabs = n.type === 'project' ? ['definition', 'flows'] : n.type === 'step' ? [] :
-      ['definition', typeof n.item.actions === 'string' ? 'actions' : 'steps', 'boundary', 'rules'];
+    var tabs = n.type === 'project' ? ['definition', 'flows'] : n.type === 'step' ? [] : n.type === 'external' ? ['links'] :
+      ['definition', typeof n.item.actions === 'string' ? 'actions' : 'steps', 'boundary', 'links', 'rules'];
     if (tabs.length && tabs.indexOf(state.tab) < 0) state.tab = tabs[0];
     var h = ['<div class="dh"><div>', '<span class="chip" style="--c: var(--' + n.type + ')">' + esc(n.badge || n.type.toUpperCase()) + '</span>'];
     if (STATUS[n.status]) h.push('<span class="chip" style="--c: var(--' + n.status + ')">' + n.status + '</span>');
@@ -730,11 +986,16 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
   // ---- Wiring ----
 
   function activate(target) {
+    var g = target.closest('[data-goto]');
+    if (g) { goto(g.getAttribute('data-goto')); return true; }
     var tg = target.closest('[data-toggle]');
     if (tg) { toggleFlow(tg.getAttribute('data-toggle')); return true; }
     var node = target.closest('[data-key]');
-    if (node) { select(node.getAttribute('data-key'), false); return true; }
-    return false;
+    if (!node) return false;
+    var key = node.getAttribute('data-key'), n = state.byKey[key];
+    if (state.pi < 0 && n && n.type === 'project') switchProject(projectIndex(key), false);
+    else select(key, false);
+    return true;
   }
 
   function main() {
@@ -742,6 +1003,10 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     if (media && media.addEventListener) media.addEventListener('change', applyTheme);
     state.data = JSON.parse($('mirror-data').textContent);
     state.world = $('world');
+    state.links = linkIndex(state.data);
+    state.ext = {};
+    (state.data.external || []).forEach(function (x) { state.ext[x.id] = 1; });
+    state.sys = systemModel(state.data, state.links);
     document.body.classList.toggle('review', (state.data.projects || []).some(hasChanges));
     document.title = state.data.title || 'Mirror';
     $('title').textContent = state.data.title || 'Mirror';

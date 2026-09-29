@@ -1,9 +1,5 @@
 # Page actions — design
 
-> **Superseded in part (2026-09-29):** the viewer does not read links. In "3. Viewer", only the
-> card label, the marks and the Actions tab apply. A `Call:` shows as text, not as a link. The
-> build does not write `old.actions: null`.
-
 Date: 2026-09-29. Builds on `2026-09-29-project-links-design.md` (branch `feat/project-links`).
 
 ## Goal

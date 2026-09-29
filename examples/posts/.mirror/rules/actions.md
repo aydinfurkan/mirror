@@ -20,9 +20,10 @@ projects. Backend, worker and consumer flows use `steps.md`.
 
 - The target is `<project>/<flow>`, `<project>` when the flow is not known, or the id of an
   external system in `.mirror/config.json`.
-- Each `Call:` is a `calls` link. Do not write the links again in `boundary.md`.
+- Each `Call:` is a `calls` link. The viewer draws it. Do not write the links again in
+  `boundary.md`.
 - Write local work (state, navigation, storage) in `Then:` or `Fail:`, not in `Call:`.
-- Put the target in backticks. Use only a target that exists.
+- The check fails on a `Call:` bullet without backticks, and on a target that does not exist.
 
 ## Code reference
 
