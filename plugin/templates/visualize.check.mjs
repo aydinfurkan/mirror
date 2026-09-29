@@ -13,7 +13,12 @@ for (const p of data.projects) for (const f of p.flows) assert.ok(Array.isArray(
 
 const ctx = {};
 runInNewContext(html.match(/<script id="mirror-app">([\s\S]*?)<\/script>/)[1], ctx);
-const { groups, renderMd, summary, model, cardHtml, matches, hasChanges } = ctx.MirrorViewer;
+const { groups, renderMd, summary, model, cardHtml, matches, hasChanges, parseLinks, linkIndex, systemEdges, linkErrors } = ctx.MirrorViewer;
+const plain = (x) => JSON.parse(JSON.stringify(x));
+
+// The links of the page under check must be valid.
+assert.ok(data.external === undefined || Array.isArray(data.external), 'data.external must be an array');
+assert.equal(linkErrors(data).join('\n'), '', 'link errors');
 
 assert.equal(renderMd('<b>'), '<p>&lt;b&gt;</p>');
 assert.equal(
@@ -76,5 +81,87 @@ assert.equal(hasChanges({ status: 'bogus', flows: [] }), false);
 // A diff keeps same lines, crosses out old lines, and marks new lines.
 assert.equal(ctx.MirrorViewer.diffHtml('a\nb\nc', 'a\nx\nc'), '<div class="diff"><span>a</span><ins>x</ins><del>b</del><span>c</span></div>');
 assert.equal(ctx.MirrorViewer.diffHtml('<a>', '<a>'), '<div class="diff"><span>&lt;a&gt;</span></div>');
+
+// Links: only bullets under `## Dependencies` with a known verb and a backtick target. Windows line ends work.
+const deps = '## Output\n- calls `x/y`\n\n## Dependencies\r\n- calls `api/create-post`: sends the form.\r\n' +
+  '- Writes `posts-db`\n- `now()` from `src/x.ts`.\n- Topic `a.b`.\n- sends `api/a`\n- reads `posts-db` (in memory).\n## Notes\n- calls `api/b`';
+assert.deepEqual(plain(parseLinks(deps)), [
+  { verb: 'calls', to: 'api/create-post', note: 'sends the form.' },
+  { verb: 'writes', to: 'posts-db', note: '' },
+  { bad: true, text: '- reads `posts-db` (in memory).' },
+]);
+assert.deepEqual(plain(parseLinks(undefined)), []);
+
+const sys = {
+  external: [{ id: 'posts-db', kind: 'database', name: 'Postgres' }],
+  projects: [
+    { id: 'api', kind: 'backend', flows: [
+      { id: 'create', boundary: '## Dependencies\n- writes `posts-db`\n- calls `api/other`', steps: [] },
+      { id: 'other', boundary: '', steps: [] },
+    ] },
+    { id: 'web', kind: 'frontend', flows: [
+      { id: 'new', boundary: '## Dependencies\n- calls `api/create`: posts.\n- calls `api/create`', steps: [] },
+      { id: 'list', boundary: '## Dependencies\n- calls `api`\n- reads `posts-db`', steps: [] },
+    ] },
+  ],
+};
+
+// Outgoing links per flow; incoming links per target key.
+const idx = linkIndex(sys);
+assert.deepEqual(plain(idx.out['web/new']), [
+  { verb: 'calls', to: 'api/create', note: 'posts.', key: 'api/create' },
+  { verb: 'calls', to: 'api/create', note: '', key: 'api/create' },
+]);
+assert.deepEqual(plain(idx.out['api/other']), []);
+assert.deepEqual(plain(idx.into['api/create']).map((l) => l.from), ['web/new', 'web/new']);
+assert.deepEqual(plain(idx.into['api/other']), [{ from: 'api/create', verb: 'calls', note: '' }]);
+assert.deepEqual(plain(idx.into['ext:posts-db']).map((l) => l.from), ['api/create', 'web/list']);
+assert.deepEqual(plain(idx.into.api), [{ from: 'web/list', verb: 'calls', note: '' }]);
+
+// System lines: counted by verb; a link inside one project draws no line.
+assert.deepEqual(plain(systemEdges(sys)), [
+  { from: 'api', to: 'ext:posts-db', status: null, label: '1 writes' },
+  { from: 'web', to: 'api', status: null, label: '3 calls' },
+  { from: 'web', to: 'ext:posts-db', status: null, label: '1 reads' },
+]);
+assert.equal(linkErrors(sys).length, 0);
+
+// Data built before links existed still works.
+assert.deepEqual(plain(systemEdges({ projects: [{ id: 'a', flows: [{ id: 'f', steps: [] }] }] })), []);
+assert.deepEqual(plain(linkIndex({})), { out: {}, into: {} });
+assert.equal(linkErrors({}).length, 0);
+
+// Errors: an external with a project id, an unknown target, a bad bullet, a link to a removed flow.
+// Links of a removed flow are not checked.
+const bad = { external: [{ id: 'api' }, { id: 'q' }], projects: [
+  { id: 'api', flows: [
+    { id: 'f', boundary: '## Dependencies\n- calls `api/nope`\n- reads `q` (x).' },
+    { id: 'gone', status: 'removed', boundary: '## Dependencies\n- calls `api/nope`' },
+  ] },
+  { id: 'web', flows: [{ id: 'p', boundary: '## Dependencies\n- calls `api/gone`' }] },
+] };
+assert.deepEqual(Array.from(linkErrors(bad)), [
+  'external `api` has the id of a project',
+  'api/f: unknown target `api/nope`',
+  'api/f: write the link as "- <verb> `<target>`: <note>": - reads `q` (x).',
+  'web/p: unknown target `api/gone`',
+]);
+
+// Review: a line only in the new links is added, only in the old links is removed (with its old label).
+const rev = { external: [{ id: 'db' }], projects: [
+  { id: 'api', status: 'changed', flows: [
+    { id: 'a', status: 'changed', boundary: '## Dependencies\n- writes `db`', old: { boundary: '## Dependencies\n- calls `web`' } },
+  ] },
+  { id: 'web', status: 'changed', flows: [
+    { id: 'n', status: 'added', boundary: '## Dependencies\n- calls `api`' },
+    { id: 'm', boundary: '## Dependencies\n- reads `db`' },
+  ] },
+] };
+assert.deepEqual(plain(systemEdges(rev)), [
+  { from: 'api', to: 'web', status: 'removed', label: '1 calls' },
+  { from: 'api', to: 'ext:db', status: 'added', label: '1 writes' },
+  { from: 'web', to: 'api', status: 'added', label: '1 calls' },
+  { from: 'web', to: 'ext:db', status: null, label: '1 reads' },
+]);
 
 console.log('ok');

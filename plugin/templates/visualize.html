@@ -353,7 +353,100 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     return ['trigger: ' + (it.trigger || ''), 'entry: ' + (it.entry || ''), 'group: ' + (it.group || ''), '', it.definition || ''].join('\n');
   }
 
-  globalThis.MirrorViewer = { esc: esc, renderMd: renderMd, summary: summary, model: model, groups: groups, cardHtml: cardHtml, matches: matches, hasChanges: hasChanges, diffHtml: diffHtml };
+  var VERBS = ['calls', 'publishes', 'consumes', 'reads', 'writes'];
+  var LINK = /^\s*[-*]\s+(\w+)\s+`([^`]+)`\s*(?::\s*(.*?))?\s*$/;
+
+  // The links in the `## Dependencies` section of a boundary text. A bullet that starts with a
+  // verb and has a backtick but does not match the link form is `bad`. Other bullets are notes.
+  function parseLinks(md) {
+    var out = [], on = false;
+    String(md || '').split(/\r?\n/).forEach(function (line) {
+      if (/^#{1,6}\s/.test(line)) { on = /^##\s+Dependencies\s*$/i.test(line); return; }
+      if (!on || !/^\s*[-*]\s/.test(line)) return;
+      var first = (/^\s*[-*]\s+(\w+)/.exec(line) || [])[1];
+      if (VERBS.indexOf(String(first).toLowerCase()) < 0) return;
+      var m = LINK.exec(line);
+      if (m) out.push({ verb: m[1].toLowerCase(), to: m[2].trim(), note: m[3] || '' });
+      else if (line.indexOf('`') >= 0) out.push({ bad: true, text: line.trim() });
+    });
+    return out;
+  }
+
+  function extIds(data) {
+    var ext = {};
+    (data.external || []).forEach(function (x) { ext[x.id] = 1; });
+    return ext;
+  }
+
+  // Each flow's outgoing links, and each target's incoming links. Keys: `p/f`, `p`, `ext:<id>`.
+  function linkIndex(data) {
+    var ext = extIds(data), out = {}, into = {};
+    (data.projects || []).forEach(function (p) {
+      (p.flows || []).forEach(function (f) {
+        var from = p.id + '/' + f.id;
+        out[from] = parseLinks(f.boundary).filter(function (l) { return !l.bad; }).map(function (l) {
+          var key = ext[l.to] ? 'ext:' + l.to : l.to;
+          (into[key] = into[key] || []).push({ from: from, verb: l.verb, note: l.note });
+          return { verb: l.verb, to: l.to, note: l.note, key: key };
+        });
+      });
+    });
+    return { out: out, into: into };
+  }
+
+  // The lines of the System tab: one per project pair or project-external pair, counted by verb.
+  // A line only in the new links is `added`. A line only in the old links (`old.boundary`) is `removed`.
+  function systemEdges(data) {
+    var ext = extIds(data), pids = {}, edges = [], by = {};
+    (data.projects || []).forEach(function (p) { pids[p.id] = 1; });
+    function add(side, from, l) {
+      if (l.bad) return;
+      var to = ext[l.to] ? 'ext:' + l.to : l.to.split('/')[0];
+      if (to === from || !(ext[l.to] || pids[to])) return;
+      var e = by[from + '>' + to];
+      if (!e) edges.push(e = by[from + '>' + to] = { from: from, to: to, old: {}, now: {} });
+      e[side][l.verb] = (e[side][l.verb] || 0) + 1;
+    }
+    (data.projects || []).forEach(function (p) {
+      (p.flows || []).forEach(function (f) {
+        var old = f.old && f.old.boundary !== undefined ? f.old.boundary : f.boundary;
+        if (f.status !== 'added') parseLinks(old).forEach(function (l) { add('old', p.id, l); });
+        if (f.status !== 'removed') parseLinks(f.boundary).forEach(function (l) { add('now', p.id, l); });
+      });
+    });
+    return edges.map(function (e) {
+      var had = Object.keys(e.old).length > 0, has = Object.keys(e.now).length > 0, c = has ? e.now : e.old;
+      return { from: e.from, to: e.to, status: had && has ? null : has ? 'added' : 'removed',
+        label: VERBS.filter(function (v) { return c[v]; }).map(function (v) { return c[v] + ' ' + v; }).join(' · ') };
+    });
+  }
+
+  // Problems in the links: an external with a project id, a bad bullet, an unknown target.
+  function linkErrors(data) {
+    var ids = {}, errs = [];
+    (data.projects || []).forEach(function (p) {
+      ids[p.id] = 1;
+      (p.flows || []).forEach(function (f) { if (f.status !== 'removed') ids[p.id + '/' + f.id] = 1; });
+    });
+    (data.external || []).forEach(function (x) {
+      if (ids[x.id]) errs.push('external `' + x.id + '` has the id of a project');
+      else ids[x.id] = 1;
+    });
+    (data.projects || []).forEach(function (p) {
+      (p.flows || []).forEach(function (f) {
+        if (f.status === 'removed') return;
+        var at = p.id + '/' + f.id + ': ';
+        parseLinks(f.boundary).forEach(function (l) {
+          if (l.bad) errs.push(at + 'write the link as "- <verb> `<target>`: <note>": ' + l.text);
+          else if (!ids[l.to]) errs.push(at + 'unknown target `' + l.to + '`');
+        });
+      });
+    });
+    return errs;
+  }
+
+  globalThis.MirrorViewer = { esc: esc, renderMd: renderMd, summary: summary, model: model, groups: groups, cardHtml: cardHtml, matches: matches, hasChanges: hasChanges, diffHtml: diffHtml,
+    parseLinks: parseLinks, linkIndex: linkIndex, systemEdges: systemEdges, linkErrors: linkErrors };
   if (typeof document === 'undefined') return;
 
   // ---- Browser only below ----
