@@ -283,6 +283,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
       var key = p.id + '/' + f.id;
       var fn = { key: key, type: f.kind === 'page' ? 'page' : 'flow', title: f.id, label: f.id, sub: f.entry || '',
         badge: BADGE[f.trigger] || '', status: f.status || null, item: f };
+      fn.unit = typeof f.actions === 'string' ? 'action' : 'step';
       if (idx) { fn.out = idx.out[key] || []; fn.into = idx.into[key] || []; }
       all.push(fn);
       fn.steps = (f.steps || []).map(function (s, i) {
@@ -360,16 +361,32 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     if (chips.length) h += '<div class="lchips">' + chips.join('') + '</div>';
     var steps = n.steps || [];
     if (steps.length) {
+      // A page with actions: the actions have no order, so they show a mark, not a number.
+      var unit = n.unit || 'step';
       h += '<button type="button" class="toggle" data-toggle="' + esc(n.key) + '" aria-expanded="' + !!open + '">' +
-        (open ? '\u25be ' : '\u25b8 ') + steps.length + (steps.length === 1 ? ' step' : ' steps') + '</button>';
+        (open ? '\u25be ' : '\u25b8 ') + steps.length + ' ' + unit + (steps.length === 1 ? '' : 's') + '</button>';
       if (open) {
         h += '<ol class="steps">' + steps.map(function (s, i) {
           return '<li class="step' + statusClass(s) + '" data-key="' + esc(s.key) + '" style="--i: ' + i + '" tabindex="0" role="button">' +
-            '<span class="n">' + esc(s.num) + '</span><span class="body">' + inline(s.label) + '</span></li>';
+            '<span class="n">' + (unit === 'action' ? '\u2022' : esc(s.num)) + '</span><span class="body">' + inline(s.label) + '</span></li>';
         }).join('') + '</ol>';
       }
     }
     return h + '</div>';
+  }
+
+  // The bullets of an action as HTML. A `Call:` target is a link. keyOf maps a target to its key.
+  function actionDetails(details, keyOf) {
+    var d = details || [];
+    return d.length ? '<ul class="details">' + d.map(function (x) {
+      var m = /^(Call|Then|Fail):\s*(.*)$/.exec(x), c;
+      if (!m) return '<li>' + inline(x) + '</li>';
+      var h = '<li><span class="meta">' + m[1] + '</span> ';
+      if (m[1] === 'Call' && (c = /^`([^`]+)`\s*(?::\s*(.*))?$/.exec(m[2]))) {
+        return h + '<button class="link" data-goto="' + esc(keyOf(c[1])) + '">' + esc(c[1]) + '</button>' + (c[2] ? ' ' + inline(c[2]) : '') + '</li>';
+      }
+      return h + inline(m[2]) + '</li>';
+    }).join('') + '</ul>' : '';
   }
 
   function matches(n, q) {
@@ -530,7 +547,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 
   globalThis.MirrorViewer = { esc: esc, renderMd: renderMd, summary: summary, model: model, groups: groups, cardHtml: cardHtml, matches: matches, hasChanges: hasChanges, diffHtml: diffHtml,
     parseLinks: parseLinks, linkIndex: linkIndex, systemEdges: systemEdges, linkErrors: linkErrors, systemModel: systemModel, tabFromHash: tabFromHash, firstTabWithMatch: firstTabWithMatch,
-    parseCalls: parseCalls, flowLinks: flowLinks };
+    parseCalls: parseCalls, flowLinks: flowLinks, actionDetails: actionDetails };
   if (typeof document === 'undefined') return;
 
   // ---- Browser only below ----
@@ -878,11 +895,17 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     }).join('') + '</ul>' : '<p class="empty">None.</p>';
   }
 
+  function keyOf(to) { return state.ext[to] ? 'ext:' + to : to; }
+
+  // The bullets of a step, or of an action with its Call links.
+  function bulletsHtml(s, isAction) { return isAction ? actionDetails(s.details, keyOf) : detailsHtml(s); }
+
   function body(n, tab) {
-    var it = n.item;
+    var it = n.item, act;
     if (tab === 'step') {
-      return detailsHtml(it) + '<h5>Code</h5>' + (refHtml(it.ref) || '<p class="empty">No code reference.</p>') +
-        '<h5>Flow</h5><p><button class="link" data-goto="' + esc(n.parentKey) + '">' + esc(n.parent.id) + '</button></p>';
+      act = typeof n.parent.actions === 'string';
+      return bulletsHtml(it, act) + '<h5>Code</h5>' + (refHtml(it.ref) || '<p class="empty">No code reference.</p>') +
+        '<h5>' + (act ? 'Page' : 'Flow') + '</h5><p><button class="link" data-goto="' + esc(n.parentKey) + '">' + esc(n.parent.id) + '</button></p>';
     }
     if (tab === 'flows') {
       var flows = it.flows || [];
@@ -891,12 +914,13 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
           '<div class="meta">' + esc([BADGE[f.trigger], f.entry].filter(Boolean).join(' \u00b7 ')) + '</div></div></li>';
       }).join('') + '</ol>' : '<p class="empty">No flows.</p>';
     }
-    if (tab === 'steps') {
-      var steps = it.steps || [];
-      return steps.length ? '<ol class="list">' + steps.map(function (s, i) {
-        return '<li' + (STATUS[s.status] ? ' class="st-' + s.status + '"' : '') + '><span class="n">' + esc(s.n) + '</span><div><button class="link" data-goto="' + esc(n.key + '#' + i) + '">' +
-          inline(s.title || s.text) + '</button>' + detailsHtml(s) + refHtml(s.ref) + '</div></li>';
-      }).join('') + '</ol>' : '<p class="empty">No steps.</p>';
+    if (tab === 'steps' || tab === 'actions') {
+      var steps = it.steps || [], tag = tab === 'actions' ? 'ul' : 'ol';
+      act = tab === 'actions';
+      return steps.length ? '<' + tag + ' class="list">' + steps.map(function (s, i) {
+        return '<li' + (STATUS[s.status] ? ' class="st-' + s.status + '"' : '') + '><span class="n">' + (act ? '•' : esc(s.n)) + '</span><div><button class="link" data-goto="' + esc(n.key + '#' + i) + '">' +
+          inline(s.title || s.text) + '</button>' + bulletsHtml(s, act) + refHtml(s.ref) + '</div></li>';
+      }).join('') + '</' + tag + '>' : '<p class="empty">' + (act ? 'No actions.' : 'No steps.') + '</p>';
     }
     if (tab === 'links') {
       var used = '<h5>Used by</h5>' + linkList((n.into || []).map(function (l) { return { key: l.from, text: l.from, verb: l.verb, note: l.note }; }));
@@ -913,7 +937,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 
   function openDrawer(n) {
     var tabs = n.type === 'project' ? ['definition', 'flows'] : n.type === 'step' ? [] : n.type === 'external' ? ['links'] :
-      ['definition', 'steps', 'boundary', 'links', 'rules'];
+      ['definition', typeof n.item.actions === 'string' ? 'actions' : 'steps', 'boundary', 'links', 'rules'];
     if (tabs.length && tabs.indexOf(state.tab) < 0) state.tab = tabs[0];
     var h = ['<div class="dh"><div>', '<span class="chip" style="--c: var(--' + n.type + ')">' + esc(n.badge || n.type.toUpperCase()) + '</span>'];
     if (STATUS[n.status]) h.push('<span class="chip" style="--c: var(--' + n.status + ')">' + n.status + '</span>');
@@ -979,6 +1003,8 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     state.data = JSON.parse($('mirror-data').textContent);
     state.world = $('world');
     state.links = linkIndex(state.data);
+    state.ext = {};
+    (state.data.external || []).forEach(function (x) { state.ext[x.id] = 1; });
     state.sys = systemModel(state.data, state.links);
     document.body.classList.toggle('review', (state.data.projects || []).some(hasChanges));
     document.title = state.data.title || 'Mirror';

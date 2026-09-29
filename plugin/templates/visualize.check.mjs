@@ -13,7 +13,7 @@ for (const p of data.projects) for (const f of p.flows) assert.ok(Array.isArray(
 
 const ctx = {};
 runInNewContext(html.match(/<script id="mirror-app">([\s\S]*?)<\/script>/)[1], ctx);
-const { groups, renderMd, summary, model, cardHtml, matches, hasChanges, parseLinks, linkIndex, systemEdges, linkErrors, systemModel, tabFromHash, firstTabWithMatch, parseCalls, flowLinks } = ctx.MirrorViewer;
+const { groups, renderMd, summary, model, cardHtml, matches, hasChanges, parseLinks, linkIndex, systemEdges, linkErrors, systemModel, tabFromHash, firstTabWithMatch, parseCalls, flowLinks, actionDetails } = ctx.MirrorViewer;
 const plain = (x) => JSON.parse(JSON.stringify(x));
 
 // The links of the page under check must be valid.
@@ -239,6 +239,31 @@ assert.deepEqual(Array.from(linkErrors(perr)), [
   'web/a: unknown target `api/nope`',
   'web/a: move the links of boundary.md to `Call:` lines in actions.md',
 ]);
+
+// A page with actions says "actions" and shows a mark, not a number. A flow still says "steps".
+const shop = { id: 'web', flows: [{ id: 'shop', kind: 'page', trigger: 'page', entry: '/shop',
+  actions: '## Open\n- Code: `a#b`', boundary: '',
+  steps: [{ n: 1, title: 'Open.', text: 'Open.', details: [], ref: 'a#b' }, { n: 2, title: 'Click "Pay".', text: 'Click "Pay".', details: ['Call: `stripe`: pay.'], ref: 'a#c' }] }] };
+const shopCard = cardHtml(model(shop).flows[0], true);
+assert.match(shopCard, /aria-expanded="true">▾ 2 actions<\/button>/);
+assert.match(shopCard, /<span class="n">•<\/span><span class="body">Open\.<\/span>/);
+assert.doesNotMatch(shopCard, /<span class="n">1<\/span>/);
+assert.match(cardHtml(model({ id: 'web', flows: [{ ...shop.flows[0], steps: [shop.flows[0].steps[0]] }] }).flows[0], false), /▸ 1 action<\/button>/);
+assert.match(cardHtml(m.flows[0], false), /▸ 2 steps<\/button>/);
+assert.equal(model(shop).flows[0].unit, 'action');
+assert.equal(m.flows[0].unit, 'step');
+
+// Chip of a Call to an external jumps to the external card.
+const shopIdx = linkIndex({ external: [{ id: 'stripe' }], projects: [{ id: 'web', flows: [{ id: 'shop', actions: '## Pay\n- Call: `stripe`\n- Code: `a#b`' }] }] });
+assert.match(cardHtml(model({ id: 'web', flows: [{ id: 'shop', kind: 'page', actions: '' }] }, shopIdx).flows[0], false), /data-goto="ext:stripe" title="calls">→ stripe</);
+
+// Action details: a Call is a link to its target; Then and Fail stay text.
+const keyOf = (to) => (to === 'stripe' ? 'ext:stripe' : to);
+assert.equal(actionDetails(['Call: `stripe`: pay.', 'Then: open `/done`.', 'Fail: show <b>.'], keyOf),
+  '<ul class="details"><li><span class="meta">Call</span> <button class="link" data-goto="ext:stripe">stripe</button> pay.</li>' +
+  '<li><span class="meta">Then</span> open <code>/done</code>.</li><li><span class="meta">Fail</span> show &lt;b&gt;.</li></ul>');
+assert.equal(actionDetails([], keyOf), '');
+assert.equal(actionDetails(['Keep the draft.'], keyOf), '<ul class="details"><li>Keep the draft.</li></ul>');
 
 // A flow card shows its links as chips that jump to the target. Two links to one target show one chip.
 const newCard = cardHtml(model(sys.projects[1], idx).flows[0], false);
