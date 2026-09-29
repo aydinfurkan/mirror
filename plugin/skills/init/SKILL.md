@@ -70,13 +70,14 @@ Follow the rule of each document in `${CLAUDE_PLUGIN_ROOT}/templates/rules/`.
 
 1. Write `.mirror/xsrc/<project>/definition.md`. Use `rules/project-definition.md`.
 2. For each flow or page, trace the code from the entry point. Then write the four files in
-   `.mirror/xsrc/<project>/<flow>/`. Use `rules/flow-definition.md`, `rules/steps.md`,
-   `rules/boundary.md` and `rules/rules.md`.
+   `.mirror/xsrc/<project>/<flow>/`. Use `rules/flow-definition.md`, `rules/steps.md` (a page:
+   `rules/actions.md`), `rules/boundary.md` and `rules/rules.md`.
 3. Read the request schemas and validators to fill the Input table of `boundary.md`. Read the
    error mapping to fill the Output table.
-4. Write the links in `## Dependencies` of `boundary.md` with the "Links" rule. For each API
-   call of a page, find the backend flow with the same method and path. Link to that flow.
-   Link to each external system that the flow uses.
+4. Write the links. For a flow, write them in `## Dependencies` of `boundary.md` with the
+   "Links" rule. For a page, write one `Call:` bullet per call in `actions.md`. Find the actions
+   from the load effect, the event handlers and the form submits. For each API call, find the
+   backend flow with the same method and path. Link to each external system that the flow uses.
 5. Read the tests to find the constraints and the acceptance criteria. Ask the user for the
    context, the goal and the non-goal when the code does not show them.
 

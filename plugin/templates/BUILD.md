@@ -25,8 +25,10 @@
    - `kind`: `page` when `trigger` is `page`. Else `flow`.
    - `definition`: the text of `definition.md` after the frontmatter.
    - `boundary`, `rules`: the full text of `boundary.md` and `rules.md`.
+   - `actions`: the full text of `actions.md`, for a page that has it. Else leave it out.
    - `status`: `null`.
-   - `steps`: one entry for each `## N. <step>` header in `steps.md`, in order.
+   - `steps`: for a flow, one entry for each `## N. <step>` header in `steps.md`, in order. For
+     a page with `actions.md`, see "Page actions".
      - `n`: the number `N`.
      - `ref`: the backtick span of the `- Code:` bullet under the header, without the
        backticks. Use `""` when there is none.
@@ -62,7 +64,23 @@ The shape:
 ```
 
 The data holds no links. The page reads them from the `## Dependencies` section of each
-`boundary`. It also finds the incoming links and the lines between projects.
+`boundary`, or from the `Call:` bullets of `actions` for a page. It also finds the incoming
+links and the lines between projects.
+
+### Page actions
+
+For a page with `actions.md`, make one `steps` entry for each `## <action>` header, in order:
+
+- `n`: the position of the action, from 1.
+- `ref`: the backtick span of the `- Code:` bullet, without the backticks. Use `""` when there
+  is none.
+- `title`: the header text. End it with a period.
+- `details`: each other bullet, in order, without the `- `, with its label (`Call: …`,
+  `Then: …`, `Fail: …`). End each with a period.
+- `text`: the title, then each detail, joined with a space.
+- `status`: `null`.
+
+A page without `actions.md` builds its `steps` from `steps.md`.
 
 ## Write the page
 
@@ -88,11 +106,12 @@ The data holds no links. The page reads them from the `## Dependencies` section 
      old position and set `status` to `removed`. The page then draws its old lines in red.
    - A project, flow or step only in the old data: copy it into the new data at its old
      position and set `status` to `removed`. Set each descendant of a removed item (its flows and their steps) to `removed`.
-   - A flow in both with a different `trigger`, `entry`, `group`, `definition`, `boundary`, `rules`
-     or step list: set `status` to `changed`.
+   - A flow in both with a different `trigger`, `entry`, `group`, `definition`, `boundary`, `rules`,
+     `actions` or step list: set `status` to `changed`.
    - A project in both with a different `definition` or with a flow that is not `null`: set
      `status` to `changed`.
    - For each `changed` project or flow, add `old`: an object with the old value of each of
-     `trigger`, `entry`, `group`, `definition`, `boundary` and `rules` that is different. The
-     page shows the old lines crossed out and the new lines in yellow.
+     `trigger`, `entry`, `group`, `definition`, `boundary`, `rules` and `actions` that is
+     different. The page shows the old lines crossed out and the new lines in yellow. When the
+     old flow has no `actions` and the new one has, set `old.actions` to `null`.
 4. Write the page with "Write the page" to `.mirror/features/NNNN-<slug>.html`.
