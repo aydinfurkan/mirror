@@ -13,7 +13,7 @@ for (const p of data.projects) for (const f of p.flows) assert.ok(Array.isArray(
 
 const ctx = {};
 runInNewContext(html.match(/<script id="mirror-app">([\s\S]*?)<\/script>/)[1], ctx);
-const { groups, renderMd, summary, model, cardHtml, matches, hasChanges, parseLinks, linkIndex, systemEdges, linkErrors, systemModel, tabFromHash } = ctx.MirrorViewer;
+const { groups, renderMd, summary, model, cardHtml, matches, hasChanges, parseLinks, linkIndex, systemEdges, linkErrors, systemModel, tabFromHash, firstTabWithMatch } = ctx.MirrorViewer;
 const plain = (x) => JSON.parse(JSON.stringify(x));
 
 // The links of the page under check must be valid.
@@ -164,6 +164,24 @@ assert.deepEqual(plain(systemEdges(rev)), [
   { from: 'web', to: 'ext:db', status: null, label: '1 reads' },
 ]);
 
+// Review: an external removed from config.json stays in the data as `removed`. Its old lines are
+// drawn as removed, and a live link to it is an error.
+const gone = { external: [{ id: 'cache', kind: 'cache', status: 'removed' }], projects: [
+  { id: 'api', status: 'changed', flows: [
+    { id: 'a', status: 'changed', boundary: '## Dependencies\n', old: { boundary: '## Dependencies\n- writes `cache`' } },
+  ] },
+] };
+assert.deepEqual(plain(systemEdges(gone)), [{ from: 'api', to: 'ext:cache', status: 'removed', label: '1 writes' }]);
+assert.equal(linkErrors(gone).length, 0);
+gone.projects[0].flows[0].boundary = '## Dependencies\n- reads `cache`';
+assert.deepEqual(Array.from(linkErrors(gone)), ['api/a: unknown target `cache`']);
+
+// Search on the System tab: the first project tab with a matching flow or step, or -1.
+assert.equal(firstTabWithMatch(sys, 'LIST'), 1);
+assert.equal(firstTabWithMatch(sys, 'create'), 0);
+assert.equal(firstTabWithMatch(sys, 'zzz'), -1);
+assert.equal(firstTabWithMatch(sys, ' '), -1);
+
 // A flow card shows its links as chips that jump to the target. Two links to one target show one chip.
 const newCard = cardHtml(model(sys.projects[1], idx).flows[0], false);
 assert.match(newCard, /<div class="lchips"><button type="button" class="lchip" data-goto="api\/create" title="calls">→ api\/create<\/button><\/div>/);
@@ -185,6 +203,7 @@ assert.match(extCard, /class="card external" data-key="ext:posts-db"/);
 assert.match(extCard, /<span class="badge">DATABASE<\/span>/);
 assert.match(extCard, /<div class="sub">Postgres<\/div>/);
 assert.doesNotMatch(extCard, /lchips/);
+assert.match(cardHtml(systemModel(gone, linkIndex(gone)).externals[0]), /class="card external st-removed"/);
 assert.deepEqual(Array.from(sm.externals[0].into, (l) => l.from), ['api/create', 'web/list']);
 assert.equal(sm.edges.length, 3);
 assert.deepEqual(plain(systemModel({}, linkIndex({}))), { projects: [], externals: [], all: [], edges: [] });

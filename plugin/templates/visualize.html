@@ -315,9 +315,18 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     var externals = (data.external || []).map(function (x) {
       var key = 'ext:' + x.id;
       return { key: key, type: 'external', title: x.id, label: x.id, sub: x.name || '', badge: String(x.kind || '').toUpperCase(),
-        status: null, item: x, out: [], into: idx.into[key] || [] };
+        status: x.status || null, item: x, out: [], into: idx.into[key] || [] };
     });
     return { projects: projects, externals: externals, all: projects.concat(externals), edges: systemEdges(data) };
+  }
+
+  // The index of the first project with a flow or step that matches the search, or -1.
+  function firstTabWithMatch(data, q) {
+    var ps = data.projects || [], i;
+    for (i = 0; i < ps.length; i++) {
+      if (model(ps[i]).all.some(function (n) { return n.type !== 'project' && matches(n, q); })) return i;
+    }
+    return -1;
   }
 
   // The tab of a URL hash: the index of the project it names, or -1 for the System tab.
@@ -477,7 +486,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     });
     (data.external || []).forEach(function (x) {
       if (ids[x.id]) errs.push('external `' + x.id + '` has the id of a project');
-      else ids[x.id] = 1;
+      else if (x.status !== 'removed') ids[x.id] = 1;
     });
     (data.projects || []).forEach(function (p) {
       (p.flows || []).forEach(function (f) {
@@ -493,7 +502,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
   }
 
   globalThis.MirrorViewer = { esc: esc, renderMd: renderMd, summary: summary, model: model, groups: groups, cardHtml: cardHtml, matches: matches, hasChanges: hasChanges, diffHtml: diffHtml,
-    parseLinks: parseLinks, linkIndex: linkIndex, systemEdges: systemEdges, linkErrors: linkErrors, systemModel: systemModel, tabFromHash: tabFromHash };
+    parseLinks: parseLinks, linkIndex: linkIndex, systemEdges: systemEdges, linkErrors: linkErrors, systemModel: systemModel, tabFromHash: tabFromHash, firstTabWithMatch: firstTabWithMatch };
   if (typeof document === 'undefined') return;
 
   // ---- Browser only below ----
@@ -799,6 +808,11 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 
   function search(q) {
     state.q = q;
+    // The System tab holds no flows: move to the first project tab with a match.
+    if (state.pi < 0 && q.trim() && !state.sys.all.some(function (n) { return matches(n, q); })) {
+      var t = firstTabWithMatch(state.data, q);
+      if (t >= 0) switchProject(t, false);
+    }
     var p = currentProject();
     if (q.trim() && p) {
       model(p).flows.forEach(function (f) {
