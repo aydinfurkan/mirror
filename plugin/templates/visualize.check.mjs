@@ -191,6 +191,13 @@ assert.deepEqual(plain(parseCalls(acts)), [
   { bad: true, call: true, text: '- Call: api/x' },
 ]);
 assert.deepEqual(plain(parseCalls(undefined)), []);
+// Near-miss call bullets are bad, not skipped.
+assert.deepEqual(plain(parseCalls('- Calls: `api/x`\n- Call `api/x`\n- **Call:** `api/x`\n- calls `api/x`\n- Then: call the user.')), [
+  { bad: true, call: true, text: '- Calls: `api/x`' },
+  { bad: true, call: true, text: '- Call `api/x`' },
+  { bad: true, call: true, text: '- **Call:** `api/x`' },
+  { bad: true, call: true, text: '- calls `api/x`' },
+]);
 
 // A flow with `actions` takes its links from the actions; else from the boundary.
 const pg = { id: 'p', kind: 'page', actions: '## Open\n- Call: `api/get`\n- Code: `a#b`', boundary: '' };
@@ -263,6 +270,9 @@ assert.equal(actionDetails(['Call: `stripe`: pay.', 'Then: open `/done`.', 'Fail
   '<ul class="details"><li><span class="meta">Call</span> <button class="link" data-goto="ext:stripe">stripe</button> pay.</li>' +
   '<li><span class="meta">Then</span> open <code>/done</code>.</li><li><span class="meta">Fail</span> show &lt;b&gt;.</li></ul>');
 assert.equal(actionDetails([], keyOf), '');
+// BUILD ends each detail with a period: a Call without a note is still a link.
+assert.equal(actionDetails(['Call: `stripe`.'], keyOf),
+  '<ul class="details"><li><span class="meta">Call</span> <button class="link" data-goto="ext:stripe">stripe</button></li></ul>');
 assert.equal(actionDetails(['Keep the draft.'], keyOf), '<ul class="details"><li>Keep the draft.</li></ul>');
 
 // A flow card shows its links as chips that jump to the target. Two links to one target show one chip.

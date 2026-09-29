@@ -382,7 +382,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
       var m = /^(Call|Then|Fail):\s*(.*)$/.exec(x), c;
       if (!m) return '<li>' + inline(x) + '</li>';
       var h = '<li><span class="meta">' + m[1] + '</span> ';
-      if (m[1] === 'Call' && (c = /^`([^`]+)`\s*(?::\s*(.*))?$/.exec(m[2]))) {
+      if (m[1] === 'Call' && (c = /^`([^`]+)`\s*(?::\s*(.*)|\.)?$/.exec(m[2]))) {
         return h + '<button class="link" data-goto="' + esc(keyOf(c[1])) + '">' + esc(c[1]) + '</button>' + (c[2] ? ' ' + inline(c[2]) : '') + '</li>';
       }
       return h + inline(m[2]) + '</li>';
@@ -447,12 +447,13 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 
   var CALL = /^\s*[-*]\s+Call:\s*`([^`]+)`\s*(?::\s*(.*?))?\s*$/i;
 
-  // The `Call:` bullets of an actions text, as `calls` links. A `Call:` bullet that does not match
-  // the call form is `bad`. Other bullets are not links.
+  // The `Call:` bullets of an actions text, as `calls` links. A bullet that starts like a call
+  // (`Calls:`, `Call` without a colon, `**Call:**`) but does not match the call form is `bad`.
+  // Other bullets are not links.
   function parseCalls(md) {
     var out = [];
     String(md || '').split(/\r?\n/).forEach(function (line) {
-      if (!/^\s*[-*]\s+Call:/i.test(line)) return;
+      if (!/^\s*[-*]\s+\**calls?\b/i.test(line)) return;
       var m = CALL.exec(line);
       out.push(m ? { verb: 'calls', to: m[1].trim(), note: m[2] || '' } : { bad: true, call: true, text: line.trim() });
     });
