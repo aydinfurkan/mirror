@@ -185,9 +185,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
   "projects": [
     {
       "id": "api",
-      "kinds": [
-        "backend"
-      ],
+      "kind": "backend",
       "definition": "The `api` project is an HTTP API for posts. An author creates, reads, updates and archives posts.\n\n## Stack\n\n- TypeScript on Node 20 or later. Express 4. zod. vitest and supertest for the tests.\n- Start it with `npm -C code run dev`. It reads the port from `PORT`. The default port is 3000.\n\n## Technical decisions\n\n- Keep the posts in memory behind the `PostRepository` port in `src/domain/post.port.ts`. The service restarts empty. A real store can replace `src/infra/post.repo.memory.ts` later.\n- Parse the shape of each request body with zod at the route (`src/api/routes/posts.schema.ts`). Keep the business rules in `src/domain/post.rules.ts`.\n- Return a `ServiceResult` from each service function. `src/api/http.ts` maps the error codes to HTTP: `validation` 400, `not-found` 404, an unexpected error 500.",
       "status": "changed",
       "flows": [
@@ -556,9 +554,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     },
     {
       "id": "web",
-      "kinds": [
-        "frontend"
-      ],
+      "kind": "frontend",
       "definition": "The `web` project is a web app for posts. A user lists, reads, creates, edits and deletes posts through the `api` project.\n\n## Stack\n\n- TypeScript, React 18, React Router 6, Vite. vitest, jsdom and Testing Library for the tests.\n- Start it with `npm -C web run dev`. Start the `api` project on port 3000 first.\n\n## Technical decisions\n\n- Call the API only through `src/api/posts.api.ts`. Each call uses the base path `/api`. The Vite dev server sends `/api/*` to `http://localhost:3000`, so the browser needs no CORS.\n- Throw an `ApiError` with the status, the field and the message of the API error. A form shows that message.\n- Use one form component, `src/components/PostForm.tsx`, for the new-post page and the edit-post page.\n- Keep the state of each page in the page. The app has no global store.",
       "status": "changed",
       "flows": [
@@ -859,7 +855,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 
   // One project as cards: the project, its flows, and the steps inside each flow.
   function model(p) {
-    var pn = { key: p.id, type: 'project', title: p.id, label: p.id, sub: (p.kinds || []).join(' \u00b7 '),
+    var pn = { key: p.id, type: 'project', title: p.id, label: p.id, sub: (p.kind || ''),
       badge: 'PROJECT', status: p.status || null, item: p };
     var all = [pn];
     var flows = (p.flows || []).map(function (f) {
@@ -1082,7 +1078,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     $('ptabs').innerHTML = projects.map(function (p, i) {
       var on = i === state.pi;
       return '<button class="ptab' + (on ? ' on' : '') + '" role="tab" aria-selected="' + on + '" tabindex="' + (on ? 0 : -1) +
-        '" data-pi="' + i + '">' + esc(p.id) + ' <small>' + esc((p.kinds || []).join(' \u00b7 ')) + '</small>' +
+        '" data-pi="' + i + '">' + esc(p.id) + ' <small>' + esc((p.kind || '')) + '</small>' +
         (hasChanges(p) ? '<span class="dot" title="Has changes"></span>' : '') + '</button>';
     }).join('');
   }

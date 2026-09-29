@@ -14,7 +14,7 @@
 
 1. Make one project entry for each key in `projects` of `config.json`. Keep the key order.
    - `id`: the key.
-   - `kinds`: the `kinds` value from `config.json`.
+   - `kind`: the `kind` value from `config.json`.
    - `definition`: the full text of `xsrc/<project>/definition.md`.
    - `status`: `null`.
    - `flows`: see step 2.
@@ -46,7 +46,7 @@ The shape:
   "generated": "2026-09-25",
   "title": "my-repo",
   "projects": [{
-    "id": "api", "kinds": ["backend"], "definition": "…", "status": null,
+    "id": "api", "kind": "backend", "definition": "…", "status": null,
     "flows": [{
       "id": "create-user", "kind": "flow", "trigger": "http", "entry": "POST /users", "group": "users",
       "definition": "…", "boundary": "…", "rules": "…", "status": null,

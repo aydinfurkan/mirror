@@ -31,7 +31,7 @@ assert.equal(
 assert.equal(summary('# Title\n\nCreate a **post**.\nFor an author.\n\n## Stack\n- x'), 'Create a **post**. For an author.');
 assert.equal(summary(''), '');
 
-const sample = { id: 'api', kinds: ['backend'], definition: 'The API.', flows: [
+const sample = { id: 'api', kind: 'backend', definition: 'The API.', flows: [
   { id: 'a', kind: 'flow', trigger: 'http', entry: 'POST /a', definition: 'Do <a>.',
     steps: [{ n: 1, text: 's1', ref: '' }, { n: 2, title: 'Save.', text: 'Save. Return 400.', details: ['Return 400.'], ref: 'src/a.ts#postUser' }] },
   { id: 'b', kind: 'page', trigger: 'page', entry: '/b', steps: [] },

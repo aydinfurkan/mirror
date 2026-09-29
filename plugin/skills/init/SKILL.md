@@ -21,7 +21,7 @@ existing files. Skip each existing `config.json` entry, `definition.md` and flow
 
 1. Read the manifests in the repository: `package.json`, `app.json`, `pnpm-workspace.yaml`,
    `go.mod`, `pyproject.toml`, `*.csproj`, `Cargo.toml`, `Dockerfile`.
-2. Give each project a short kebab-case id, a `root` (repository-relative), and `kinds`:
+2. Give each project a short kebab-case id, a `root` (repository-relative), and one `kind`:
    - `backend`: it serves HTTP, GraphQL or RPC.
    - `worker`: it runs a process from `main` or on a schedule.
    - `consumer`: it handles messages from a queue or a topic.
@@ -36,8 +36,8 @@ existing files. Skip each existing `config.json` entry, `definition.md` and flow
 
 ```json
 { "projects": {
-  "web-backend": { "root": "apps/web", "kinds": ["backend"] },
-  "web-frontend": { "root": "apps/web", "kinds": ["frontend"] }
+  "web-backend": { "root": "apps/web", "kind": "backend" },
+  "web-frontend": { "root": "apps/web", "kind": "frontend" }
 } }
 ```
 
@@ -90,6 +90,5 @@ Follow the rule of each document in `${CLAUDE_PLUGIN_ROOT}/templates/rules/`.
 
 1. Open `.mirror/visualize.html` in VS Code with `code -r <file>`. If `code` is not found,
    tell the user to open the file.
-2. Tell the user the number of projects, flows and pages. Tell the user to commit `.mirror/`. From now on, each
-change goes through the change workflow in `.mirror/AGENTS.md`: mirror first, then review,
-then code.
+2. Tell the user the number of projects, flows and pages. From now on, each change goes
+   through the change workflow in `.mirror/AGENTS.md`: mirror first, then review, then code.

@@ -257,7 +257,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 
   // One project as cards: the project, its flows, and the steps inside each flow.
   function model(p) {
-    var pn = { key: p.id, type: 'project', title: p.id, label: p.id, sub: (p.kinds || []).join(' \u00b7 '),
+    var pn = { key: p.id, type: 'project', title: p.id, label: p.id, sub: (p.kind || ''),
       badge: 'PROJECT', status: p.status || null, item: p };
     var all = [pn];
     var flows = (p.flows || []).map(function (f) {
@@ -480,7 +480,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     $('ptabs').innerHTML = projects.map(function (p, i) {
       var on = i === state.pi;
       return '<button class="ptab' + (on ? ' on' : '') + '" role="tab" aria-selected="' + on + '" tabindex="' + (on ? 0 : -1) +
-        '" data-pi="' + i + '">' + esc(p.id) + ' <small>' + esc((p.kinds || []).join(' \u00b7 ')) + '</small>' +
+        '" data-pi="' + i + '">' + esc(p.id) + ' <small>' + esc((p.kind || '')) + '</small>' +
         (hasChanges(p) ? '<span class="dot" title="Has changes"></span>' : '') + '</button>';
     }).join('');
   }
