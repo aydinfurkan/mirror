@@ -21,5 +21,5 @@ From then on, Claude changes the mirror first, you review it, then the code foll
 ## More
 
 - [plugin/README.md](plugin/README.md): what the plugin does, and what it runs, reads and sends.
-- [examples/posts/](examples/posts/): a demo API and web app with their mirror. Open
-  `examples/posts/.mirror/visualize.html` to see the viewer.
+- [examples/shop/](examples/shop/): a demo shop (web, api, worker) described by its mirror. Open
+  `examples/shop/.mirror/visualize.html` to see the viewer.
