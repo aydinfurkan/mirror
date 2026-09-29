@@ -6,20 +6,20 @@ sizes. `:root[data-theme="dark"]` holds the dark theme colors.
 
 ```css
 :root {
-  --bg: #f8fafc;  --surface: #ffffff;  --panel: #ffffff;  --border: #e2e8f0;
-  --text: #0f172a;  --muted: #64748b;  --edge: #cbd5e1;  --accent: #2563eb;
-  --shadow: 0 1px 2px rgb(15 23 42 / .05), 0 4px 12px rgb(15 23 42 / .07);
-  --project: #2563eb;  --flow: #0ea5e9;  --page: #f59e0b;  --step: #94a3b8;  --group: #64748b;
+  --bg: #fafafa;  --surface: #ffffff;  --panel: #ffffff;  --border: #e4e4e7;
+  --text: #09090b;  --muted: #52525b;  --edge: #a1a1aa;  --accent: #09090b;
+  --shadow: 0 0 #0000;
+  --project: #09090b;  --flow: #2563eb;  --page: #d97706;  --step: #71717a;  --group: #3f3f46;
   --added: #16a34a;  --changed: #eab308;  --removed: #dc2626;
-  --box-w: 260px;  --box-h: 88px;  --gap-x: 20px;  --gap-y: 56px;  --radius: 12px;
-  --font: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
+  --box-w: 340px;  --box-h: 112px;  --gap-x: 20px;  --gap-y: 56px;  --radius: 14px;
+  --font: Geist, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
 }
 :root[data-theme="dark"] {
-  --bg: #020617;  --surface: #0f172a;  --panel: #0b1222;  --border: #1e293b;
-  --text: #e2e8f0;  --muted: #94a3b8;  --edge: #334155;  --accent: #60a5fa;
-  --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 6px 16px rgb(0 0 0 / .35);
-  --project: #60a5fa;  --flow: #38bdf8;  --page: #fbbf24;  --step: #64748b;  --group: #94a3b8;
+  --bg: #09090b;  --surface: #18181b;  --panel: #111113;  --border: #27272a;
+  --text: #fafafa;  --muted: #a1a1aa;  --edge: #52525b;  --accent: #fafafa;
+  --shadow: 0 0 #0000;
+  --project: #fafafa;  --flow: #60a5fa;  --page: #fbbf24;  --step: #71717a;  --group: #52525b;
   --added: #22c55e;  --changed: #facc15;  --removed: #f87171;
 }
 ```
@@ -31,14 +31,14 @@ sizes. `:root[data-theme="dark"]` holds the dark theme colors.
 | `--text`, `--muted` | Main text. Secondary text. |
 | `--edge` | Lines between cards. |
 | `--accent` | Selection, focus, search matches, links. |
-| `--shadow` | Card shadow, as a CSS `box-shadow` value. |
-| `--project`, `--flow`, `--page`, `--step` | Top bar and badge color of each card type. `--step` colors the step numbers inside a flow card. `--flow` is a backend, worker or consumer flow. `--page` is a frontend or Expo page. |
+| `--shadow` | Card shadow, as a CSS `box-shadow` value. Use `0 0 #0000` for no shadow. |
+| `--project`, `--flow`, `--page`, `--step` | Border and badge color of each card type. `--step` colors the step numbers inside a flow card. `--flow` is a backend, worker or consumer flow. `--page` is a frontend or Expo page. |
 | `--group` | Fill, border and label of each group box of flows. |
 | `--added`, `--changed`, `--removed` | Card border on a feature review page. |
 | `--box-w`, `--box-h` | Width and minimum height of each card, in px. A card grows when its steps are open. |
 | `--gap-x`, `--gap-y` | Space between flow cards, and between the project card and the flow row, in px. |
-| `--radius` | Corner radius of each card, in px. |
-| `--font`, `--mono` | Text font. Code font. The page loads no web font; `Inter` is used when it is installed. |
+| `--radius` | Corner radius of each card and group box, in px. |
+| `--font`, `--mono` | Text font. Code font. The page loads `Geist` and `Geist Mono` from Google Fonts. Without a network, it uses the system font. |
 
 The viewer follows the light or dark setting of the system. The theme button stores the
 choice of the reader in the browser.
