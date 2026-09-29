@@ -5,7 +5,8 @@ change the mirror, get a review, then change the code.
 
 ## Layout
 
-- `.mirror/config.json`: the projects, the root folder and the kind of each project.
+- `.mirror/config.json`: the projects, the root folder and the kind of each project, and the
+  external systems (databases, queues, APIs outside the repository).
 - `.mirror/xsrc/<project>/definition.md`: what the project is for, its stack, its technical decisions.
 - `.mirror/xsrc/<project>/<flow-or-page>/`: `definition.md`, `steps.md`, `boundary.md`, `rules.md`.
 - `.mirror/visualize.html`: the current graph. `.mirror/visualize.md`: its colors and sizes.

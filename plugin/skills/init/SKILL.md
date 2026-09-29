@@ -31,13 +31,20 @@ existing files. Skip each existing `config.json` entry, `definition.md` and flow
    Remix and SvelteKit. Give each part the id `<app>-<kind>`, the same `root`, and one kind.
    - `<app>-backend`: the API routes, the route handlers and the server actions.
    - `<app>-frontend`: the pages.
-4. Show the list to the user as a table. Wait for an OK. Apply the changes the user asks for.
-5. Write `.mirror/config.json`:
+4. Find the external systems: databases, queues and topics, caches, file storage, and APIs
+   outside the repository. Read the DB and queue clients and the SDKs in the manifests, the env
+   files, `docker-compose.yml` and the config files. Give each one a kebab-case id and one kind:
+   `database`, `queue`, `cache`, `storage`, `api` or `service`. Do not use the id of a project.
+5. Show the projects and the external systems to the user as two tables. Wait for an OK. Apply
+   the changes the user asks for.
+6. Write `.mirror/config.json`:
 
 ```json
 { "projects": {
   "web-backend": { "root": "apps/web", "kind": "backend" },
   "web-frontend": { "root": "apps/web", "kind": "frontend" }
+}, "external": {
+  "app-db": { "kind": "database", "name": "Postgres" }
 } }
 ```
 
@@ -67,7 +74,10 @@ Follow the rule of each document in `${CLAUDE_PLUGIN_ROOT}/templates/rules/`.
    `rules/boundary.md` and `rules/rules.md`.
 3. Read the request schemas and validators to fill the Input table of `boundary.md`. Read the
    error mapping to fill the Output table.
-4. Read the tests to find the constraints and the acceptance criteria. Ask the user for the
+4. Write the links in `## Dependencies` of `boundary.md` with the "Links" rule. For each API
+   call of a page, find the backend flow with the same method and path. Link to that flow.
+   Link to each external system that the flow uses.
+5. Read the tests to find the constraints and the acceptance criteria. Ask the user for the
    context, the goal and the non-goal when the code does not show them.
 
 ## 4. Agent rules and build guide
@@ -84,7 +94,7 @@ Follow the rule of each document in `${CLAUDE_PLUGIN_ROOT}/templates/rules/`.
 2. Build `.mirror/visualize.html` with "Build the data" and "Write the page" in
    `.mirror/BUILD.md`. Use `${CLAUDE_PLUGIN_ROOT}/templates/visualize.html` as the template.
 3. Run `node "${CLAUDE_PLUGIN_ROOT}/templates/visualize.check.mjs" .mirror/visualize.html`.
-   It must print `ok`.
+   It must print `ok`. Fix each link error that it prints.
 
 ## 6. Report
 

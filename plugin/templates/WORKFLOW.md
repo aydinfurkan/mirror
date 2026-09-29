@@ -9,6 +9,11 @@ Do not change code before the user approves the review.
 1. Read `.mirror/config.json` and the `definition.md` of each project.
 2. Ask the user about the parts of the change that are not clear. Ask one question at a time.
 3. List the flows or pages that the change adds, changes or removes.
+4. For each flow or page in the list, find the affected flows:
+   - each flow with a link to it or to its project;
+   - for each external system that it `publishes` to or `writes`, each flow that `consumes` or
+     `reads` that external system.
+   Show them to the user as "Affected".
 
 ## 2. Change the mirror
 
@@ -19,8 +24,10 @@ Do not change code before the user approves the review.
    - A new flow or page: create its folder with the four files.
    - A changed flow or page: edit its files.
    - A removed flow or page: delete its folder.
-3. Follow the rule in `.mirror/rules/` for each file that you write.
-4. If no file under `.mirror/xsrc/` changes, tell the user that the change does not touch the
+3. When the change breaks a contract of a flow (it removes a field, adds a required field, or
+   changes a status code or an event shape), edit the files of each affected flow too.
+4. Follow the rule in `.mirror/rules/` for each file that you write.
+5. If no file under `.mirror/xsrc/` changes, tell the user that the change does not touch the
    mirror. Ask for an OK to change the code without a review page.
 
 ## 3. Review
@@ -43,7 +50,8 @@ Do not change code before the user approves the review.
    sure that the new tests fail.
 2. Write the code for the steps. Put each function at the path and name in its step.
 3. Remove the code and the tests of each removed flow.
-4. Run the full test suite of each changed project. Make sure that all tests pass.
+4. Run the full test suite of each changed project and of each project with an affected flow.
+   Make sure that all tests pass.
 5. For each changed `steps.md`, make sure that each `path#function` exists in the code. Fix
    the document or the code when they do not agree.
 6. Build `.mirror/visualize.html` with "Build the data" and "Write the page" in
