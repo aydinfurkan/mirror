@@ -35,7 +35,8 @@ Do not change code before the user approves the review.
 
 1. Find the next free number `NNNN` in `.mirror/features/`. Start at `0001`. Make a
    kebab-case `<slug>` from the change name.
-2. Build `.mirror/features/NNNN-<slug>.html` with "Review page" in `.mirror/BUILD.md`.
+2. Run `node .mirror/build.mjs .mirror --review NNNN-<slug>`. When it prints link errors, fix
+   them and run it again. See `.mirror/BUILD.md`.
 3. Open the page in VS Code with `code -r <file>`. If `code` is not found, tell the user to
    open the page. List the added, changed and removed flows and steps.
 4. Stop and wait for the answer.
@@ -55,6 +56,6 @@ Do not change code before the user approves the review.
    Make sure that all tests pass.
 5. For each changed `steps.md` and `actions.md`, make sure that each `path#function` exists in the code. Fix
    the document or the code when they do not agree.
-6. Build `.mirror/visualize.html` with "Build the data" and "Write the page" in
+6. Run `node .mirror/build.mjs .mirror` to build `.mirror/visualize.html`. See
    `.mirror/BUILD.md`.
 7. Report the changed documents, the changed code files, and the test result.

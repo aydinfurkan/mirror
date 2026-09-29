@@ -13,7 +13,8 @@ change the mirror, get a review, then change the code.
 - `.mirror/visualize.html`: the current graph. `.mirror/visualize.md`: its colors and sizes.
 - `.mirror/rules/`: the format of each document.
 - `.mirror/WORKFLOW.md`: the steps of each change.
-- `.mirror/BUILD.md`: how to build the graph and a review page.
+- `.mirror/build.mjs`: the script that builds the graph and each review page.
+- `.mirror/BUILD.md`: how to run it.
 - `.mirror/features/`: the review page of each past change.
 
 ## Rules

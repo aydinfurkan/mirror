@@ -275,8 +275,8 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
   }
 
   // One project as cards: the project, its flows, and the steps inside each flow.
-  // idx (from linkIndex) adds the outgoing and incoming links of each flow.
-  function model(p, idx) {
+  // The build puts the links of each flow in `out` and `into`.
+  function model(p) {
     var pn = projectNode(p);
     var all = [pn];
     var flows = (p.flows || []).map(function (f) {
@@ -284,7 +284,8 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
       var fn = { key: key, type: f.kind === 'page' ? 'page' : 'flow', title: f.id, label: f.id, sub: f.entry || '',
         badge: BADGE[f.trigger] || '', status: f.status || null, item: f };
       fn.unit = typeof f.actions === 'string' ? 'action' : 'step';
-      if (idx) { fn.out = idx.out[key] || []; fn.into = idx.into[key] || []; }
+      fn.out = f.out || [];
+      fn.into = f.into || [];
       all.push(fn);
       fn.steps = (f.steps || []).map(function (s, i) {
         var sn = { key: key + '#' + i, type: 'step', title: s.n + '. ' + s.text, label: s.title || s.text, num: s.n, sub: s.ref || '',
@@ -310,15 +311,16 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     return out;
   }
 
-  // The System tab as cards: each project, then each external system.
-  function systemModel(data, idx) {
+  // The System tab as cards: each project, then each external system. The build puts the
+  // incoming links of each external in `into`, and the lines in `system.edges`.
+  function systemModel(data) {
     var projects = (data.projects || []).map(projectNode);
     var externals = (data.external || []).map(function (x) {
       var key = 'ext:' + x.id;
       return { key: key, type: 'external', title: x.id, label: x.id, sub: x.name || '', badge: String(x.kind || '').toUpperCase(),
-        status: x.status || null, item: x, out: [], into: idx.into[key] || [] };
+        status: x.status || null, item: x, out: [], into: x.into || [] };
     });
-    return { projects: projects, externals: externals, all: projects.concat(externals), edges: systemEdges(data) };
+    return { projects: projects, externals: externals, all: projects.concat(externals), edges: (data.system && data.system.edges) || [] };
   }
 
   // The index of the first project with a flow or step that matches the search, or -1.
@@ -426,129 +428,8 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     return ['trigger: ' + (it.trigger || ''), 'entry: ' + (it.entry || ''), 'group: ' + (it.group || ''), '', it.definition || ''].join('\n');
   }
 
-  var VERBS = ['calls', 'publishes', 'consumes', 'reads', 'writes'];
-  var LINK = /^\s*[-*]\s+(\w+)\s+`([^`]+)`\s*(?::\s*(.*?))?\s*$/;
-
-  // The links in the `## Dependencies` section of a boundary text. A bullet that starts with a
-  // verb and has a backtick but does not match the link form is `bad`. Other bullets are notes.
-  function parseLinks(md) {
-    var out = [], on = false;
-    String(md || '').split(/\r?\n/).forEach(function (line) {
-      if (/^#{1,6}\s/.test(line)) { on = /^##\s+Dependencies\s*$/i.test(line); return; }
-      if (!on || !/^\s*[-*]\s/.test(line)) return;
-      var first = (/^\s*[-*]\s+(\w+)/.exec(line) || [])[1];
-      if (VERBS.indexOf(String(first).toLowerCase()) < 0) return;
-      var m = LINK.exec(line);
-      if (m) out.push({ verb: m[1].toLowerCase(), to: m[2].trim(), note: m[3] || '' });
-      else if (line.indexOf('`') >= 0) out.push({ bad: true, text: line.trim() });
-    });
-    return out;
-  }
-
-  var CALL = /^\s*[-*]\s+Call:\s*`([^`]+)`\s*(?::\s*(.*?))?\s*$/i;
-
-  // The `Call:` bullets of an actions text, as `calls` links. A bullet that starts like a call
-  // (`Calls:`, `Call` without a colon, `**Call:**`) but does not match the call form is `bad`.
-  // Other bullets are not links.
-  function parseCalls(md) {
-    var out = [];
-    String(md || '').split(/\r?\n/).forEach(function (line) {
-      if (!/^\s*[-*]\s+\**calls?\b/i.test(line)) return;
-      var m = CALL.exec(line);
-      out.push(m ? { verb: 'calls', to: m[1].trim(), note: m[2] || '' } : { bad: true, call: true, text: line.trim() });
-    });
-    return out;
-  }
-
-  // The links of a flow: the `Call:` lines of its actions when it has actions, else the
-  // Dependencies of its boundary. old: use the values before a review change. `old.actions: null`
-  // means the old flow had no actions.
-  function flowLinks(f, old) {
-    var o = old && f.old ? f.old : {};
-    var actions = 'actions' in o ? o.actions : f.actions;
-    var boundary = 'boundary' in o ? o.boundary : f.boundary;
-    return typeof actions === 'string' ? parseCalls(actions) : parseLinks(boundary);
-  }
-
-  function extIds(data) {
-    var ext = {};
-    (data.external || []).forEach(function (x) { ext[x.id] = 1; });
-    return ext;
-  }
-
-  // Each flow's outgoing links, and each target's incoming links. Keys: `p/f`, `p`, `ext:<id>`.
-  function linkIndex(data) {
-    var ext = extIds(data), out = {}, into = {};
-    (data.projects || []).forEach(function (p) {
-      (p.flows || []).forEach(function (f) {
-        var from = p.id + '/' + f.id;
-        out[from] = flowLinks(f).filter(function (l) { return !l.bad; }).map(function (l) {
-          var key = ext[l.to] ? 'ext:' + l.to : l.to;
-          (into[key] = into[key] || []).push({ from: from, verb: l.verb, note: l.note });
-          return { verb: l.verb, to: l.to, note: l.note, key: key };
-        });
-      });
-    });
-    return { out: out, into: into };
-  }
-
-  // The lines of the System tab: one per project pair or project-external pair, counted by verb.
-  // A line only in the new links is `added`. A line only in the old links (`old.boundary`) is `removed`.
-  function systemEdges(data) {
-    var ext = extIds(data), pids = {}, edges = [], by = {};
-    (data.projects || []).forEach(function (p) { pids[p.id] = 1; });
-    function add(side, from, l) {
-      if (l.bad) return;
-      var to = ext[l.to] ? 'ext:' + l.to : l.to.split('/')[0];
-      if (to === from || !(ext[l.to] || pids[to])) return;
-      var e = by[from + '>' + to];
-      if (!e) edges.push(e = by[from + '>' + to] = { from: from, to: to, old: {}, now: {} });
-      e[side][l.verb] = (e[side][l.verb] || 0) + 1;
-    }
-    (data.projects || []).forEach(function (p) {
-      (p.flows || []).forEach(function (f) {
-        if (f.status !== 'added') flowLinks(f, true).forEach(function (l) { add('old', p.id, l); });
-        if (f.status !== 'removed') flowLinks(f).forEach(function (l) { add('now', p.id, l); });
-      });
-    });
-    return edges.map(function (e) {
-      var had = Object.keys(e.old).length > 0, has = Object.keys(e.now).length > 0, c = has ? e.now : e.old;
-      return { from: e.from, to: e.to, status: had && has ? null : has ? 'added' : 'removed',
-        label: VERBS.filter(function (v) { return c[v]; }).map(function (v) { return c[v] + ' ' + v; }).join(' · ') };
-    });
-  }
-
-  // Problems in the links: an external with a project id, a bad bullet, an unknown target.
-  function linkErrors(data) {
-    var ids = {}, errs = [];
-    (data.projects || []).forEach(function (p) {
-      ids[p.id] = 1;
-      (p.flows || []).forEach(function (f) { if (f.status !== 'removed') ids[p.id + '/' + f.id] = 1; });
-    });
-    (data.external || []).forEach(function (x) {
-      if (ids[x.id]) errs.push('external `' + x.id + '` has the id of a project');
-      else if (x.status !== 'removed') ids[x.id] = 1;
-    });
-    (data.projects || []).forEach(function (p) {
-      (p.flows || []).forEach(function (f) {
-        if (f.status === 'removed') return;
-        var at = p.id + '/' + f.id + ': ';
-        flowLinks(f).forEach(function (l) {
-          if (l.bad && l.call) errs.push(at + 'write the call as "- Call: `<target>`: <note>": ' + l.text);
-          else if (l.bad) errs.push(at + 'write the link as "- <verb> `<target>`: <note>": ' + l.text);
-          else if (!ids[l.to]) errs.push(at + 'unknown target `' + l.to + '`');
-        });
-        if (typeof f.actions === 'string' && parseLinks(f.boundary).length) {
-          errs.push(at + 'move the links of boundary.md to `Call:` lines in actions.md');
-        }
-      });
-    });
-    return errs;
-  }
-
   globalThis.MirrorViewer = { esc: esc, renderMd: renderMd, summary: summary, model: model, groups: groups, cardHtml: cardHtml, matches: matches, hasChanges: hasChanges, diffHtml: diffHtml,
-    parseLinks: parseLinks, linkIndex: linkIndex, systemEdges: systemEdges, linkErrors: linkErrors, systemModel: systemModel, tabFromHash: tabFromHash, firstTabWithMatch: firstTabWithMatch,
-    parseCalls: parseCalls, flowLinks: flowLinks, actionDetails: actionDetails };
+    systemModel: systemModel, tabFromHash: tabFromHash, firstTabWithMatch: firstTabWithMatch, actionDetails: actionDetails };
   if (typeof document === 'undefined') return;
 
   // ---- Browser only below ----
@@ -747,7 +628,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
       w.innerHTML = '<p class="empty-state">No projects yet. Run mirror:init.</p>';
       return;
     }
-    var m = state.m = sys ? state.sys : model(currentProject(), state.links);
+    var m = state.m = sys ? state.sys : model(currentProject());
     state.byKey = {};
     m.all.forEach(function (n) { state.byKey[n.key] = n; });
     state.hits = m.all.filter(function (n) { return matches(n, state.q); });
@@ -1003,10 +884,9 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     if (media && media.addEventListener) media.addEventListener('change', applyTheme);
     state.data = JSON.parse($('mirror-data').textContent);
     state.world = $('world');
-    state.links = linkIndex(state.data);
     state.ext = {};
     (state.data.external || []).forEach(function (x) { state.ext[x.id] = 1; });
-    state.sys = systemModel(state.data, state.links);
+    state.sys = systemModel(state.data);
     document.body.classList.toggle('review', (state.data.projects || []).some(hasChanges));
     document.title = state.data.title || 'Mirror';
     $('title').textContent = state.data.title || 'Mirror';
