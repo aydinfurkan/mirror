@@ -32,18 +32,14 @@
      - `n`: the number `N`.
      - `ref`: the backtick span of the `- Code:` bullet under the header, without the
        backticks. Use `""` when there is none.
-     - `title`: the header text after `N.`. End it with a period. The graph shows only it.
+     - `title`: the header text after `N.`. End it with a period.
      - `details`: each other bullet under the header, in order, without the `- `. End each
        with a period. The step detail shows them as bullets. Use `[]` when there is none.
      - `text`: the header text after `N.`, then each other bullet under the header, joined
        with a space. End each part with a period.
      - `status`: `null`.
-3. Make one external entry for each key in `external` of `config.json`. Keep the key order.
-   Use `[]` when `external` does not exist.
-   - `id`: the key.
-   - `kind`, `name`: the values from `config.json`.
-4. Set `generated` to today in the form `YYYY-MM-DD`. Set `title` to the repository folder name.
-5. Write the data as JSON. Replace each `<` with `<`.
+3. Set `generated` to today in the form `YYYY-MM-DD`. Set `title` to the repository folder name.
+4. Write the data as JSON. Replace each `<` with `<`.
 
 The shape:
 
@@ -51,7 +47,6 @@ The shape:
 {
   "generated": "2026-09-25",
   "title": "my-repo",
-  "external": [{ "id": "users-db", "kind": "database", "name": "Postgres" }],
   "projects": [{
     "id": "api", "kind": "backend", "definition": "…", "status": null,
     "flows": [{
@@ -62,10 +57,6 @@ The shape:
   }]
 }
 ```
-
-The data holds no links. The page reads them from the `## Dependencies` section of each
-`boundary`, or from the `Call:` bullets of `actions` for a page. It also finds the incoming
-links and the lines between projects.
 
 ### Page actions
 
@@ -88,25 +79,16 @@ A page without `actions.md` builds its `steps` from `steps.md`.
 2. Replace the text between `/* MIRROR:TOKENS:START */` and `/* MIRROR:TOKENS:END */` with
    the full content of the `css` fence in `.mirror/visualize.md`.
 3. Replace the content of `<script type="application/json" id="mirror-data">` with the JSON.
-4. Check the page:
-   - The data block is valid JSON.
-   - Each link in the `## Dependencies` section of a `boundary.md` and each `Call:` bullet of
-     an `actions.md` has the form that `.mirror/rules/` gives.
-   - Each link target is a project id, a `<project>/<flow>` id, or a key of `external` in
-     `config.json`.
-5. When a check fails, fix the `boundary.md`, the `actions.md` or the `external` map in
-   `config.json`. Then build the page again.
+4. Make sure that the data block is valid JSON.
 
 ## Review page
 
 1. Read the old data: the JSON in `<script id="mirror-data">` of the current `.mirror/visualize.html`.
-   The old data is the last built graph. When `.mirror/visualize.html` does not exist, use
+   The old data is the last built page. When `.mirror/visualize.html` does not exist, use
    empty old data, so each item is `added`.
 2. Build the new data from `.mirror/xsrc/` with "Build the data".
 3. Compare project by `id`, flow by project `id` + flow `id`, and step by `ref` + `text`.
    - A project, flow or step only in the new data: set `status` to `added`.
-   - An external system only in the old data: copy it into `external` of the new data at its
-     old position and set `status` to `removed`. The page then draws its old lines in red.
    - A project, flow or step only in the old data: copy it into the new data at its old
      position and set `status` to `removed`. Set each descendant of a removed item (its flows and their steps) to `removed`.
    - A flow in both with a different `trigger`, `entry`, `group`, `definition`, `boundary`, `rules`,

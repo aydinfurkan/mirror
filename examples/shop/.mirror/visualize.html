@@ -11,19 +11,16 @@
 /* MIRROR:TOKENS:START */
 :root {
   --bg: #fafafa;  --surface: #ffffff;  --panel: #ffffff;  --border: #e4e4e7;
-  --text: #09090b;  --muted: #52525b;  --edge: #a1a1aa;  --accent: #09090b;
-  --shadow: 0 0 #0000;
-  --project: #09090b;  --flow: #2563eb;  --page: #d97706;  --step: #71717a;  --group: #3f3f46;  --external: #7c3aed;
+  --text: #09090b;  --muted: #52525b;  --accent: #09090b;
+  --project: #09090b;  --flow: #2563eb;  --page: #d97706;
   --added: #16a34a;  --changed: #eab308;  --removed: #dc2626;
-  --box-w: 340px;  --box-h: 112px;  --gap-x: 20px;  --gap-y: 56px;  --radius: 14px;
   --font: Geist, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "Geist Mono", ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
 }
 :root[data-theme="dark"] {
   --bg: #09090b;  --surface: #18181b;  --panel: #111113;  --border: #27272a;
-  --text: #fafafa;  --muted: #a1a1aa;  --edge: #52525b;  --accent: #fafafa;
-  --shadow: 0 0 #0000;
-  --project: #fafafa;  --flow: #60a5fa;  --page: #fbbf24;  --step: #71717a;  --group: #52525b;  --external: #a78bfa;
+  --text: #fafafa;  --muted: #a1a1aa;  --accent: #fafafa;
+  --project: #fafafa;  --flow: #60a5fa;  --page: #fbbf24;
   --added: #22c55e;  --changed: #facc15;  --removed: #f87171;
 }
 /* MIRROR:TOKENS:END */
@@ -45,7 +42,7 @@ header { display: flex; align-items: center; gap: 12px; margin: 12px 12px 0; pad
 .btn:hover { border-color: var(--accent); }
 .tools .btn { background: var(--bg); border-color: transparent; font-weight: 500; }
 .tools .btn:hover { border-color: var(--border); }
-.btn:focus-visible, .tab:focus-visible, .link:focus-visible, .toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.btn:focus-visible, .tab:focus-visible, .oph:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .ptabs { align-self: flex-start; display: flex; gap: 4px; max-width: calc(100% - 24px); margin: 10px 12px 0; padding: 4px; overflow-x: auto; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 2px 10px rgb(0 0 0 / .06); z-index: 2; }
 .ptabs:empty { display: none; }
 .ptab { display: flex; align-items: center; gap: 8px; padding: 6px 14px; border: 0; border-radius: 9px; background: none; color: var(--muted); font-weight: 500; white-space: nowrap; cursor: pointer; }
@@ -55,92 +52,42 @@ header { display: flex; align-items: center; gap: 12px; margin: 12px 12px 0; pad
 .ptab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .ptab .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--changed); }
 main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
-#canvas { position: absolute; inset: 0; overflow: hidden; cursor: grab; touch-action: none; background-color: var(--bg); }
-#canvas.panning { cursor: grabbing; }
-#world { position: absolute; left: 0; top: 0; transform-origin: 0 0; user-select: none; }
-.edges { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
-.edge { fill: none; stroke: var(--edge); stroke-width: 1.5; }
-.row { display: flex; align-items: flex-start; justify-content: flex-start; gap: calc(var(--gap-x) * 2); }
-.row + .row { margin-top: var(--gap-y); }
-.row.groups { flex-direction: column; align-items: flex-start; gap: calc(var(--gap-y) / 2); padding-left: 32px; }
-.group { display: flex; flex-direction: column; gap: 12px; padding: 12px 14px 14px; background: color-mix(in srgb, var(--group) 7%, transparent); border: 1.5px solid color-mix(in srgb, var(--group) 45%, transparent); border-radius: var(--radius); }
-.gh { align-self: flex-start; display: flex; align-items: center; gap: 8px; padding: 4px 6px 4px 10px; border-radius: 999px; background: var(--group); color: #fff; font-size: 16px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
-.gh small { min-width: 18px; padding: 1px 6px; border-radius: 999px; background: rgb(255 255 255 / .25); font-size: 15px; text-align: center; letter-spacing: 0; }
-:root[data-theme="dark"] .gh { color: #111827; }
-:root[data-theme="dark"] .gh small { background: rgb(0 0 0 / .18); }
-.gflows { display: flex; align-items: flex-start; gap: var(--gap-x); }
 .empty-state { padding: 40px; color: var(--muted); }
-/* Cards */
-.card { flex: none; width: var(--box-w); min-height: var(--box-h); padding: 14px 16px 16px; background: var(--surface); border: 2px solid var(--c); border-radius: var(--radius); box-shadow: var(--shadow); cursor: pointer; outline: none; transition: border-color .15s, box-shadow .15s; }
-.card.project { --c: var(--project); }
-.card.flow { --c: var(--flow); }
-.card.page { --c: var(--page); }
-.card.external { --c: var(--external, #7c3aed); }
-.lchips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
-.lchip { max-width: 100%; padding: 1px 8px; border: 1px solid var(--border); border-radius: 999px; background: var(--bg); font: 14px var(--mono); color: var(--muted); text-align: left; overflow-wrap: anywhere; cursor: pointer; }
-.lchip:hover, .lchip:focus-visible { color: var(--text); border-color: var(--accent); outline: none; }
-.row.system { gap: calc(var(--gap-x) * 3); }
-.row.system.top { margin-top: 110px; }
-.row.system + .row.system { margin-top: calc(var(--gap-y) * 2); }
-.edge.st-added { stroke: var(--added); stroke-width: 2.5; }
-.edge.st-removed { stroke: var(--removed); stroke-width: 2.5; stroke-dasharray: 6 4; }
-.arrow { fill: var(--edge); }
-.elabel { font: 14px var(--font); fill: var(--muted); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; }
-.card:hover { border-color: var(--c); }
-.ch { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.name { font-size: 17px; font-weight: 650; overflow-wrap: anywhere; }
-.badge { flex: none; padding: 1px 7px; border-radius: 999px; font-size: 13px; font-weight: 700; letter-spacing: .04em; color: var(--c); background: color-mix(in srgb, var(--c) 15%, transparent); }
-.sub { margin-top: 2px; font: 15px var(--mono); color: var(--muted); overflow-wrap: anywhere; }
-.def { margin: 8px 0 0; font-size: 16.5px; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.card code { font: 15px var(--mono); }
-.toggle { display: block; margin-top: 8px; padding: 2px 0; border: 0; background: none; color: var(--accent); font-size: 16px; font-weight: 600; cursor: pointer; }
-.steps { list-style: none; margin: 6px 0 0; padding: 0; border-top: 1px solid var(--border); }
-.step { display: flex; gap: 8px; padding: 6px 4px; border-bottom: 1px solid var(--border); border-radius: 6px; font-size: 16px; line-height: 1.4; outline: none; }
-.steps.enter .step { animation: step-in .28s ease-out both; animation-delay: calc(var(--i) * 45ms); }
-@keyframes step-in { from { opacity: 0; transform: translateY(-6px); } }
-@media (prefers-reduced-motion: reduce) { .steps.enter .step { animation: none; } }
-.step:last-child { border-bottom: 0; }
-.step:hover { background: var(--bg); }
-.step .n { flex: none; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; font-size: 13px; font-weight: 700; background: color-mix(in srgb, var(--c) 18%, transparent); }
-.step .body { min-width: 0; }
-.card.sel, .card:focus-visible, .card.match { border-color: var(--accent); box-shadow: var(--shadow), 0 0 0 2px var(--accent); }
-.card.current { box-shadow: var(--shadow), 0 0 0 3px var(--accent), 0 0 18px color-mix(in srgb, var(--accent) 45%, transparent); }
-.step.sel, .step:focus-visible { box-shadow: inset 0 0 0 2px var(--accent); }
-.step.match { background: color-mix(in srgb, var(--accent) 14%, transparent); }
-.review .card { background: transparent; border-color: var(--text); box-shadow: none; --c: var(--text); }
-.card.st-added { --c: var(--added); border-color: var(--added); background: color-mix(in srgb, var(--added) 16%, var(--surface)); box-shadow: var(--shadow), 0 0 0 2px var(--added); }
-.card.st-changed { --c: var(--changed); border-color: var(--changed); background: color-mix(in srgb, var(--changed) 18%, var(--surface)); box-shadow: var(--shadow), 0 0 0 2px var(--changed); }
-.card.st-removed { --c: var(--removed); border-color: var(--removed); box-shadow: 0 0 0 2px var(--removed);
-  background: repeating-linear-gradient(45deg, color-mix(in srgb, var(--removed) 22%, transparent) 0 2px, transparent 2px 10px),
-    repeating-linear-gradient(-45deg, color-mix(in srgb, var(--removed) 22%, transparent) 0 2px, transparent 2px 10px),
-    color-mix(in srgb, var(--removed) 8%, var(--surface)); }
-.diff { margin: 0; padding: 8px 0; font: 16px/1.55 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
-.diff span, .diff del, .diff ins { display: block; padding: 0 6px; border-radius: 4px; }
-.diff del { text-decoration: line-through; color: var(--removed); background: color-mix(in srgb, var(--removed) 10%, transparent); }
-.diff ins { text-decoration: none; background: color-mix(in srgb, var(--changed) 35%, transparent); }
-.step.st-added, .list .st-added { background: color-mix(in srgb, var(--added) 14%, transparent); }
-.step.st-changed, .list .st-changed { background: color-mix(in srgb, var(--changed) 14%, transparent); }
-.step.st-removed, .list .st-removed { opacity: .6; text-decoration: line-through; background: color-mix(in srgb, var(--removed) 10%, transparent); }
-/* Floating controls */
-.float { position: absolute; display: flex; gap: 6px; align-items: center; padding: 6px; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 4px 16px rgb(0 0 0 / .08); }
-#zoom { left: 16px; bottom: 16px; }
-#zoom .btn { height: 28px; min-width: 28px; padding: 0 8px; border-radius: 8px; }
-#zoom .pct { min-width: 44px; text-align: center; }
-#legend { right: 16px; bottom: 16px; display: none; gap: 14px; padding: 8px 12px; font-size: 16px; }
-#legend.on { display: flex; }
-#legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; background: var(--c); }
-/* Drawer */
-#drawer { position: absolute; top: 12px; right: 12px; bottom: 12px; width: min(420px, calc(100% - 24px)); overflow: hidden; border: 1px solid var(--border); border-radius: 16px; display: flex; flex-direction: column; background: var(--panel); box-shadow: -8px 0 24px rgb(0 0 0 / .08); transform: translateX(100%); visibility: hidden; transition: transform .2s ease, visibility .2s; z-index: 3; }
-#drawer.open { transform: none; visibility: visible; }
-.dh { display: flex; align-items: flex-start; gap: 10px; padding: 16px 16px 10px; }
-.dh h2 { font-size: 20px; line-height: 1.35; margin: 6px 0 2px; overflow-wrap: anywhere; }
-.dh > div { flex: 1; min-width: 0; }
-.dh .close { flex: none; }
+/* Rows */
+#list { position: absolute; inset: 0; overflow: auto; padding: 8px 12px 80px; }
+.lwrap { max-width: 1100px; margin: 0 auto; }
+.sec { display: flex; align-items: center; gap: 10px; margin: 26px 0 10px; font-size: 15px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.sec small { font-weight: 500; }
+.sec::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+.op { --c: var(--flow); margin: 8px 0; border: 1px solid color-mix(in srgb, var(--c) 35%, var(--border)); border-radius: 12px; background: color-mix(in srgb, var(--c) 6%, var(--surface)); overflow: hidden; scroll-margin: 12px; }
+.op.page { --c: var(--page); }
+.op.project { --c: var(--project); margin-top: 12px; }
+.oph { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 14px; border: 0; background: none; text-align: left; cursor: pointer; }
+.badge { flex: none; min-width: 62px; padding: 4px 8px; border-radius: 8px; font-size: 13px; font-weight: 700; letter-spacing: .04em; text-align: center; background: var(--c); color: var(--surface); }
+.oph .entry { font: 600 16px var(--mono); overflow-wrap: anywhere; }
+.oph .name { color: var(--muted); font-size: 15px; white-space: nowrap; }
+.oph .sum { flex: 1; min-width: 0; color: var(--muted); font-size: 15px; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.oph .chev { flex: none; color: var(--muted); transition: transform .15s; }
+.op.open .chev { transform: rotate(90deg); }
+.op.open .sum { visibility: hidden; }
+.opb { border-top: 1px solid color-mix(in srgb, var(--c) 25%, var(--border)); background: var(--surface); }
+.opb .list li { scroll-margin: 80px; }
+.op.st-added { border-color: var(--added); background: color-mix(in srgb, var(--added) 10%, var(--surface)); }
+.op.st-changed { border-color: var(--changed); background: color-mix(in srgb, var(--changed) 12%, var(--surface)); }
+.op.st-removed { border-color: var(--removed); opacity: .7; }
+.op.st-removed .oph .entry, .op.st-removed .oph .name { text-decoration: line-through; }
+.op.match { box-shadow: 0 0 0 2px var(--accent); }
+.op.current, .list li.current { box-shadow: 0 0 0 3px var(--accent); }
+.list li.match { background: color-mix(in srgb, var(--accent) 12%, transparent); border-radius: 6px; }
+.flash { animation: flash 1.2s ease-out; }
+@keyframes flash { from { box-shadow: 0 0 0 4px color-mix(in srgb, var(--flow) 60%, transparent); } }
+@media (prefers-reduced-motion: reduce) { .flash { animation: none; } .oph .chev { transition: none; } }
 .chip { display: inline-block; margin-right: 4px; padding: 1px 8px; border-radius: 999px; font-size: 15px; font-weight: 700; letter-spacing: .03em; color: var(--c); background: color-mix(in srgb, var(--c) 15%, transparent); }
-.tabs { display: flex; gap: 4px; padding: 0 16px 10px; border-bottom: 1px solid var(--border); }
+/* Row body */
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 10px 16px; border-bottom: 1px solid var(--border); }
 .tab { padding: 5px 12px; border: 0; border-radius: 8px; background: none; color: var(--muted); font-weight: 500; cursor: pointer; }
 .tab.on { color: var(--flow); background: color-mix(in srgb, var(--flow) 12%, transparent); }
-.db { flex: 1; overflow: auto; padding: 12px 16px 24px; }
+.db { padding: 6px 18px 18px; }
 .db h4, .db h5, .db h6 { margin: 18px 0 6px; font-size: 16px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
 .db code { font: 16px var(--mono); padding: 1px 5px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg); }
 .db pre { padding: 10px; overflow: auto; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); }
@@ -155,15 +102,26 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 .details { margin: 4px 0 0; padding-left: 18px; }
 .list .details li { display: list-item; padding: 2px 0; border: 0; }
 .list .n { flex: none; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; font-size: 15px; font-weight: 700; border: 1px solid var(--border); background: var(--bg); }
+.list .st-added { background: color-mix(in srgb, var(--added) 14%, transparent); }
+.list .st-changed { background: color-mix(in srgb, var(--changed) 14%, transparent); }
+.list .st-removed { opacity: .6; text-decoration: line-through; background: color-mix(in srgb, var(--removed) 10%, transparent); }
+.diff { margin: 0; padding: 8px 0; font: 16px/1.55 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+.diff span, .diff del, .diff ins { display: block; padding: 0 6px; border-radius: 4px; }
+.diff del { text-decoration: line-through; color: var(--removed); background: color-mix(in srgb, var(--removed) 10%, transparent); }
+.diff ins { text-decoration: none; background: color-mix(in srgb, var(--changed) 35%, transparent); }
 .coderef { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
 .coderef code { min-width: 0; overflow-wrap: anywhere; }
 .copy { flex: none; height: 28px; padding: 0 8px; border-radius: 6px; font-size: 15px; }
-.link { padding: 0; border: 0; background: none; color: var(--accent); text-align: left; cursor: pointer; }
 .empty { color: var(--muted); }
+/* Legend */
+#legend { position: absolute; right: 16px; bottom: 16px; display: none; gap: 14px; padding: 8px 12px; font-size: 16px; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 4px 16px rgb(0 0 0 / .08); }
+#legend.on { display: flex; }
+#legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; background: var(--c); }
 @media (max-width: 700px) {
   header { flex-wrap: wrap; }
   .search { order: 3; flex-basis: 100%; max-width: none; }
-  #legend { bottom: 64px; }
+  .oph { flex-wrap: wrap; }
+  .oph .sum { display: none; }
 }
 </style>
 </head>
@@ -175,29 +133,22 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     <span class="meta count" id="qcount"></span>
   </div>
   <div class="tools">
-    <button class="btn" id="collapse-all" title="Hide all steps">Collapse</button>
-    <button class="btn" id="expand-all" title="Show all steps">Expand</button>
+    <button class="btn" id="collapse-all" title="Close all rows">Collapse</button>
+    <button class="btn" id="expand-all" title="Open all rows">Expand</button>
     <button class="btn" id="theme" title="Toggle light / dark" aria-label="Toggle light or dark theme">&#9680;</button>
   </div>
 </header>
 <nav class="ptabs" id="ptabs" role="tablist" aria-label="Projects"></nav>
 <main>
-  <div id="canvas"><div id="world"></div></div>
-  <div class="float" id="zoom">
-    <button class="btn" id="zoom-out" aria-label="Zoom out">&minus;</button>
-    <span class="meta pct" id="zoom-pct">100%</span>
-    <button class="btn" id="zoom-in" aria-label="Zoom in">+</button>
-    <button class="btn" id="fit">Fit</button>
-  </div>
-  <div class="float" id="legend">
+  <div id="list"></div>
+  <div id="legend">
     <span style="--c: var(--added)">added</span>
     <span style="--c: var(--changed)">changed</span>
     <span style="--c: var(--removed)">removed</span>
   </div>
-  <aside id="drawer" aria-hidden="true"></aside>
 </main>
 <script type="application/json" id="mirror-data">
-{"generated":"2026-10-01","title":"shop","external":[{"id":"shop-db","kind":"database","name":"Postgres","status":null},{"id":"product-cache","kind":"cache","name":"Redis","status":null},{"id":"order-events","kind":"queue","name":"Kafka topic order.events","status":null},{"id":"stripe","kind":"api","name":"Stripe API","status":null},{"id":"mailer","kind":"api","name":"SendGrid","status":null}],"projects":[{"id":"web","kind":"frontend","definition":"The `web` project is the shop for customers. A customer finds products, fills a cart, pays with Stripe and follows the order.\n\n## Stack\n\n- TypeScript, React 18, React Router 6, Vite. Stripe.js for the payment page.\n- This example has no code. The paths in `Code:` show where the code would be.\n\n## Technical decisions\n\n- Call the API only through `src/api/client.ts`. Each call uses the base path `/api`.\n- Keep the cart in `localStorage` under the key `cart`. The cart needs no account.\n- Send the customer to Stripe Checkout to pay. The shop never sees a card number.\n","status":null,"flows":[{"id":"cart","kind":"page","trigger":"page","entry":"/cart","group":"buy","definition":"Show the cart and let the customer change it.\n","boundary":"## Input\n\nRoute `/cart`, form fields:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `quantity` | number per item | yes | 0–10 |\n\n## Output\n\n| Result | Shows | When |\n| --- | --- | --- |\n| Cart | Each item, its quantity, and the total. | The cart has items. |\n| Empty state | \"Your cart is empty.\" | The cart has no items. |\n| Go to `/checkout` | The checkout page. | The customer clicks \"Checkout\". |\n","rules":"**Relates to:** `web/product-detail`, `web/checkout`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer checks what they will buy before they pay.\n\n## Goal\n\n- Let the customer change or remove each item.\n\n## Non-goal\n\n- Check the prices. The API does it when it creates the order.\n\n## Constraints\n\n- Show the total from the prices in the cart. The checkout can show a new total.\n\n## Acceptance criteria\n\n- Show each item of the cart.\n- Remove an item when its quantity changes to 0.\n- Disable \"Checkout\" when the cart is empty.\n\n## Open Questions\n\n- None.\n","status":null,"actions":"## Open the page\n- Then: show each item of the cart from `localStorage`, and the total.\n- Code: `src/pages/CartPage.tsx#CartPage`\n\n## Change a quantity\n- Then: save the new quantity. Remove the item when the quantity is 0.\n- Code: `src/cart/cart.store.ts#setQuantity`\n\n## Click \"Checkout\"\n- Then: open `/checkout`.\n- Code: `src/pages/CartPage.tsx#CartPage`\n","steps":[{"n":1,"title":"Open the page.","text":"Open the page. Then: show each item of the cart from `localStorage`, and the total.","details":["Then: show each item of the cart from `localStorage`, and the total."],"ref":"src/pages/CartPage.tsx#CartPage","status":null},{"n":2,"title":"Change a quantity.","text":"Change a quantity. Then: save the new quantity. Remove the item when the quantity is 0.","details":["Then: save the new quantity. Remove the item when the quantity is 0."],"ref":"src/cart/cart.store.ts#setQuantity","status":null},{"n":3,"title":"Click \"Checkout\".","text":"Click \"Checkout\". Then: open `/checkout`.","details":["Then: open `/checkout`."],"ref":"src/pages/CartPage.tsx#CartPage","status":null}]},{"id":"checkout","kind":"page","trigger":"page","entry":"/checkout","group":"buy","definition":"Take the email of the customer and send them to Stripe to pay.\n","boundary":"## Input\n\nRoute `/checkout`, form fields:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `email` | text | yes | Checked by the API. |\n\nExample:\n\n```json\n{ \"email\": \"ada@example.com\" }\n```\n\n## Output\n\n| Result | Shows | When |\n| --- | --- | --- |\n| Go to Stripe Checkout | The Stripe payment page. | The API creates the order. |\n| Alert on the form | The API error message. | The API returns 400 or 409. |\n| Alert | \"Payment is not available.\" | The API returns 502. |\n","rules":"**Relates to:** `api/create-order`, `web/order-status`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer is ready to pay. The shop hands the payment to Stripe.\n\n## Goal\n\n- Create the order and open the Stripe payment page.\n\n## Non-goal\n\n- Take a card number. Stripe does it.\n\n## Constraints\n\n- Keep the cart until the order is paid. The customer can come back and try again.\n\n## Acceptance criteria\n\n- Open Stripe Checkout with the session id from the API.\n- Show the error of the API for 409.\n- Keep the cart when the payment fails.\n\n## Open Questions\n\n- None.\n","status":null,"actions":"## Open the page\n- Then: show the cart total and an email field.\n- Code: `src/pages/CheckoutPage.tsx#CheckoutPage`\n\n## Click \"Pay\"\n- Call: `api/create-order`: `POST /api/orders` with the email and the cart items.\n- Call: `stripe`: `redirectToCheckout` with the session id.\n- Then: Stripe opens its payment page. After the payment, Stripe opens `/orders/\u003corderId>`.\n- Fail: show the API error on the form for 400 and 409. Show \"Payment is not available.\" for 502.\n- Code: `src/pages/CheckoutPage.tsx#onPay`\n","steps":[{"n":1,"title":"Open the page.","text":"Open the page. Then: show the cart total and an email field.","details":["Then: show the cart total and an email field."],"ref":"src/pages/CheckoutPage.tsx#CheckoutPage","status":null},{"n":2,"title":"Click \"Pay\".","text":"Click \"Pay\". Call: `api/create-order`: `POST /api/orders` with the email and the cart items. Call: `stripe`: `redirectToCheckout` with the session id. Then: Stripe opens its payment page. After the payment, Stripe opens `/orders/\u003corderId>`. Fail: show the API error on the form for 400 and 409. Show \"Payment is not available.\" for 502.","details":["Call: `api/create-order`: `POST /api/orders` with the email and the cart items.","Call: `stripe`: `redirectToCheckout` with the session id.","Then: Stripe opens its payment page. After the payment, Stripe opens `/orders/\u003corderId>`.","Fail: show the API error on the form for 400 and 409. Show \"Payment is not available.\" for 502."],"ref":"src/pages/CheckoutPage.tsx#onPay","status":null}]},{"id":"order-status","kind":"page","trigger":"page","entry":"/orders/:id","group":"buy","definition":"Show the status of an order after the payment, and let the customer cancel it.\n","boundary":"## Input\n\nRoute `/orders/:id`:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `id` | route param | yes | Checked by the API. |\n\n## Output\n\n| Result | Shows | When |\n| --- | --- | --- |\n| Paid | \"Paid\", the items and the total. | The status is `paid`. |\n| Pending | \"Waiting for the payment…\" | The status is `pending`. |\n| Cancelled | \"Cancelled\", the items and the total. | The status is `cancelled`. |\n| Alert | \"Order not found.\" | The API returns 404. |\n","rules":"**Relates to:** `api/get-order`, `api/cancel-order`, `web/checkout`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nStripe sends the customer back to the shop. The webhook can come a few seconds after the customer.\n\n## Goal\n\n- Show the customer that the order is paid.\n- Let the customer cancel a paid order for 24 hours.\n\n## Non-goal\n\n- Show the delivery status.\n\n## Constraints\n\n- Do not mark the order paid in the browser. Only the webhook does it.\n\n## Acceptance criteria\n\n- Show \"Paid\" for a paid order.\n- Ask again while the order is `pending`, at most 10 times.\n- Clear the cart when the order is paid.\n- Show \"Cancel order\" only for a paid order of the last 24 hours.\n- Ask the customer to confirm before the cancel.\n\n## Open Questions\n\n- None.\n","status":null,"actions":"## Open the page\n- Call: `api/get-order`: `GET /api/orders/:id` with the route `id`.\n- Then: show the status, the items and the total. Clear the cart when the status is `paid`.\n- Fail: show \"Order not found.\" for 404.\n- Code: `src/pages/OrderStatusPage.tsx#OrderStatusPage`\n\n## Wait while the order is pending\n- Call: `api/get-order`: ask again every 3 seconds, at most 10 times.\n- Then: show \"Paid\" when the status changes to `paid`.\n- Fail: show \"We are still waiting for the payment. Check your email.\" after 10 tries.\n- Code: `src/pages/OrderStatusPage.tsx#useOrderPolling`\n\n## Cancel the order\n- Show the button only when the status is `paid` and the order is less than 24 hours old.\n- Call: `api/cancel-order`: `POST /api/orders/:id/cancel` after the customer confirms.\n- Then: show \"Cancelled. The money comes back in 5–10 days.\"\n- Fail: show \"This order can no longer be cancelled.\" for 409.\n- Code: `src/pages/OrderStatusPage.tsx#useCancelOrder`\n","steps":[{"n":1,"title":"Open the page.","text":"Open the page. Call: `api/get-order`: `GET /api/orders/:id` with the route `id`. Then: show the status, the items and the total. Clear the cart when the status is `paid`. Fail: show \"Order not found.\" for 404.","details":["Call: `api/get-order`: `GET /api/orders/:id` with the route `id`.","Then: show the status, the items and the total. Clear the cart when the status is `paid`.","Fail: show \"Order not found.\" for 404."],"ref":"src/pages/OrderStatusPage.tsx#OrderStatusPage","status":null},{"n":2,"title":"Wait while the order is pending.","text":"Wait while the order is pending. Call: `api/get-order`: ask again every 3 seconds, at most 10 times. Then: show \"Paid\" when the status changes to `paid`. Fail: show \"We are still waiting for the payment. Check your email.\" after 10 tries.","details":["Call: `api/get-order`: ask again every 3 seconds, at most 10 times.","Then: show \"Paid\" when the status changes to `paid`.","Fail: show \"We are still waiting for the payment. Check your email.\" after 10 tries."],"ref":"src/pages/OrderStatusPage.tsx#useOrderPolling","status":null},{"n":3,"title":"Cancel the order.","text":"Cancel the order. Show the button only when the status is `paid` and the order is less than 24 hours old. Call: `api/cancel-order`: `POST /api/orders/:id/cancel` after the customer confirms. Then: show \"Cancelled. The money comes back in 5–10 days.\". Fail: show \"This order can no longer be cancelled.\" for 409.","details":["Show the button only when the status is `paid` and the order is less than 24 hours old.","Call: `api/cancel-order`: `POST /api/orders/:id/cancel` after the customer confirms.","Then: show \"Cancelled. The money comes back in 5–10 days.\".","Fail: show \"This order can no longer be cancelled.\" for 409."],"ref":"src/pages/OrderStatusPage.tsx#useCancelOrder","status":null}]},{"id":"product-detail","kind":"page","trigger":"page","entry":"/products/:id","group":"browse","definition":"Show one product and let the customer add it to the cart.\n","boundary":"## Input\n\nRoute `/products/:id`, form fields:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `id` | route param | yes | Checked by the API. |\n| `quantity` | number | yes | 1–10, at most the stock |\n\nExample:\n\n```json\n{ \"quantity\": 2 }\n```\n\n## Output\n\n| Result | Shows | When |\n| --- | --- | --- |\n| Detail | The product and an \"Add to cart\" button. | The API returns the product. |\n| Toast | \"Added to cart.\" | The customer adds the product. |\n| Alert | \"Product not found.\" | The API returns 404. |\n","rules":"**Relates to:** `api/get-product`, `web/cart`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer reads about one product and decides to buy it.\n\n## Goal\n\n- Let the customer add the product to the cart.\n\n## Non-goal\n\n- Save the cart on the server.\n\n## Constraints\n\n- Do not let the cart quantity be more than the stock that the page shows.\n\n## Acceptance criteria\n\n- Add the product to the cart in `localStorage`.\n- Add to the quantity when the product is already in the cart.\n- Show \"Product not found.\" for 404.\n\n## Open Questions\n\n- None.\n","status":null,"actions":"## Open the page\n- Call: `api/get-product`: `GET /api/products/:id` with the route `id`.\n- Then: show the name, the description, the price and the stock.\n- Fail: show \"Product not found.\" for 404.\n- Code: `src/pages/ProductDetailPage.tsx#ProductDetailPage`\n\n## Click \"Add to cart\"\n- Then: add the product to the cart in `localStorage`. Show \"Added to cart.\"\n- Fail: show \"Only \u003cstock> left.\" when the cart quantity is more than the stock.\n- Code: `src/cart/cart.store.ts#addItem`\n","steps":[{"n":1,"title":"Open the page.","text":"Open the page. Call: `api/get-product`: `GET /api/products/:id` with the route `id`. Then: show the name, the description, the price and the stock. Fail: show \"Product not found.\" for 404.","details":["Call: `api/get-product`: `GET /api/products/:id` with the route `id`.","Then: show the name, the description, the price and the stock.","Fail: show \"Product not found.\" for 404."],"ref":"src/pages/ProductDetailPage.tsx#ProductDetailPage","status":null},{"n":2,"title":"Click \"Add to cart\".","text":"Click \"Add to cart\". Then: add the product to the cart in `localStorage`. Show \"Added to cart.\". Fail: show \"Only \u003cstock> left.\" when the cart quantity is more than the stock.","details":["Then: add the product to the cart in `localStorage`. Show \"Added to cart.\".","Fail: show \"Only \u003cstock> left.\" when the cart quantity is more than the stock."],"ref":"src/cart/cart.store.ts#addItem","status":null}]},{"id":"products","kind":"page","trigger":"page","entry":"/","group":"browse","definition":"Show the products that are for sale.\n","boundary":"## Input\n\nRoute `/`. No parameters.\n\n## Output\n\n| Result | Shows | When |\n| --- | --- | --- |\n| List | Each product with its name, price and a \"Sold out\" label when the stock is 0. | The API returns the products. |\n| Empty state | \"No products yet.\" | The list is empty. |\n| Alert | \"The shop is not available. Try again later.\" | The request fails. |\n","rules":"**Relates to:** `api/list-products`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer opens the shop to see what it sells.\n\n## Goal\n\n- Show all the products for sale.\n\n## Non-goal\n\n- Search or filter the products.\n\n## Constraints\n\n- Show the price in euros with two decimals.\n\n## Acceptance criteria\n\n- Show each product from the API.\n- Show \"Sold out\" for a product with stock 0.\n- Show the alert when the API fails.\n\n## Open Questions\n\n- None.\n","status":null,"actions":"## Open the page\n- Call: `api/list-products`: `GET /api/products`.\n- Then: show each product with its name and its price.\n- Fail: show \"The shop is not available. Try again later.\"\n- Code: `src/pages/ProductsPage.tsx#ProductsPage`\n\n## Click a product\n- Then: open `/products/\u003cid>`.\n- Code: `src/components/ProductCard.tsx#ProductCard`\n","steps":[{"n":1,"title":"Open the page.","text":"Open the page. Call: `api/list-products`: `GET /api/products`. Then: show each product with its name and its price. Fail: show \"The shop is not available. Try again later.\".","details":["Call: `api/list-products`: `GET /api/products`.","Then: show each product with its name and its price.","Fail: show \"The shop is not available. Try again later.\"."],"ref":"src/pages/ProductsPage.tsx#ProductsPage","status":null},{"n":2,"title":"Click a product.","text":"Click a product. Then: open `/products/\u003cid>`.","details":["Then: open `/products/\u003cid>`."],"ref":"src/components/ProductCard.tsx#ProductCard","status":null}]}]},{"id":"api","kind":"backend","definition":"The `api` project is the HTTP API of the shop. It serves the products, creates the orders, and takes the payment events from Stripe.\n\n## Stack\n\n- TypeScript on Node 20. Fastify 4. zod. `pg` for Postgres, `ioredis` for Redis, `kafkajs` for Kafka, the Stripe SDK.\n- This example has no code. The paths in `Code:` show where the code would be.\n\n## Technical decisions\n\n- Keep the products and the orders in Postgres (`shop-db`).\n- Cache the product list in Redis (`product-cache`) for 60 seconds.\n- Create a Stripe Checkout session for each order. Mark the order paid only from the Stripe webhook, not from the browser.\n- Publish `order.paid` to the Kafka topic `order.events` after an order is paid.\n- Map errors to HTTP: `validation` 400, `not-found` 404, `conflict` 409, an unexpected error 500.\n","status":null,"flows":[{"id":"cancel-order","kind":"flow","trigger":"http","entry":"POST /orders/:id/cancel","group":"orders","definition":"Cancel a paid order, refund the payment with Stripe, and tell the other services.\n","boundary":"## Input\n\n`POST /orders/:id/cancel`:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `id` | path string | yes | not empty |\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 200 | `{ id, status: \"cancelled\" }` | The order is cancelled and the refund exists. |\n| 404 | `{ error: { code: \"not-found\", message } }` | The order does not exist. |\n| 409 | `{ error: { code: \"conflict\", message } }` | The order is not `paid`, or it is older than 24 hours. |\n| 502 | `{ error: { code: \"payment\", message } }` | Stripe does not answer. |\n\nExample (200):\n\n```json\n{ \"id\": \"o1\", \"status\": \"cancelled\" }\n```\n\nExample (409):\n\n```json\n{ \"error\": { \"code\": \"conflict\", \"message\": \"Only a paid order of the last 24 hours can be cancelled.\" } }\n```\n\n## Dependencies\n\n- reads `shop-db`: the order, its status and its payment id.\n- calls `stripe`: creates a refund for the payment.\n- writes `shop-db`: the order with the status `cancelled`.\n- publishes `order-events`: the event `order.cancelled` with the items.\n","rules":"**Relates to:** `web/order-status`, `worker/update-stock`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer can change their mind after the payment. The shop lets them cancel for 24 hours.\n\n## Goal\n\n- Cancel a paid order and give the money back.\n- Tell the worker, so it puts the items back in the stock.\n\n## Non-goal\n\n- Cancel a part of an order.\n- Cancel an order that is shipped.\n\n## Constraints\n\n- Cancel only a `paid` order of the last 24 hours.\n- Refund with Stripe before the status changes to `cancelled`.\n- Publish `order.cancelled` only after the status is saved.\n\n## Acceptance criteria\n\n- Return 200 and set the status `cancelled` for a paid order of the last 24 hours.\n- Return 409 for a `pending` or `cancelled` order, or an order older than 24 hours.\n- Return 502 and keep the order `paid` when Stripe fails.\n- Publish one `order.cancelled` event with the items of the order.\n\n## Open Questions\n\n- Should the customer get an email for the refund?\n","status":null,"steps":[{"n":1,"title":"Read the order.","text":"Read the order. Return HTTP 404 when it does not exist. Return HTTP 409 when it is not `paid` or is older than 24 hours.","details":["Return HTTP 404 when it does not exist.","Return HTTP 409 when it is not `paid` or is older than 24 hours."],"ref":"src/orders/orders.repo.ts#findOrder","status":null},{"n":2,"title":"Refund the payment with Stripe.","text":"Refund the payment with Stripe. Return HTTP 502 when Stripe does not answer.","details":["Return HTTP 502 when Stripe does not answer."],"ref":"src/payments/stripe.client.ts#refundPayment","status":null},{"n":3,"title":"Save the order with the status `cancelled`.","text":"Save the order with the status `cancelled`.","details":[],"ref":"src/orders/orders.repo.ts#cancelOrder","status":null},{"n":4,"title":"Publish `order.cancelled` with the items of the order.","text":"Publish `order.cancelled` with the items of the order.","details":[],"ref":"src/events/order-events.ts#publishOrderCancelled","status":null},{"n":5,"title":"Return the order id and the new status.","text":"Return the order id and the new status.","details":[],"ref":"src/orders/orders.route.ts#cancelOrder","status":null}]},{"id":"create-order","kind":"flow","trigger":"http","entry":"POST /orders","group":"orders","definition":"Create an order from a cart and start the payment with Stripe.\n","boundary":"## Input\n\n`POST /orders`, JSON body:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `email` | string | yes | valid email |\n| `items` | array | yes | 1–50 items |\n| `items[].productId` | string | yes | not empty |\n| `items[].quantity` | integer | yes | 1–10 |\n\nExample:\n\n```json\n{ \"email\": \"ada@example.com\", \"items\": [{ \"productId\": \"p1\", \"quantity\": 2 }] }\n```\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 201 | `{ orderId, sessionId }` | The order is saved and the Stripe session exists. |\n| 400 | `{ error: { code: \"validation\", field, message } }` | A field fails its validation. |\n| 409 | `{ error: { code: \"conflict\", field: \"items\", message } }` | A product is not for sale or has too little stock. |\n| 502 | `{ error: { code: \"payment\", message } }` | Stripe does not answer. |\n\nExample (201):\n\n```json\n{ \"orderId\": \"o1\", \"sessionId\": \"cs_test_a1b2\" }\n```\n\nExample (409):\n\n```json\n{ \"error\": { \"code\": \"conflict\", \"field\": \"items\", \"message\": \"Blue mug has only 1 left.\" } }\n```\n\n## Dependencies\n\n- reads `shop-db`: the products and their prices.\n- writes `shop-db`: the order with the status `pending`.\n- calls `stripe`: creates a Checkout session.\n","rules":"**Relates to:** `web/checkout`, `api/stripe-webhook`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer clicks \"Pay\" on the checkout page. The API saves the order and sends the customer to Stripe.\n\n## Goal\n\n- Save an order with the prices of now, not the prices in the browser.\n- Give the page a Stripe session to pay.\n\n## Non-goal\n\n- Take the payment. Stripe does it.\n- Reserve the stock. The worker changes the stock after the payment.\n\n## Constraints\n\n- Use the price from the database for each item.\n- Keep the order `pending` until Stripe confirms the payment.\n\n## Acceptance criteria\n\n- Return 201 with an order id and a session id for a valid cart.\n- Save the order total from the database prices.\n- Return 409 when a quantity is more than the stock.\n- Return 502 and keep the order `pending` when Stripe fails.\n\n## Open Questions\n\n- Should a `pending` order expire after 24 hours?\n","status":null,"steps":[{"n":1,"title":"Validate the body.","text":"Validate the body. Return HTTP 400 when it is not valid.","details":["Return HTTP 400 when it is not valid."],"ref":"src/orders/orders.schema.ts#parseCreateOrder","status":null},{"n":2,"title":"Read the products of the cart and their prices.","text":"Read the products of the cart and their prices. Return HTTP 409 when a product does not exist, is not active, or has less stock than the quantity.","details":["Return HTTP 409 when a product does not exist, is not active, or has less stock than the quantity."],"ref":"src/orders/orders.service.ts#priceCart","status":null},{"n":3,"title":"Save the order with the status `pending`.","text":"Save the order with the status `pending`.","details":[],"ref":"src/orders/orders.repo.ts#insertOrder","status":null},{"n":4,"title":"Create a Stripe Checkout session for the order.","text":"Create a Stripe Checkout session for the order. Put the order id in the session metadata.","details":["Put the order id in the session metadata."],"ref":"src/payments/stripe.client.ts#createCheckoutSession","status":null},{"n":5,"title":"Return the order id and the session id.","text":"Return the order id and the session id.","details":[],"ref":"src/orders/orders.route.ts#createOrder","status":null}]},{"id":"get-order","kind":"flow","trigger":"http","entry":"GET /orders/:id","group":"orders","definition":"Return one order with its status and its items.\n","boundary":"## Input\n\n`GET /orders/:id`:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `id` | path string | yes | not empty |\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 200 | `Order` | The order exists. |\n| 404 | `{ error: { code: \"not-found\", message } }` | The order does not exist. |\n\nExample (200):\n\n```json\n{ \"id\": \"o1\", \"status\": \"paid\", \"totalCents\": 2400, \"items\": [{ \"productId\": \"p1\", \"name\": \"Blue mug\", \"quantity\": 2 }] }\n```\n\nExample (404):\n\n```json\n{ \"error\": { \"code\": \"not-found\", \"message\": \"Order not found.\" } }\n```\n\n## Dependencies\n\n- reads `shop-db`: the order and its items.\n","rules":"**Relates to:** `web/order-status`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer comes back from Stripe and wants to know if the order is paid.\n\n## Goal\n\n- Return the status, the total and the items of the order.\n\n## Non-goal\n\n- Check who asks. The order id is long and random.\n\n## Constraints\n\n- Return only the email domain, not the full email.\n\n## Acceptance criteria\n\n- Return the order for a known id.\n- Return HTTP 404 for an unknown id.\n\n## Open Questions\n\n- Should the page need a token from the email to see the order?\n","status":null,"steps":[{"n":1,"title":"Read the order and its items from the database.","text":"Read the order and its items from the database. Return HTTP 404 when it does not exist.","details":["Return HTTP 404 when it does not exist."],"ref":"src/orders/orders.repo.ts#findOrderById","status":null},{"n":2,"title":"Return the order.","text":"Return the order.","details":[],"ref":"src/orders/orders.route.ts#getOrder","status":null}]},{"id":"get-product","kind":"flow","trigger":"http","entry":"GET /products/:id","group":"products","definition":"Return one product with its details.\n","boundary":"## Input\n\n`GET /products/:id`:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `id` | path string | yes | not empty |\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 200 | `Product` with `description` | The product exists and is active. |\n| 404 | `{ error: { code: \"not-found\", message } }` | The product does not exist or is not active. |\n\nExample (200):\n\n```json\n{ \"id\": \"p1\", \"name\": \"Blue mug\", \"description\": \"A mug for tea.\", \"priceCents\": 1200, \"stock\": 8 }\n```\n\nExample (404):\n\n```json\n{ \"error\": { \"code\": \"not-found\", \"message\": \"Product not found.\" } }\n```\n\n## Dependencies\n\n- reads `shop-db`: the product by id.\n","rules":"**Relates to:** `web/product-detail`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer opens one product to read about it before they add it to the cart.\n\n## Goal\n\n- Return the product with its description, price and stock.\n\n## Non-goal\n\n- Return the reviews of the product.\n\n## Constraints\n\n- Do not return a product with `active` set to false.\n\n## Acceptance criteria\n\n- Return the product when it is active.\n- Return HTTP 404 for an unknown id.\n- Return HTTP 404 for a product that is not active.\n\n## Open Questions\n\n- None.\n","status":null,"steps":[{"n":1,"title":"Read the product from the database.","text":"Read the product from the database. Return HTTP 404 when it does not exist or is not active.","details":["Return HTTP 404 when it does not exist or is not active."],"ref":"src/products/products.repo.ts#findActiveById","status":null},{"n":2,"title":"Return the product.","text":"Return the product.","details":[],"ref":"src/products/products.route.ts#getProduct","status":null}]},{"id":"list-products","kind":"flow","trigger":"http","entry":"GET /products","group":"products","definition":"List the products that are for sale.\n","boundary":"## Input\n\n`GET /products`. No parameters.\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 200 | `Product[]` | Always. The list can be empty. |\n| 500 | `{ error: { code: \"unexpected\", message } }` | The database fails. |\n\nExample (200):\n\n```json\n[{ \"id\": \"p1\", \"name\": \"Blue mug\", \"priceCents\": 1200, \"stock\": 8 }]\n```\n\nExample (500):\n\n```json\n{ \"error\": { \"code\": \"unexpected\", \"message\": \"Try again later.\" } }\n```\n\n## Dependencies\n\n- reads `product-cache`: the cached list, 60 seconds.\n- reads `shop-db`: the active products, when the cache is empty.\n","rules":"**Relates to:** `web/products`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer opens the shop. The page shows all the products that are for sale.\n\n## Goal\n\n- Return each active product with its price and its stock.\n\n## Non-goal\n\n- Filter or page the list. The shop has few products.\n\n## Constraints\n\n- Do not return a product with `active` set to false.\n- A price change can take up to 60 seconds to show.\n\n## Acceptance criteria\n\n- Return the active products sorted by name.\n- Return an empty list when no product is active.\n- Return the cached list without a database read when the cache has it.\n\n## Open Questions\n\n- None.\n","status":null,"steps":[{"n":1,"title":"Read the product list from the cache.","text":"Read the product list from the cache. Return the cached list when it exists.","details":["Return the cached list when it exists."],"ref":"src/products/products.cache.ts#getCachedList","status":null},{"n":2,"title":"Read the products from the database.","text":"Read the products from the database. Read only the products with `active` set to true, sorted by name.","details":["Read only the products with `active` set to true, sorted by name."],"ref":"src/products/products.repo.ts#listActive","status":null},{"n":3,"title":"Put the list in the cache for 60 seconds.","text":"Put the list in the cache for 60 seconds.","details":[],"ref":"src/products/products.cache.ts#setCachedList","status":null},{"n":4,"title":"Return the list.","text":"Return the list.","details":[],"ref":"src/products/products.route.ts#listProducts","status":null}]},{"id":"stripe-webhook","kind":"flow","trigger":"http","entry":"POST /webhooks/stripe","group":"payments","definition":"Mark an order paid when Stripe says that the payment is complete.\n","boundary":"## Input\n\n`POST /webhooks/stripe`, header `Stripe-Signature`, JSON body: a Stripe event.\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `type` | string | yes | Stripe event type |\n| `data.object.metadata.orderId` | string | yes | for `checkout.session.completed` |\n\nExample:\n\n```json\n{ \"id\": \"evt_1\", \"type\": \"checkout.session.completed\", \"data\": { \"object\": { \"id\": \"cs_test_a1b2\", \"metadata\": { \"orderId\": \"o1\" } } } }\n```\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 200 | `{ received: true }` | The event is handled or skipped. |\n| 400 | `{ error: { code: \"signature\", message } }` | The signature is not valid. |\n| Publish `order.paid` | `{ eventId, orderId, email, items }` | The order changes to `paid`. |\n\nExample (published):\n\n```json\n{ \"eventId\": \"evt_1\", \"type\": \"order.paid\", \"orderId\": \"o1\", \"email\": \"ada@example.com\", \"items\": [{ \"productId\": \"p1\", \"quantity\": 2 }] }\n```\n\nExample (400):\n\n```json\n{ \"error\": { \"code\": \"signature\", \"message\": \"Invalid signature.\" } }\n```\n\n## Dependencies\n\n- writes `shop-db`: the order status `paid`.\n- publishes `order-events`: the event `order.paid`.\n","rules":"**Relates to:** `api/create-order`, `worker/send-receipt`, `worker/update-stock`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nStripe calls this endpoint after a customer pays. It is the only place that marks an order paid.\n\n## Goal\n\n- Mark the order paid one time, and tell the worker.\n\n## Non-goal\n\n- Handle refunds. A person does them in the Stripe dashboard.\n\n## Constraints\n\n- Accept only requests with a valid Stripe signature.\n- Stripe can send the same event more than one time.\n\n## Acceptance criteria\n\n- Mark a `pending` order `paid` for `checkout.session.completed`.\n- Publish one `order.paid` event per order, also when Stripe sends the event two times.\n- Return 400 for a bad signature and change nothing.\n- Return 200 for other event types and change nothing.\n\n## Open Questions\n\n- None.\n","status":null,"steps":[{"n":1,"title":"Check the Stripe signature of the request.","text":"Check the Stripe signature of the request. Return HTTP 400 when the signature is not valid.","details":["Return HTTP 400 when the signature is not valid."],"ref":"src/payments/stripe.webhook.ts#verifyEvent","status":null},{"n":2,"title":"Skip each event that is not `checkout.session.completed`.","text":"Skip each event that is not `checkout.session.completed`. Return HTTP 200 for it.","details":["Return HTTP 200 for it."],"ref":"src/payments/stripe.webhook.ts#handleEvent","status":null},{"n":3,"title":"Set the status of the order to `paid`.","text":"Set the status of the order to `paid`. Do nothing when the order is already `paid`.","details":["Do nothing when the order is already `paid`."],"ref":"src/orders/orders.repo.ts#markPaid","status":null},{"n":4,"title":"Publish `order.paid` to `order.events`.","text":"Publish `order.paid` to `order.events`.","details":[],"ref":"src/orders/orders.events.ts#publishOrderPaid","status":null}]}]},{"id":"worker","kind":"consumer","definition":"The `worker` project handles the order events from Kafka. It sends the receipt and updates the stock after a payment.\n\n## Stack\n\n- TypeScript on Node 20. `kafkajs`, `pg`, the SendGrid SDK.\n- This example has no code. The paths in `Code:` show where the code would be.\n\n## Technical decisions\n\n- Read the topic `order.events` in the consumer group `shop-worker`. Commit the offset after the handler ends.\n- Make each handler idempotent with the event id. Kafka can deliver an event more than one time.\n- Send an event that fails 5 times to the topic `order.events.dlq`.\n","status":null,"flows":[{"id":"send-receipt","kind":"flow","trigger":"message","entry":"order.events","group":"orders","definition":"Send the receipt email after an order is paid.\n","boundary":"## Input\n\nTopic `order.events`, event `order.paid`:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `eventId` | string | yes | not empty |\n| `orderId` | string | yes | not empty |\n| `email` | string | yes | valid email |\n\nExample:\n\n```json\n{ \"eventId\": \"evt_1\", \"type\": \"order.paid\", \"orderId\": \"o1\", \"email\": \"ada@example.com\" }\n```\n\n## Output\n\n| Result | When |\n| --- | --- |\n| Send the receipt email | The receipt of the event is not sent yet. |\n| Do nothing | The event is not `order.paid`, or the receipt is already sent. |\n| Retry, then send the event to `order.events.dlq` | SendGrid fails 5 times. |\n\n## Dependencies\n\n- consumes `order-events`: the event `order.paid`.\n- reads `shop-db`: the sent receipts.\n- writes `shop-db`: a sent receipt.\n- calls `mailer`: sends the email.\n","rules":"**Relates to:** `api/stripe-webhook`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer pays. They expect an email with the order in a few minutes.\n\n## Goal\n\n- Send one receipt for each paid order.\n\n## Non-goal\n\n- Send marketing email.\n\n## Constraints\n\n- Send the receipt at most one time for each order.\n\n## Acceptance criteria\n\n- Send the receipt for an `order.paid` event.\n- Send nothing for a second copy of the same event.\n- Send the event to the dead-letter topic after 5 failures.\n\n## Open Questions\n\n- None.\n","status":null,"steps":[{"n":1,"title":"Skip each event that is not `order.paid`.","text":"Skip each event that is not `order.paid`.","details":[],"ref":"src/handlers/send-receipt.ts#handle","status":null},{"n":2,"title":"Skip the event when its receipt is already sent.","text":"Skip the event when its receipt is already sent.","details":[],"ref":"src/receipts/receipts.repo.ts#wasSent","status":null},{"n":3,"title":"Send the receipt email with SendGrid.","text":"Send the receipt email with SendGrid.","details":[],"ref":"src/receipts/mailer.ts#sendReceipt","status":null},{"n":4,"title":"Record that the receipt is sent.","text":"Record that the receipt is sent.","details":[],"ref":"src/receipts/receipts.repo.ts#markSent","status":null}]},{"id":"update-stock","kind":"flow","trigger":"message","entry":"order.events","group":"orders","definition":"Take the paid items out of the stock, and put the cancelled items back.\n","boundary":"## Input\n\nTopic `order.events`, events `order.paid` and `order.cancelled`:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `eventId` | string | yes | not empty |\n| `items[].productId` | string | yes | not empty |\n| `items[].quantity` | integer | yes | 1 or more |\n\nExample:\n\n```json\n{ \"eventId\": \"evt_1\", \"type\": \"order.paid\", \"orderId\": \"o1\", \"items\": [{ \"productId\": \"p1\", \"quantity\": 2 }] }\n```\n\n## Output\n\n| Result | When |\n| --- | --- |\n| Lower the stock of each item | The event is a new `order.paid`. |\n| Raise the stock of each item | The event is a new `order.cancelled`. |\n| Do nothing | The event is of another type, or its id is already recorded. |\n\n## Dependencies\n\n- consumes `order-events`: the events `order.paid` and `order.cancelled`.\n- writes `shop-db`: the stock and `stock_events`.\n","rules":"**Relates to:** `api/stripe-webhook`, `api/cancel-order`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nThe stock must show what is left after each paid order, so the shop does not sell what it does not have.\n\n## Goal\n\n- Lower the stock by the paid quantity of each item.\n- Raise the stock by the quantity of each item of a cancelled order.\n\n## Non-goal\n\n- Reorder products from a supplier.\n\n## Constraints\n\n- Apply each event at most one time.\n- The stock can go below 0 when two customers pay for the last item. A person then fixes it.\n\n## Acceptance criteria\n\n- Lower the stock for an `order.paid` event.\n- Raise the stock for an `order.cancelled` event.\n- Change nothing for a second copy of the same event.\n- Change all items or none.\n\n## Open Questions\n\n- Should the worker alert a person when the stock goes below 0?\n","status":null,"steps":[{"n":1,"title":"Skip each event that is not `order.paid` or `order.cancelled`.","text":"Skip each event that is not `order.paid` or `order.cancelled`.","details":[],"ref":"src/handlers/update-stock.ts#handle","status":null},{"n":2,"title":"Take the quantity of each item out of the stock, in one transaction.","text":"Take the quantity of each item out of the stock, in one transaction. Do it only for `order.paid`. Skip the event when its id is already in `stock_events`. Record the event id in `stock_events`.","details":["Do it only for `order.paid`.","Skip the event when its id is already in `stock_events`.","Record the event id in `stock_events`."],"ref":"src/stock/stock.repo.ts#applyOrder","status":null},{"n":3,"title":"Put the quantity of each item back in the stock, in one transaction.","text":"Put the quantity of each item back in the stock, in one transaction. Do it only for `order.cancelled`. Skip the event when its id is already in `stock_events`. Record the event id in `stock_events`.","details":["Do it only for `order.cancelled`.","Skip the event when its id is already in `stock_events`.","Record the event id in `stock_events`."],"ref":"src/stock/stock.repo.ts#restoreOrder","status":null}]}]}]}
+{"generated":"2026-10-01","title":"shop","projects":[{"id":"web","kind":"frontend","definition":"The `web` project is the shop for customers. A customer finds products, fills a cart, pays with Stripe and follows the order.\n\n## Stack\n\n- TypeScript, React 18, React Router 6, Vite. Stripe.js for the payment page.\n- This example has no code. The paths in `Code:` show where the code would be.\n\n## Technical decisions\n\n- Call the API only through `src/api/client.ts`. Each call uses the base path `/api`.\n- Keep the cart in `localStorage` under the key `cart`. The cart needs no account.\n- Send the customer to Stripe Checkout to pay. The shop never sees a card number.\n","status":null,"flows":[{"id":"cart","kind":"page","trigger":"page","entry":"/cart","group":"buy","definition":"Show the cart and let the customer change it.\n","boundary":"## Input\n\nRoute `/cart`, form fields:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `quantity` | number per item | yes | 0–10 |\n\n## Output\n\n| Result | Shows | When |\n| --- | --- | --- |\n| Cart | Each item, its quantity, and the total. | The cart has items. |\n| Empty state | \"Your cart is empty.\" | The cart has no items. |\n| Go to `/checkout` | The checkout page. | The customer clicks \"Checkout\". |\n","rules":"**Relates to:** `web/product-detail`, `web/checkout`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer checks what they will buy before they pay.\n\n## Goal\n\n- Let the customer change or remove each item.\n\n## Non-goal\n\n- Check the prices. The API does it when it creates the order.\n\n## Constraints\n\n- Show the total from the prices in the cart. The checkout can show a new total.\n\n## Acceptance criteria\n\n- Show each item of the cart.\n- Remove an item when its quantity changes to 0.\n- Disable \"Checkout\" when the cart is empty.\n\n## Open Questions\n\n- None.\n","status":null,"actions":"## Open the page\n- Then: show each item of the cart from `localStorage`, and the total.\n- Code: `src/pages/CartPage.tsx#CartPage`\n\n## Change a quantity\n- Then: save the new quantity. Remove the item when the quantity is 0.\n- Code: `src/cart/cart.store.ts#setQuantity`\n\n## Click \"Checkout\"\n- Then: open `/checkout`.\n- Code: `src/pages/CartPage.tsx#CartPage`\n","steps":[{"n":1,"title":"Open the page.","text":"Open the page. Then: show each item of the cart from `localStorage`, and the total.","details":["Then: show each item of the cart from `localStorage`, and the total."],"ref":"src/pages/CartPage.tsx#CartPage","status":null},{"n":2,"title":"Change a quantity.","text":"Change a quantity. Then: save the new quantity. Remove the item when the quantity is 0.","details":["Then: save the new quantity. Remove the item when the quantity is 0."],"ref":"src/cart/cart.store.ts#setQuantity","status":null},{"n":3,"title":"Click \"Checkout\".","text":"Click \"Checkout\". Then: open `/checkout`.","details":["Then: open `/checkout`."],"ref":"src/pages/CartPage.tsx#CartPage","status":null}]},{"id":"checkout","kind":"page","trigger":"page","entry":"/checkout","group":"buy","definition":"Take the email of the customer and send them to Stripe to pay.\n","boundary":"## Input\n\nRoute `/checkout`, form fields:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `email` | text | yes | Checked by the API. |\n\nExample:\n\n```json\n{ \"email\": \"ada@example.com\" }\n```\n\n## Output\n\n| Result | Shows | When |\n| --- | --- | --- |\n| Go to Stripe Checkout | The Stripe payment page. | The API creates the order. |\n| Alert on the form | The API error message. | The API returns 400 or 409. |\n| Alert | \"Payment is not available.\" | The API returns 502. |\n","rules":"**Relates to:** `api/create-order`, `web/order-status`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer is ready to pay. The shop hands the payment to Stripe.\n\n## Goal\n\n- Create the order and open the Stripe payment page.\n\n## Non-goal\n\n- Take a card number. Stripe does it.\n\n## Constraints\n\n- Keep the cart until the order is paid. The customer can come back and try again.\n\n## Acceptance criteria\n\n- Open Stripe Checkout with the session id from the API.\n- Show the error of the API for 409.\n- Keep the cart when the payment fails.\n\n## Open Questions\n\n- None.\n","status":null,"actions":"## Open the page\n- Then: show the cart total and an email field.\n- Code: `src/pages/CheckoutPage.tsx#CheckoutPage`\n\n## Click \"Pay\"\n- Call: `api/create-order`: `POST /api/orders` with the email and the cart items.\n- Call: `stripe`: `redirectToCheckout` with the session id.\n- Then: Stripe opens its payment page. After the payment, Stripe opens `/orders/<orderId>`.\n- Fail: show the API error on the form for 400 and 409. Show \"Payment is not available.\" for 502.\n- Code: `src/pages/CheckoutPage.tsx#onPay`\n","steps":[{"n":1,"title":"Open the page.","text":"Open the page. Then: show the cart total and an email field.","details":["Then: show the cart total and an email field."],"ref":"src/pages/CheckoutPage.tsx#CheckoutPage","status":null},{"n":2,"title":"Click \"Pay\".","text":"Click \"Pay\". Call: `api/create-order`: `POST /api/orders` with the email and the cart items. Call: `stripe`: `redirectToCheckout` with the session id. Then: Stripe opens its payment page. After the payment, Stripe opens `/orders/<orderId>`. Fail: show the API error on the form for 400 and 409. Show \"Payment is not available.\" for 502.","details":["Call: `api/create-order`: `POST /api/orders` with the email and the cart items.","Call: `stripe`: `redirectToCheckout` with the session id.","Then: Stripe opens its payment page. After the payment, Stripe opens `/orders/<orderId>`.","Fail: show the API error on the form for 400 and 409. Show \"Payment is not available.\" for 502."],"ref":"src/pages/CheckoutPage.tsx#onPay","status":null}]},{"id":"order-status","kind":"page","trigger":"page","entry":"/orders/:id","group":"buy","definition":"Show the status of an order after the payment, and let the customer cancel it.\n","boundary":"## Input\n\nRoute `/orders/:id`:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `id` | route param | yes | Checked by the API. |\n\n## Output\n\n| Result | Shows | When |\n| --- | --- | --- |\n| Paid | \"Paid\", the items and the total. | The status is `paid`. |\n| Pending | \"Waiting for the payment…\" | The status is `pending`. |\n| Cancelled | \"Cancelled\", the items and the total. | The status is `cancelled`. |\n| Alert | \"Order not found.\" | The API returns 404. |\n","rules":"**Relates to:** `api/get-order`, `api/cancel-order`, `web/checkout`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nStripe sends the customer back to the shop. The webhook can come a few seconds after the customer.\n\n## Goal\n\n- Show the customer that the order is paid.\n- Let the customer cancel a paid order for 24 hours.\n\n## Non-goal\n\n- Show the delivery status.\n\n## Constraints\n\n- Do not mark the order paid in the browser. Only the webhook does it.\n\n## Acceptance criteria\n\n- Show \"Paid\" for a paid order.\n- Ask again while the order is `pending`, at most 10 times.\n- Clear the cart when the order is paid.\n- Show \"Cancel order\" only for a paid order of the last 24 hours.\n- Ask the customer to confirm before the cancel.\n\n## Open Questions\n\n- None.\n","status":null,"actions":"## Open the page\n- Call: `api/get-order`: `GET /api/orders/:id` with the route `id`.\n- Then: show the status, the items and the total. Clear the cart when the status is `paid`.\n- Fail: show \"Order not found.\" for 404.\n- Code: `src/pages/OrderStatusPage.tsx#OrderStatusPage`\n\n## Wait while the order is pending\n- Call: `api/get-order`: ask again every 3 seconds, at most 10 times.\n- Then: show \"Paid\" when the status changes to `paid`.\n- Fail: show \"We are still waiting for the payment. Check your email.\" after 10 tries.\n- Code: `src/pages/OrderStatusPage.tsx#useOrderPolling`\n\n## Cancel the order\n- Show the button only when the status is `paid` and the order is less than 24 hours old.\n- Call: `api/cancel-order`: `POST /api/orders/:id/cancel` after the customer confirms.\n- Then: show \"Cancelled. The money comes back in 5–10 days.\"\n- Fail: show \"This order can no longer be cancelled.\" for 409.\n- Code: `src/pages/OrderStatusPage.tsx#useCancelOrder`\n","steps":[{"n":1,"title":"Open the page.","text":"Open the page. Call: `api/get-order`: `GET /api/orders/:id` with the route `id`. Then: show the status, the items and the total. Clear the cart when the status is `paid`. Fail: show \"Order not found.\" for 404.","details":["Call: `api/get-order`: `GET /api/orders/:id` with the route `id`.","Then: show the status, the items and the total. Clear the cart when the status is `paid`.","Fail: show \"Order not found.\" for 404."],"ref":"src/pages/OrderStatusPage.tsx#OrderStatusPage","status":null},{"n":2,"title":"Wait while the order is pending.","text":"Wait while the order is pending. Call: `api/get-order`: ask again every 3 seconds, at most 10 times. Then: show \"Paid\" when the status changes to `paid`. Fail: show \"We are still waiting for the payment. Check your email.\" after 10 tries.","details":["Call: `api/get-order`: ask again every 3 seconds, at most 10 times.","Then: show \"Paid\" when the status changes to `paid`.","Fail: show \"We are still waiting for the payment. Check your email.\" after 10 tries."],"ref":"src/pages/OrderStatusPage.tsx#useOrderPolling","status":null},{"n":3,"title":"Cancel the order.","text":"Cancel the order. Show the button only when the status is `paid` and the order is less than 24 hours old. Call: `api/cancel-order`: `POST /api/orders/:id/cancel` after the customer confirms. Then: show \"Cancelled. The money comes back in 5–10 days.\". Fail: show \"This order can no longer be cancelled.\" for 409.","details":["Show the button only when the status is `paid` and the order is less than 24 hours old.","Call: `api/cancel-order`: `POST /api/orders/:id/cancel` after the customer confirms.","Then: show \"Cancelled. The money comes back in 5–10 days.\".","Fail: show \"This order can no longer be cancelled.\" for 409."],"ref":"src/pages/OrderStatusPage.tsx#useCancelOrder","status":null}]},{"id":"product-detail","kind":"page","trigger":"page","entry":"/products/:id","group":"browse","definition":"Show one product and let the customer add it to the cart.\n","boundary":"## Input\n\nRoute `/products/:id`, form fields:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `id` | route param | yes | Checked by the API. |\n| `quantity` | number | yes | 1–10, at most the stock |\n\nExample:\n\n```json\n{ \"quantity\": 2 }\n```\n\n## Output\n\n| Result | Shows | When |\n| --- | --- | --- |\n| Detail | The product and an \"Add to cart\" button. | The API returns the product. |\n| Toast | \"Added to cart.\" | The customer adds the product. |\n| Alert | \"Product not found.\" | The API returns 404. |\n","rules":"**Relates to:** `api/get-product`, `web/cart`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer reads about one product and decides to buy it.\n\n## Goal\n\n- Let the customer add the product to the cart.\n\n## Non-goal\n\n- Save the cart on the server.\n\n## Constraints\n\n- Do not let the cart quantity be more than the stock that the page shows.\n\n## Acceptance criteria\n\n- Add the product to the cart in `localStorage`.\n- Add to the quantity when the product is already in the cart.\n- Show \"Product not found.\" for 404.\n\n## Open Questions\n\n- None.\n","status":null,"actions":"## Open the page\n- Call: `api/get-product`: `GET /api/products/:id` with the route `id`.\n- Then: show the name, the description, the price and the stock.\n- Fail: show \"Product not found.\" for 404.\n- Code: `src/pages/ProductDetailPage.tsx#ProductDetailPage`\n\n## Click \"Add to cart\"\n- Then: add the product to the cart in `localStorage`. Show \"Added to cart.\"\n- Fail: show \"Only <stock> left.\" when the cart quantity is more than the stock.\n- Code: `src/cart/cart.store.ts#addItem`\n","steps":[{"n":1,"title":"Open the page.","text":"Open the page. Call: `api/get-product`: `GET /api/products/:id` with the route `id`. Then: show the name, the description, the price and the stock. Fail: show \"Product not found.\" for 404.","details":["Call: `api/get-product`: `GET /api/products/:id` with the route `id`.","Then: show the name, the description, the price and the stock.","Fail: show \"Product not found.\" for 404."],"ref":"src/pages/ProductDetailPage.tsx#ProductDetailPage","status":null},{"n":2,"title":"Click \"Add to cart\".","text":"Click \"Add to cart\". Then: add the product to the cart in `localStorage`. Show \"Added to cart.\". Fail: show \"Only <stock> left.\" when the cart quantity is more than the stock.","details":["Then: add the product to the cart in `localStorage`. Show \"Added to cart.\".","Fail: show \"Only <stock> left.\" when the cart quantity is more than the stock."],"ref":"src/cart/cart.store.ts#addItem","status":null}]},{"id":"products","kind":"page","trigger":"page","entry":"/","group":"browse","definition":"Show the products that are for sale.\n","boundary":"## Input\n\nRoute `/`. No parameters.\n\n## Output\n\n| Result | Shows | When |\n| --- | --- | --- |\n| List | Each product with its name, price and a \"Sold out\" label when the stock is 0. | The API returns the products. |\n| Empty state | \"No products yet.\" | The list is empty. |\n| Alert | \"The shop is not available. Try again later.\" | The request fails. |\n","rules":"**Relates to:** `api/list-products`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer opens the shop to see what it sells.\n\n## Goal\n\n- Show all the products for sale.\n\n## Non-goal\n\n- Search or filter the products.\n\n## Constraints\n\n- Show the price in euros with two decimals.\n\n## Acceptance criteria\n\n- Show each product from the API.\n- Show \"Sold out\" for a product with stock 0.\n- Show the alert when the API fails.\n\n## Open Questions\n\n- None.\n","status":null,"actions":"## Open the page\n- Call: `api/list-products`: `GET /api/products`.\n- Then: show each product with its name and its price.\n- Fail: show \"The shop is not available. Try again later.\"\n- Code: `src/pages/ProductsPage.tsx#ProductsPage`\n\n## Click a product\n- Then: open `/products/<id>`.\n- Code: `src/components/ProductCard.tsx#ProductCard`\n","steps":[{"n":1,"title":"Open the page.","text":"Open the page. Call: `api/list-products`: `GET /api/products`. Then: show each product with its name and its price. Fail: show \"The shop is not available. Try again later.\".","details":["Call: `api/list-products`: `GET /api/products`.","Then: show each product with its name and its price.","Fail: show \"The shop is not available. Try again later.\"."],"ref":"src/pages/ProductsPage.tsx#ProductsPage","status":null},{"n":2,"title":"Click a product.","text":"Click a product. Then: open `/products/<id>`.","details":["Then: open `/products/<id>`."],"ref":"src/components/ProductCard.tsx#ProductCard","status":null}]}]},{"id":"api","kind":"backend","definition":"The `api` project is the HTTP API of the shop. It serves the products, creates the orders, and takes the payment events from Stripe.\n\n## Stack\n\n- TypeScript on Node 20. Fastify 4. zod. `pg` for Postgres, `ioredis` for Redis, `kafkajs` for Kafka, the Stripe SDK.\n- This example has no code. The paths in `Code:` show where the code would be.\n\n## Technical decisions\n\n- Keep the products and the orders in Postgres (`shop-db`).\n- Cache the product list in Redis (`product-cache`) for 60 seconds.\n- Create a Stripe Checkout session for each order. Mark the order paid only from the Stripe webhook, not from the browser.\n- Publish `order.paid` to the Kafka topic `order.events` after an order is paid.\n- Map errors to HTTP: `validation` 400, `not-found` 404, `conflict` 409, an unexpected error 500.\n","status":null,"flows":[{"id":"cancel-order","kind":"flow","trigger":"http","entry":"POST /orders/:id/cancel","group":"orders","definition":"Cancel a paid order, refund the payment with Stripe, and tell the other services.\n","boundary":"## Input\n\n`POST /orders/:id/cancel`:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `id` | path string | yes | not empty |\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 200 | `{ id, status: \"cancelled\" }` | The order is cancelled and the refund exists. |\n| 404 | `{ error: { code: \"not-found\", message } }` | The order does not exist. |\n| 409 | `{ error: { code: \"conflict\", message } }` | The order is not `paid`, or it is older than 24 hours. |\n| 502 | `{ error: { code: \"payment\", message } }` | Stripe does not answer. |\n\nExample (200):\n\n```json\n{ \"id\": \"o1\", \"status\": \"cancelled\" }\n```\n\nExample (409):\n\n```json\n{ \"error\": { \"code\": \"conflict\", \"message\": \"Only a paid order of the last 24 hours can be cancelled.\" } }\n```\n\n## Dependencies\n\n- reads `shop-db`: the order, its status and its payment id.\n- calls `stripe`: creates a refund for the payment.\n- writes `shop-db`: the order with the status `cancelled`.\n- publishes `order-events`: the event `order.cancelled` with the items.\n","rules":"**Relates to:** `web/order-status`, `worker/update-stock`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer can change their mind after the payment. The shop lets them cancel for 24 hours.\n\n## Goal\n\n- Cancel a paid order and give the money back.\n- Tell the worker, so it puts the items back in the stock.\n\n## Non-goal\n\n- Cancel a part of an order.\n- Cancel an order that is shipped.\n\n## Constraints\n\n- Cancel only a `paid` order of the last 24 hours.\n- Refund with Stripe before the status changes to `cancelled`.\n- Publish `order.cancelled` only after the status is saved.\n\n## Acceptance criteria\n\n- Return 200 and set the status `cancelled` for a paid order of the last 24 hours.\n- Return 409 for a `pending` or `cancelled` order, or an order older than 24 hours.\n- Return 502 and keep the order `paid` when Stripe fails.\n- Publish one `order.cancelled` event with the items of the order.\n\n## Open Questions\n\n- Should the customer get an email for the refund?\n","status":null,"steps":[{"n":1,"title":"Read the order.","text":"Read the order. Return HTTP 404 when it does not exist. Return HTTP 409 when it is not `paid` or is older than 24 hours.","details":["Return HTTP 404 when it does not exist.","Return HTTP 409 when it is not `paid` or is older than 24 hours."],"ref":"src/orders/orders.repo.ts#findOrder","status":null},{"n":2,"title":"Refund the payment with Stripe.","text":"Refund the payment with Stripe. Return HTTP 502 when Stripe does not answer.","details":["Return HTTP 502 when Stripe does not answer."],"ref":"src/payments/stripe.client.ts#refundPayment","status":null},{"n":3,"title":"Save the order with the status `cancelled`.","text":"Save the order with the status `cancelled`.","details":[],"ref":"src/orders/orders.repo.ts#cancelOrder","status":null},{"n":4,"title":"Publish `order.cancelled` with the items of the order.","text":"Publish `order.cancelled` with the items of the order.","details":[],"ref":"src/events/order-events.ts#publishOrderCancelled","status":null},{"n":5,"title":"Return the order id and the new status.","text":"Return the order id and the new status.","details":[],"ref":"src/orders/orders.route.ts#cancelOrder","status":null}]},{"id":"create-order","kind":"flow","trigger":"http","entry":"POST /orders","group":"orders","definition":"Create an order from a cart and start the payment with Stripe.\n","boundary":"## Input\n\n`POST /orders`, JSON body:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `email` | string | yes | valid email |\n| `items` | array | yes | 1–50 items |\n| `items[].productId` | string | yes | not empty |\n| `items[].quantity` | integer | yes | 1–10 |\n\nExample:\n\n```json\n{ \"email\": \"ada@example.com\", \"items\": [{ \"productId\": \"p1\", \"quantity\": 2 }] }\n```\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 201 | `{ orderId, sessionId }` | The order is saved and the Stripe session exists. |\n| 400 | `{ error: { code: \"validation\", field, message } }` | A field fails its validation. |\n| 409 | `{ error: { code: \"conflict\", field: \"items\", message } }` | A product is not for sale or has too little stock. |\n| 502 | `{ error: { code: \"payment\", message } }` | Stripe does not answer. |\n\nExample (201):\n\n```json\n{ \"orderId\": \"o1\", \"sessionId\": \"cs_test_a1b2\" }\n```\n\nExample (409):\n\n```json\n{ \"error\": { \"code\": \"conflict\", \"field\": \"items\", \"message\": \"Blue mug has only 1 left.\" } }\n```\n\n## Dependencies\n\n- reads `shop-db`: the products and their prices.\n- writes `shop-db`: the order with the status `pending`.\n- calls `stripe`: creates a Checkout session.\n","rules":"**Relates to:** `web/checkout`, `api/stripe-webhook`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer clicks \"Pay\" on the checkout page. The API saves the order and sends the customer to Stripe.\n\n## Goal\n\n- Save an order with the prices of now, not the prices in the browser.\n- Give the page a Stripe session to pay.\n\n## Non-goal\n\n- Take the payment. Stripe does it.\n- Reserve the stock. The worker changes the stock after the payment.\n\n## Constraints\n\n- Use the price from the database for each item.\n- Keep the order `pending` until Stripe confirms the payment.\n\n## Acceptance criteria\n\n- Return 201 with an order id and a session id for a valid cart.\n- Save the order total from the database prices.\n- Return 409 when a quantity is more than the stock.\n- Return 502 and keep the order `pending` when Stripe fails.\n\n## Open Questions\n\n- Should a `pending` order expire after 24 hours?\n","status":null,"steps":[{"n":1,"title":"Validate the body.","text":"Validate the body. Return HTTP 400 when it is not valid.","details":["Return HTTP 400 when it is not valid."],"ref":"src/orders/orders.schema.ts#parseCreateOrder","status":null},{"n":2,"title":"Read the products of the cart and their prices.","text":"Read the products of the cart and their prices. Return HTTP 409 when a product does not exist, is not active, or has less stock than the quantity.","details":["Return HTTP 409 when a product does not exist, is not active, or has less stock than the quantity."],"ref":"src/orders/orders.service.ts#priceCart","status":null},{"n":3,"title":"Save the order with the status `pending`.","text":"Save the order with the status `pending`.","details":[],"ref":"src/orders/orders.repo.ts#insertOrder","status":null},{"n":4,"title":"Create a Stripe Checkout session for the order.","text":"Create a Stripe Checkout session for the order. Put the order id in the session metadata.","details":["Put the order id in the session metadata."],"ref":"src/payments/stripe.client.ts#createCheckoutSession","status":null},{"n":5,"title":"Return the order id and the session id.","text":"Return the order id and the session id.","details":[],"ref":"src/orders/orders.route.ts#createOrder","status":null}]},{"id":"get-order","kind":"flow","trigger":"http","entry":"GET /orders/:id","group":"orders","definition":"Return one order with its status and its items.\n","boundary":"## Input\n\n`GET /orders/:id`:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `id` | path string | yes | not empty |\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 200 | `Order` | The order exists. |\n| 404 | `{ error: { code: \"not-found\", message } }` | The order does not exist. |\n\nExample (200):\n\n```json\n{ \"id\": \"o1\", \"status\": \"paid\", \"totalCents\": 2400, \"items\": [{ \"productId\": \"p1\", \"name\": \"Blue mug\", \"quantity\": 2 }] }\n```\n\nExample (404):\n\n```json\n{ \"error\": { \"code\": \"not-found\", \"message\": \"Order not found.\" } }\n```\n\n## Dependencies\n\n- reads `shop-db`: the order and its items.\n","rules":"**Relates to:** `web/order-status`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer comes back from Stripe and wants to know if the order is paid.\n\n## Goal\n\n- Return the status, the total and the items of the order.\n\n## Non-goal\n\n- Check who asks. The order id is long and random.\n\n## Constraints\n\n- Return only the email domain, not the full email.\n\n## Acceptance criteria\n\n- Return the order for a known id.\n- Return HTTP 404 for an unknown id.\n\n## Open Questions\n\n- Should the page need a token from the email to see the order?\n","status":null,"steps":[{"n":1,"title":"Read the order and its items from the database.","text":"Read the order and its items from the database. Return HTTP 404 when it does not exist.","details":["Return HTTP 404 when it does not exist."],"ref":"src/orders/orders.repo.ts#findOrderById","status":null},{"n":2,"title":"Return the order.","text":"Return the order.","details":[],"ref":"src/orders/orders.route.ts#getOrder","status":null}]},{"id":"get-product","kind":"flow","trigger":"http","entry":"GET /products/:id","group":"products","definition":"Return one product with its details.\n","boundary":"## Input\n\n`GET /products/:id`:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `id` | path string | yes | not empty |\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 200 | `Product` with `description` | The product exists and is active. |\n| 404 | `{ error: { code: \"not-found\", message } }` | The product does not exist or is not active. |\n\nExample (200):\n\n```json\n{ \"id\": \"p1\", \"name\": \"Blue mug\", \"description\": \"A mug for tea.\", \"priceCents\": 1200, \"stock\": 8 }\n```\n\nExample (404):\n\n```json\n{ \"error\": { \"code\": \"not-found\", \"message\": \"Product not found.\" } }\n```\n\n## Dependencies\n\n- reads `shop-db`: the product by id.\n","rules":"**Relates to:** `web/product-detail`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer opens one product to read about it before they add it to the cart.\n\n## Goal\n\n- Return the product with its description, price and stock.\n\n## Non-goal\n\n- Return the reviews of the product.\n\n## Constraints\n\n- Do not return a product with `active` set to false.\n\n## Acceptance criteria\n\n- Return the product when it is active.\n- Return HTTP 404 for an unknown id.\n- Return HTTP 404 for a product that is not active.\n\n## Open Questions\n\n- None.\n","status":null,"steps":[{"n":1,"title":"Read the product from the database.","text":"Read the product from the database. Return HTTP 404 when it does not exist or is not active.","details":["Return HTTP 404 when it does not exist or is not active."],"ref":"src/products/products.repo.ts#findActiveById","status":null},{"n":2,"title":"Return the product.","text":"Return the product.","details":[],"ref":"src/products/products.route.ts#getProduct","status":null}]},{"id":"list-products","kind":"flow","trigger":"http","entry":"GET /products","group":"products","definition":"List the products that are for sale.\n","boundary":"## Input\n\n`GET /products`. No parameters.\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 200 | `Product[]` | Always. The list can be empty. |\n| 500 | `{ error: { code: \"unexpected\", message } }` | The database fails. |\n\nExample (200):\n\n```json\n[{ \"id\": \"p1\", \"name\": \"Blue mug\", \"priceCents\": 1200, \"stock\": 8 }]\n```\n\nExample (500):\n\n```json\n{ \"error\": { \"code\": \"unexpected\", \"message\": \"Try again later.\" } }\n```\n\n## Dependencies\n\n- reads `product-cache`: the cached list, 60 seconds.\n- reads `shop-db`: the active products, when the cache is empty.\n","rules":"**Relates to:** `web/products`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer opens the shop. The page shows all the products that are for sale.\n\n## Goal\n\n- Return each active product with its price and its stock.\n\n## Non-goal\n\n- Filter or page the list. The shop has few products.\n\n## Constraints\n\n- Do not return a product with `active` set to false.\n- A price change can take up to 60 seconds to show.\n\n## Acceptance criteria\n\n- Return the active products sorted by name.\n- Return an empty list when no product is active.\n- Return the cached list without a database read when the cache has it.\n\n## Open Questions\n\n- None.\n","status":null,"steps":[{"n":1,"title":"Read the product list from the cache.","text":"Read the product list from the cache. Return the cached list when it exists.","details":["Return the cached list when it exists."],"ref":"src/products/products.cache.ts#getCachedList","status":null},{"n":2,"title":"Read the products from the database.","text":"Read the products from the database. Read only the products with `active` set to true, sorted by name.","details":["Read only the products with `active` set to true, sorted by name."],"ref":"src/products/products.repo.ts#listActive","status":null},{"n":3,"title":"Put the list in the cache for 60 seconds.","text":"Put the list in the cache for 60 seconds.","details":[],"ref":"src/products/products.cache.ts#setCachedList","status":null},{"n":4,"title":"Return the list.","text":"Return the list.","details":[],"ref":"src/products/products.route.ts#listProducts","status":null}]},{"id":"stripe-webhook","kind":"flow","trigger":"http","entry":"POST /webhooks/stripe","group":"payments","definition":"Mark an order paid when Stripe says that the payment is complete.\n","boundary":"## Input\n\n`POST /webhooks/stripe`, header `Stripe-Signature`, JSON body: a Stripe event.\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `type` | string | yes | Stripe event type |\n| `data.object.metadata.orderId` | string | yes | for `checkout.session.completed` |\n\nExample:\n\n```json\n{ \"id\": \"evt_1\", \"type\": \"checkout.session.completed\", \"data\": { \"object\": { \"id\": \"cs_test_a1b2\", \"metadata\": { \"orderId\": \"o1\" } } } }\n```\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 200 | `{ received: true }` | The event is handled or skipped. |\n| 400 | `{ error: { code: \"signature\", message } }` | The signature is not valid. |\n| Publish `order.paid` | `{ eventId, orderId, email, items }` | The order changes to `paid`. |\n\nExample (published):\n\n```json\n{ \"eventId\": \"evt_1\", \"type\": \"order.paid\", \"orderId\": \"o1\", \"email\": \"ada@example.com\", \"items\": [{ \"productId\": \"p1\", \"quantity\": 2 }] }\n```\n\nExample (400):\n\n```json\n{ \"error\": { \"code\": \"signature\", \"message\": \"Invalid signature.\" } }\n```\n\n## Dependencies\n\n- writes `shop-db`: the order status `paid`.\n- publishes `order-events`: the event `order.paid`.\n","rules":"**Relates to:** `api/create-order`, `worker/send-receipt`, `worker/update-stock`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nStripe calls this endpoint after a customer pays. It is the only place that marks an order paid.\n\n## Goal\n\n- Mark the order paid one time, and tell the worker.\n\n## Non-goal\n\n- Handle refunds. A person does them in the Stripe dashboard.\n\n## Constraints\n\n- Accept only requests with a valid Stripe signature.\n- Stripe can send the same event more than one time.\n\n## Acceptance criteria\n\n- Mark a `pending` order `paid` for `checkout.session.completed`.\n- Publish one `order.paid` event per order, also when Stripe sends the event two times.\n- Return 400 for a bad signature and change nothing.\n- Return 200 for other event types and change nothing.\n\n## Open Questions\n\n- None.\n","status":null,"steps":[{"n":1,"title":"Check the Stripe signature of the request.","text":"Check the Stripe signature of the request. Return HTTP 400 when the signature is not valid.","details":["Return HTTP 400 when the signature is not valid."],"ref":"src/payments/stripe.webhook.ts#verifyEvent","status":null},{"n":2,"title":"Skip each event that is not `checkout.session.completed`.","text":"Skip each event that is not `checkout.session.completed`. Return HTTP 200 for it.","details":["Return HTTP 200 for it."],"ref":"src/payments/stripe.webhook.ts#handleEvent","status":null},{"n":3,"title":"Set the status of the order to `paid`.","text":"Set the status of the order to `paid`. Do nothing when the order is already `paid`.","details":["Do nothing when the order is already `paid`."],"ref":"src/orders/orders.repo.ts#markPaid","status":null},{"n":4,"title":"Publish `order.paid` to `order.events`.","text":"Publish `order.paid` to `order.events`.","details":[],"ref":"src/orders/orders.events.ts#publishOrderPaid","status":null}]}]},{"id":"worker","kind":"consumer","definition":"The `worker` project handles the order events from Kafka. It sends the receipt and updates the stock after a payment.\n\n## Stack\n\n- TypeScript on Node 20. `kafkajs`, `pg`, the SendGrid SDK.\n- This example has no code. The paths in `Code:` show where the code would be.\n\n## Technical decisions\n\n- Read the topic `order.events` in the consumer group `shop-worker`. Commit the offset after the handler ends.\n- Make each handler idempotent with the event id. Kafka can deliver an event more than one time.\n- Send an event that fails 5 times to the topic `order.events.dlq`.\n","status":null,"flows":[{"id":"send-receipt","kind":"flow","trigger":"message","entry":"order.events","group":"orders","definition":"Send the receipt email after an order is paid.\n","boundary":"## Input\n\nTopic `order.events`, event `order.paid`:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `eventId` | string | yes | not empty |\n| `orderId` | string | yes | not empty |\n| `email` | string | yes | valid email |\n\nExample:\n\n```json\n{ \"eventId\": \"evt_1\", \"type\": \"order.paid\", \"orderId\": \"o1\", \"email\": \"ada@example.com\" }\n```\n\n## Output\n\n| Result | When |\n| --- | --- |\n| Send the receipt email | The receipt of the event is not sent yet. |\n| Do nothing | The event is not `order.paid`, or the receipt is already sent. |\n| Retry, then send the event to `order.events.dlq` | SendGrid fails 5 times. |\n\n## Dependencies\n\n- consumes `order-events`: the event `order.paid`.\n- reads `shop-db`: the sent receipts.\n- writes `shop-db`: a sent receipt.\n- calls `mailer`: sends the email.\n","rules":"**Relates to:** `api/stripe-webhook`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer pays. They expect an email with the order in a few minutes.\n\n## Goal\n\n- Send one receipt for each paid order.\n\n## Non-goal\n\n- Send marketing email.\n\n## Constraints\n\n- Send the receipt at most one time for each order.\n\n## Acceptance criteria\n\n- Send the receipt for an `order.paid` event.\n- Send nothing for a second copy of the same event.\n- Send the event to the dead-letter topic after 5 failures.\n\n## Open Questions\n\n- None.\n","status":null,"steps":[{"n":1,"title":"Skip each event that is not `order.paid`.","text":"Skip each event that is not `order.paid`.","details":[],"ref":"src/handlers/send-receipt.ts#handle","status":null},{"n":2,"title":"Skip the event when its receipt is already sent.","text":"Skip the event when its receipt is already sent.","details":[],"ref":"src/receipts/receipts.repo.ts#wasSent","status":null},{"n":3,"title":"Send the receipt email with SendGrid.","text":"Send the receipt email with SendGrid.","details":[],"ref":"src/receipts/mailer.ts#sendReceipt","status":null},{"n":4,"title":"Record that the receipt is sent.","text":"Record that the receipt is sent.","details":[],"ref":"src/receipts/receipts.repo.ts#markSent","status":null}]},{"id":"update-stock","kind":"flow","trigger":"message","entry":"order.events","group":"orders","definition":"Take the paid items out of the stock, and put the cancelled items back.\n","boundary":"## Input\n\nTopic `order.events`, events `order.paid` and `order.cancelled`:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `eventId` | string | yes | not empty |\n| `items[].productId` | string | yes | not empty |\n| `items[].quantity` | integer | yes | 1 or more |\n\nExample:\n\n```json\n{ \"eventId\": \"evt_1\", \"type\": \"order.paid\", \"orderId\": \"o1\", \"items\": [{ \"productId\": \"p1\", \"quantity\": 2 }] }\n```\n\n## Output\n\n| Result | When |\n| --- | --- |\n| Lower the stock of each item | The event is a new `order.paid`. |\n| Raise the stock of each item | The event is a new `order.cancelled`. |\n| Do nothing | The event is of another type, or its id is already recorded. |\n\n## Dependencies\n\n- consumes `order-events`: the events `order.paid` and `order.cancelled`.\n- writes `shop-db`: the stock and `stock_events`.\n","rules":"**Relates to:** `api/stripe-webhook`, `api/cancel-order`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nThe stock must show what is left after each paid order, so the shop does not sell what it does not have.\n\n## Goal\n\n- Lower the stock by the paid quantity of each item.\n- Raise the stock by the quantity of each item of a cancelled order.\n\n## Non-goal\n\n- Reorder products from a supplier.\n\n## Constraints\n\n- Apply each event at most one time.\n- The stock can go below 0 when two customers pay for the last item. A person then fixes it.\n\n## Acceptance criteria\n\n- Lower the stock for an `order.paid` event.\n- Raise the stock for an `order.cancelled` event.\n- Change nothing for a second copy of the same event.\n- Change all items or none.\n\n## Open Questions\n\n- Should the worker alert a person when the stock goes below 0?\n","status":null,"steps":[{"n":1,"title":"Skip each event that is not `order.paid` or `order.cancelled`.","text":"Skip each event that is not `order.paid` or `order.cancelled`.","details":[],"ref":"src/handlers/update-stock.ts#handle","status":null},{"n":2,"title":"Take the quantity of each item out of the stock, in one transaction.","text":"Take the quantity of each item out of the stock, in one transaction. Do it only for `order.paid`. Skip the event when its id is already in `stock_events`. Record the event id in `stock_events`.","details":["Do it only for `order.paid`.","Skip the event when its id is already in `stock_events`.","Record the event id in `stock_events`."],"ref":"src/stock/stock.repo.ts#applyOrder","status":null},{"n":3,"title":"Put the quantity of each item back in the stock, in one transaction.","text":"Put the quantity of each item back in the stock, in one transaction. Do it only for `order.cancelled`. Skip the event when its id is already in `stock_events`. Record the event id in `stock_events`.","details":["Do it only for `order.cancelled`.","Skip the event when its id is already in `stock_events`.","Record the event id in `stock_events`."],"ref":"src/stock/stock.repo.ts#restoreOrder","status":null}]}]}]}
 </script>
 <script id="mirror-app">
 (function () {
@@ -257,7 +208,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     return out.join('');
   }
 
-  // The first plain paragraph of a markdown text: the short definition shown on a card.
+  // The first plain paragraph of a markdown text: the short definition shown on a row.
   function summary(md) {
     var out = [];
     String(md || '').split(/\r?\n/).some(function (line) {
@@ -272,22 +223,15 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
   var BADGE = { http: 'HTTP', main: 'MAIN', message: 'MSG', schedule: 'CRON', page: 'PAGE' };
   var STATUS = { added: 1, changed: 1, removed: 1 };
 
-  function projectNode(p) {
-    return { key: p.id, type: 'project', title: p.id, label: p.id, sub: (p.kind || ''),
-      badge: 'PROJECT', status: p.status || null, item: p };
-  }
-
-  // One project as cards: the project, its flows, and the steps inside each flow.
-  // idx (from linkIndex) adds the outgoing and incoming links of each flow.
-  function model(p, idx) {
-    var pn = projectNode(p);
+  // One project as rows: the project, its flows, and the steps of each flow.
+  function model(p) {
+    var pn = { key: p.id, type: 'project', title: p.id, label: p.id, sub: p.kind || '', badge: 'PROJECT', status: p.status || null, item: p };
     var all = [pn];
     var flows = (p.flows || []).map(function (f) {
       var key = p.id + '/' + f.id;
       var fn = { key: key, type: f.kind === 'page' ? 'page' : 'flow', title: f.id, label: f.id, sub: f.entry || '',
         badge: BADGE[f.trigger] || '', status: f.status || null, item: f };
       fn.unit = typeof f.actions === 'string' ? 'action' : 'step';
-      if (idx) { fn.out = idx.out[key] || []; fn.into = idx.into[key] || []; }
       all.push(fn);
       fn.steps = (f.steps || []).map(function (s, i) {
         var sn = { key: key + '#' + i, type: 'step', title: s.n + '. ' + s.text, label: s.title || s.text, num: s.n, sub: s.ref || '',
@@ -313,17 +257,6 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     return out;
   }
 
-  // The System tab as cards: each project, then each external system.
-  function systemModel(data, idx) {
-    var projects = (data.projects || []).map(projectNode);
-    var externals = (data.external || []).map(function (x) {
-      var key = 'ext:' + x.id;
-      return { key: key, type: 'external', title: x.id, label: x.id, sub: x.name || '', badge: String(x.kind || '').toUpperCase(),
-        status: x.status || null, item: x, out: [], into: idx.into[key] || [] };
-    });
-    return { projects: projects, externals: externals, all: projects.concat(externals), edges: systemEdges(data) };
-  }
-
   // The index of the first project with a flow or step that matches the search, or -1.
   function firstTabWithMatch(data, q) {
     var ps = data.projects || [], i;
@@ -333,62 +266,21 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     return -1;
   }
 
-  // The tab of a URL hash: the index of the project it names, or -1 for the System tab.
+  // The tab of a URL hash: the index of the project it names, else the first project.
   function tabFromHash(hash, projects) {
     var id;
-    try { id = decodeURIComponent(String(hash || '').slice(1)); } catch (e) { return -1; }
-    return (projects || []).map(function (p) { return p.id; }).indexOf(id);
+    try { id = decodeURIComponent(String(hash || '').slice(1)); } catch (e) { return 0; }
+    return Math.max(0, (projects || []).map(function (p) { return p.id; }).indexOf(id));
   }
 
   function statusClass(n) { return STATUS[n.status] ? ' st-' + n.status : ''; }
 
-  // A card as HTML. open: show the step titles of a flow inside the card.
-  function cardHtml(n, open) {
-    var h = '<div class="card ' + n.type + statusClass(n) + '" data-key="' + esc(n.key) + '" tabindex="0" role="button" aria-label="' +
-      esc(n.type + ' ' + n.title) + '"><div class="ch"><span class="name">' + esc(n.label) + '</span>' +
-      (n.badge ? '<span class="badge">' + esc(n.badge) + '</span>' : '') + '</div>';
-    if (n.sub) h += '<div class="sub">' + esc(n.sub) + '</div>';
-    var def = summary(n.item.definition);
-    if (def) h += '<p class="def">' + inline(def) + '</p>';
-    // Link chips. An external card on the System tab shows none: its lines show the links.
-    var seen = {}, chips = [];
-    function chip(key, text, verb) {
-      if (seen[text]) return;
-      seen[text] = 1;
-      chips.push('<button type="button" class="lchip" data-goto="' + esc(key) + '" title="' + esc(verb) + '">' + esc(text) + '</button>');
-    }
-    if (n.type !== 'external') {
-      (n.out || []).forEach(function (l) { chip(l.key, '→ ' + l.to, l.verb); });
-      (n.into || []).forEach(function (l) { chip(l.from, '← ' + l.from, l.verb); });
-    }
-    if (chips.length) h += '<div class="lchips">' + chips.join('') + '</div>';
-    var steps = n.steps || [];
-    if (steps.length) {
-      // A page with actions: the actions have no order, so they show a mark, not a number.
-      var unit = n.unit || 'step';
-      h += '<button type="button" class="toggle" data-toggle="' + esc(n.key) + '" aria-expanded="' + !!open + '">' +
-        (open ? '\u25be ' : '\u25b8 ') + steps.length + ' ' + unit + (steps.length === 1 ? '' : 's') + '</button>';
-      if (open) {
-        h += '<ol class="steps">' + steps.map(function (s, i) {
-          return '<li class="step' + statusClass(s) + '" data-key="' + esc(s.key) + '" style="--i: ' + i + '" tabindex="0" role="button">' +
-            '<span class="n">' + (unit === 'action' ? '\u2022' : esc(s.num)) + '</span><span class="body">' + inline(s.label) + '</span></li>';
-        }).join('') + '</ol>';
-      }
-    }
-    return h + '</div>';
-  }
-
-  // The bullets of an action as HTML. A `Call:` target is a link. keyOf maps a target to its key.
-  function actionDetails(details, keyOf) {
+  // The bullets of an action as HTML, with the label of each (`Call:`, `Then:`, `Fail:`).
+  function actionDetails(details) {
     var d = details || [];
     return d.length ? '<ul class="details">' + d.map(function (x) {
-      var m = /^(Call|Then|Fail):\s*(.*)$/.exec(x), c;
-      if (!m) return '<li>' + inline(x) + '</li>';
-      var h = '<li><span class="meta">' + m[1] + '</span> ';
-      if (m[1] === 'Call' && (c = /^`([^`]+)`\s*(?::\s*(.*)|\.)?$/.exec(m[2]))) {
-        return h + '<button class="link" data-goto="' + esc(keyOf(c[1])) + '">' + esc(c[1]) + '</button>' + (c[2] ? ' ' + inline(c[2]) : '') + '</li>';
-      }
-      return h + inline(m[2]) + '</li>';
+      var m = /^(Call|Then|Fail):\s*(.*)$/.exec(x);
+      return '<li>' + (m ? '<span class="meta">' + m[1] + '</span> ' + inline(m[2]) : inline(x)) + '</li>';
     }).join('') + '</ul>' : '';
   }
 
@@ -423,145 +315,78 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     return '<div class="diff">' + out.join('') + '</div>';
   }
 
-  // The text of a drawer tab, as the diff compares it. The definition tab also holds the frontmatter.
+  // The text of a row tab, as the diff compares it. The definition tab also holds the frontmatter.
   function tabText(it, tab) {
     if (tab !== 'definition' || it.trigger === undefined) return it[tab] || '';
     return ['trigger: ' + (it.trigger || ''), 'entry: ' + (it.entry || ''), 'group: ' + (it.group || ''), '', it.definition || ''].join('\n');
   }
 
-  var VERBS = ['calls', 'publishes', 'consumes', 'reads', 'writes'];
-  var LINK = /^\s*[-*]\s+(\w+)\s+`([^`]+)`\s*(?::\s*(.*?))?\s*$/;
-
-  // The links in the `## Dependencies` section of a boundary text. A bullet that starts with a
-  // verb and has a backtick but does not match the link form is `bad`. Other bullets are notes.
-  function parseLinks(md) {
-    var out = [], on = false;
-    String(md || '').split(/\r?\n/).forEach(function (line) {
-      if (/^#{1,6}\s/.test(line)) { on = /^##\s+Dependencies\s*$/i.test(line); return; }
-      if (!on || !/^\s*[-*]\s/.test(line)) return;
-      var first = (/^\s*[-*]\s+(\w+)/.exec(line) || [])[1];
-      if (VERBS.indexOf(String(first).toLowerCase()) < 0) return;
-      var m = LINK.exec(line);
-      if (m) out.push({ verb: m[1].toLowerCase(), to: m[2].trim(), note: m[3] || '' });
-      else if (line.indexOf('`') >= 0) out.push({ bad: true, text: line.trim() });
-    });
-    return out;
+  function rowTabs(n) {
+    return n.type === 'project' ? ['definition'] : ['definition', n.unit === 'action' ? 'actions' : 'steps', 'boundary', 'rules'];
   }
 
-  var CALL = /^\s*[-*]\s+Call:\s*`([^`]+)`\s*(?::\s*(.*?))?\s*$/i;
-
-  // The `Call:` bullets of an actions text, as `calls` links. A bullet that starts like a call
-  // (`Calls:`, `Call` without a colon, `**Call:**`) but does not match the call form is `bad`.
-  // Other bullets are not links.
-  function parseCalls(md) {
-    var out = [];
-    String(md || '').split(/\r?\n/).forEach(function (line) {
-      if (!/^\s*[-*]\s+\**calls?\b/i.test(line)) return;
-      var m = CALL.exec(line);
-      out.push(m ? { verb: 'calls', to: m[1].trim(), note: m[2] || '' } : { bad: true, call: true, text: line.trim() });
-    });
-    return out;
+  function refHtml(ref) {
+    return ref ? '<div class="coderef"><code>' + esc(ref) + '</code><button class="btn copy" data-copy="' + esc(ref) + '">Copy</button></div>' : '';
   }
 
-  // The links of a flow: the `Call:` lines of its actions when it has actions, else the
-  // Dependencies of its boundary. old: use the values before a review change. `old.actions: null`
-  // means the old flow had no actions.
-  function flowLinks(f, old) {
-    var o = old && f.old ? f.old : {};
-    var actions = 'actions' in o ? o.actions : f.actions;
-    var boundary = 'boundary' in o ? o.boundary : f.boundary;
-    return typeof actions === 'string' ? parseCalls(actions) : parseLinks(boundary);
+  // The bullets under a step header. Old data has no details: its text holds them.
+  function detailsHtml(s) {
+    var d = s.details || [];
+    return d.length ? '<ul class="details">' + d.map(function (x) { return '<li>' + inline(x) + '</li>'; }).join('') + '</ul>' : '';
   }
 
-  function extIds(data) {
-    var ext = {};
-    (data.external || []).forEach(function (x) { ext[x.id] = 1; });
-    return ext;
-  }
-
-  // Each flow's outgoing links, and each target's incoming links. Keys: `p/f`, `p`, `ext:<id>`.
-  function linkIndex(data) {
-    var ext = extIds(data), out = {}, into = {};
-    (data.projects || []).forEach(function (p) {
-      (p.flows || []).forEach(function (f) {
-        var from = p.id + '/' + f.id;
-        out[from] = flowLinks(f).filter(function (l) { return !l.bad; }).map(function (l) {
-          var key = ext[l.to] ? 'ext:' + l.to : l.to;
-          (into[key] = into[key] || []).push({ from: from, verb: l.verb, note: l.note });
-          return { verb: l.verb, to: l.to, note: l.note, key: key };
-        });
-      });
-    });
-    return { out: out, into: into };
-  }
-
-  // The lines of the System tab: one per project pair or project-external pair, counted by verb.
-  // A line only in the new links is `added`. A line only in the old links (`old.boundary`) is `removed`.
-  function systemEdges(data) {
-    var ext = extIds(data), pids = {}, edges = [], by = {};
-    (data.projects || []).forEach(function (p) { pids[p.id] = 1; });
-    function add(side, from, l) {
-      if (l.bad) return;
-      var to = ext[l.to] ? 'ext:' + l.to : l.to.split('/')[0];
-      if (to === from || !(ext[l.to] || pids[to])) return;
-      var e = by[from + '>' + to];
-      if (!e) edges.push(e = by[from + '>' + to] = { from: from, to: to, old: {}, now: {} });
-      e[side][l.verb] = (e[side][l.verb] || 0) + 1;
+  function body(n, tab) {
+    var it = n.item;
+    if (tab === 'steps' || tab === 'actions') {
+      var steps = it.steps || [], act = tab === 'actions', tag = act ? 'ul' : 'ol';
+      return steps.length ? '<' + tag + ' class="list">' + steps.map(function (s, i) {
+        return '<li data-key="' + esc(n.key + '#' + i) + '"' + (STATUS[s.status] ? ' class="st-' + s.status + '"' : '') + '><span class="n">' + (act ? '•' : esc(s.n)) + '</span><div><strong>' +
+          inline(s.title || s.text) + '</strong>' + (act ? actionDetails(s.details) : detailsHtml(s)) + refHtml(s.ref) + '</div></li>';
+      }).join('') + '</' + tag + '>' : '<p class="empty">' + (act ? 'No actions.' : 'No steps.') + '</p>';
     }
-    (data.projects || []).forEach(function (p) {
-      (p.flows || []).forEach(function (f) {
-        if (f.status !== 'added') flowLinks(f, true).forEach(function (l) { add('old', p.id, l); });
-        if (f.status !== 'removed') flowLinks(f).forEach(function (l) { add('now', p.id, l); });
-      });
-    });
-    return edges.map(function (e) {
-      var had = Object.keys(e.old).length > 0, has = Object.keys(e.now).length > 0, c = has ? e.now : e.old;
-      return { from: e.from, to: e.to, status: had && has ? null : has ? 'added' : 'removed',
-        label: VERBS.filter(function (v) { return c[v]; }).map(function (v) { return c[v] + ' ' + v; }).join(' · ') };
-    });
+    // A changed item keeps its old values in `old`: show the changed lines of this tab.
+    if (it.old) {
+      var before = tabText(Object.assign({}, it, it.old), tab), after = tabText(it, tab);
+      if (before !== after) return diffHtml(before, after);
+    }
+    return it[tab] ? renderMd(it[tab]) : '<p class="empty">Nothing here yet.</p>';
   }
 
-  // Problems in the links: an external with a project id, a bad bullet, an unknown target.
-  function linkErrors(data) {
-    var ids = {}, errs = [];
-    (data.projects || []).forEach(function (p) {
-      ids[p.id] = 1;
-      (p.flows || []).forEach(function (f) { if (f.status !== 'removed') ids[p.id + '/' + f.id] = 1; });
-    });
-    (data.external || []).forEach(function (x) {
-      if (ids[x.id]) errs.push('external `' + x.id + '` has the id of a project');
-      else if (x.status !== 'removed') ids[x.id] = 1;
-    });
-    (data.projects || []).forEach(function (p) {
-      (p.flows || []).forEach(function (f) {
-        if (f.status === 'removed') return;
-        var at = p.id + '/' + f.id + ': ';
-        flowLinks(f).forEach(function (l) {
-          if (l.bad && l.call) errs.push(at + 'write the call as "- Call: `<target>`: <note>": ' + l.text);
-          else if (l.bad) errs.push(at + 'write the link as "- <verb> `<target>`: <note>": ' + l.text);
-          else if (!ids[l.to]) errs.push(at + 'unknown target `' + l.to + '`');
-        });
-        if (typeof f.actions === 'string' && parseLinks(f.boundary).length) {
-          errs.push(at + 'move the links of boundary.md to `Call:` lines in actions.md');
-        }
-      });
-    });
-    return errs;
+  // One row: a header line like an API operation. An open row shows its tabs below the header.
+  // tab: the open tab. A flow opens on its steps.
+  function rowHtml(n, open, tab) {
+    var tabs = rowTabs(n);
+    if (tabs.indexOf(tab) < 0) tab = tabs[Math.min(1, tabs.length - 1)];
+    // A flow shows its entry first, like an API path. A project shows its name first.
+    var first = n.type === 'project' ? n.label : n.sub, second = n.type === 'project' ? n.sub : n.label;
+    var h = '<section class="op ' + n.type + statusClass(n) + (open ? ' open' : '') + '" data-row="' + esc(n.key) + '">' +
+      '<button type="button" class="oph" data-toggle="' + esc(n.key) + '" aria-expanded="' + !!open + '">' +
+      '<span class="badge">' + esc(n.badge || n.type.toUpperCase()) + '</span>' +
+      (first ? '<span class="entry">' + esc(first) + '</span>' : '') +
+      (second ? '<span class="name">' + esc(second) + '</span>' : '') +
+      (STATUS[n.status] ? '<span class="chip" style="--c: var(--' + n.status + ')">' + n.status + '</span>' : '') +
+      '<span class="sum">' + inline(summary(n.item.definition)) + '</span><span class="chev" aria-hidden="true">\u25b8</span></button>';
+    if (!open) return h + '</section>';
+    h += '<div class="opb">';
+    if (tabs.length > 1) {
+      h += '<div class="tabs" role="tablist">' + tabs.map(function (k) {
+        return '<button class="tab' + (k === tab ? ' on' : '') + '" role="tab" aria-selected="' + (k === tab) + '" data-rtab="' + k + '" data-for="' + esc(n.key) + '">' +
+          k.charAt(0).toUpperCase() + k.slice(1) + '</button>';
+      }).join('') + '</div>';
+    }
+    return h + '<div class="db">' + body(n, tab) + '</div></div></section>';
   }
 
-  globalThis.MirrorViewer = { esc: esc, renderMd: renderMd, summary: summary, model: model, groups: groups, cardHtml: cardHtml, matches: matches, hasChanges: hasChanges, diffHtml: diffHtml,
-    parseLinks: parseLinks, linkIndex: linkIndex, systemEdges: systemEdges, linkErrors: linkErrors, systemModel: systemModel, tabFromHash: tabFromHash, firstTabWithMatch: firstTabWithMatch,
-    parseCalls: parseCalls, flowLinks: flowLinks, actionDetails: actionDetails };
+  globalThis.MirrorViewer = { esc: esc, renderMd: renderMd, summary: summary, model: model, groups: groups, matches: matches, hasChanges: hasChanges,
+    diffHtml: diffHtml, tabFromHash: tabFromHash, firstTabWithMatch: firstTabWithMatch, actionDetails: actionDetails, rowHtml: rowHtml };
   if (typeof document === 'undefined') return;
 
   // ---- Browser only below ----
 
-  var SVG = 'http://www.w3.org/2000/svg';
-  var state = { pi: 0, expanded: {}, k: 1, tx: 0, ty: 0, sel: null, hits: [], hit: -1, q: '', tab: 'definition', open: null, dragged: false };
+  var state = { pi: 0, expanded: {}, rtab: {}, hits: [], hit: -1, q: '' };
 
   function $(id) { return document.getElementById(id); }
   function sel(attr, value) { return '[' + attr + '="' + String(value).replace(/["\\]/g, '\\$&') + '"]'; }
-  function nodeEl(key) { return state.world.querySelector(sel('data-key', key)); }
 
   // ---- Theme ----
 
@@ -576,296 +401,102 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     applyTheme();
   }
 
-  // ---- View: pan and zoom ----
-
-  function applyView() {
-    state.world.style.transform = 'translate(' + state.tx + 'px,' + state.ty + 'px) scale(' + state.k + ')';
-    var c = $('canvas'), s = 20 * state.k;
-    c.style.backgroundSize = s + 'px ' + s + 'px';
-    c.style.backgroundPosition = state.tx + 'px ' + state.ty + 'px';
-    $('zoom-pct').textContent = Math.round(state.k * 100) + '%';
-  }
-
-  function zoomAt(k, mx, my) {
-    k = Math.min(3, Math.max(0.2, k));
-    state.tx = mx - (mx - state.tx) * k / state.k;
-    state.ty = my - (my - state.ty) * k / state.k;
-    state.k = k;
-    applyView();
-  }
-
-  function zoomBy(f) { var c = $('canvas'); zoomAt(state.k * f, c.clientWidth / 2, c.clientHeight / 2); }
-
-  function fit() {
-    var c = $('canvas'), w = state.world, pad = 40;
-    var gw = Math.max(1, w.offsetWidth), gh = Math.max(1, w.offsetHeight);
-    state.k = Math.max(0.2, Math.min((c.clientWidth - 2 * pad) / gw, (c.clientHeight - 2 * pad) / gh, 1.2));
-    state.tx = (c.clientWidth - gw * state.k) / 2;
-    state.ty = (c.clientHeight - gh * state.k) / 2;
-    applyView();
-  }
-
-  // First view: fit, but keep text readable on a big graph and start at its top.
-  function initialView() {
-    fit();
-    if (state.k >= 0.8) return;
-    var c = $('canvas');
-    state.k = 0.8;
-    state.tx = Math.max(40, (c.clientWidth - state.world.offsetWidth * state.k) / 2);
-    state.ty = 40;
-    applyView();
-  }
-
-  // Position of an element inside the world, in unscaled px.
-  function box(e) {
-    var x = 0, y = 0, cur = e;
-    while (cur && cur !== state.world) { x += cur.offsetLeft; y += cur.offsetTop; cur = cur.offsetParent; }
-    return { x: x, y: y, w: e.offsetWidth, h: e.offsetHeight };
-  }
-
-  function centerOn(key) {
-    var e = nodeEl(key);
-    if (!e) return;
-    var c = $('canvas'), b = box(e);
-    state.tx = c.clientWidth / 2 - (b.x + b.w / 2) * state.k;
-    state.ty = Math.min(c.clientHeight / 2 - (b.y + b.h / 2) * state.k, 40 - b.y * state.k);
-    applyView();
-  }
-
-  function bindCanvas(c) {
-    var pts = {}, moved = 0, startDist = 1, startK = 1;
-    function ids() { return Object.keys(pts); }
-    function dist() { var a = pts[ids()[0]], b = pts[ids()[1]]; return Math.hypot(a.x - b.x, a.y - b.y) || 1; }
-    c.addEventListener('pointerdown', function (e) {
-      if (e.pointerType === 'mouse' && e.button !== 0) return;
-      pts[e.pointerId] = { x: e.clientX, y: e.clientY };
-      moved = 0;
-      state.dragged = false;
-      if (ids().length === 2) { startDist = dist(); startK = state.k; }
-    });
-    window.addEventListener('pointermove', function (e) {
-      var p = pts[e.pointerId];
-      if (!p) return;
-      var dx = e.clientX - p.x, dy = e.clientY - p.y;
-      p.x = e.clientX; p.y = e.clientY;
-      if (ids().length === 2) {
-        var r = c.getBoundingClientRect(), a = pts[ids()[0]], b = pts[ids()[1]];
-        state.dragged = true;
-        zoomAt(startK * dist() / startDist, (a.x + b.x) / 2 - r.left, (a.y + b.y) / 2 - r.top);
-        return;
-      }
-      moved += Math.abs(dx) + Math.abs(dy);
-      if (moved > 4) {
-        state.dragged = true;
-        c.classList.add('panning');
-        state.tx += dx; state.ty += dy;
-        applyView();
-      }
-    });
-    function up(e) { delete pts[e.pointerId]; c.classList.remove('panning'); }
-    window.addEventListener('pointerup', up);
-    window.addEventListener('pointercancel', up);
-    c.addEventListener('wheel', function (e) {
-      e.preventDefault();
-      var r = c.getBoundingClientRect(), d = e.deltaY * (e.deltaMode === 1 ? 16 : 1);
-      zoomAt(state.k * Math.exp(-d * 0.0015), e.clientX - r.left, e.clientY - r.top);
-    }, { passive: false });
-  }
-
-  // ---- Graph ----
+  // ---- Rows ----
 
   function currentProject() { return (state.data.projects || [])[state.pi] || null; }
 
   function renderTabs() {
     var projects = state.data.projects || [];
-    function tab(i, label, kind, dot) {
+    $('ptabs').innerHTML = projects.map(function (p, i) {
       var on = i === state.pi;
       return '<button class="ptab' + (on ? ' on' : '') + '" role="tab" aria-selected="' + on + '" tabindex="' + (on ? 0 : -1) +
-        '" data-pi="' + i + '">' + esc(label) + (kind ? ' <small>' + esc(kind) + '</small>' : '') +
-        (dot ? '<span class="dot" title="Has changes"></span>' : '') + '</button>';
-    }
-    $('ptabs').innerHTML = !projects.length ? '' :
-      tab(-1, 'System', '', state.sys.edges.some(function (e) { return STATUS[e.status]; })) +
-      projects.map(function (p, i) { return tab(i, p.id, p.kind || '', hasChanges(p)); }).join('');
+        '" data-pi="' + i + '">' + esc(p.id) + (p.kind ? ' <small>' + esc(p.kind) + '</small>' : '') +
+        (hasChanges(p) ? '<span class="dot" title="Has changes"></span>' : '') + '</button>';
+    }).join('');
   }
 
-  // A spine from the bottom of the project card down the left of the stacked group boxes,
-  // with a branch into the header of each box.
-  function drawEdges() {
-    var w = state.world, svg = w.querySelector('.edges'), top = nodeEl(state.m.project.key);
-    svg.setAttribute('width', w.offsetWidth);
-    svg.setAttribute('height', w.offsetHeight);
-    var y1 = box(top).y + box(top).h;
-    var gs = state.world.querySelectorAll('.group');
-    if (!gs.length) return;
-    var sx = box(gs[0]).x - 16;
-    gs.forEach(function (g) {
-      var b = box(g), gy = b.y + 22;
-      var path = document.createElementNS(SVG, 'path');
-      path.setAttribute('class', 'edge');
-      path.setAttribute('d', 'M' + sx + ' ' + y1 + ' V' + gy + ' H' + b.x);
-      svg.appendChild(path);
-    });
-  }
-
-  // Project cards sit in the top row and external cards in the row below. A line between two
-  // projects arcs above the top row. A line to an external goes down. Each line has its label.
-  function drawSystemEdges(edges) {
-    var w = state.world, svg = w.querySelector('.edges');
-    svg.setAttribute('width', w.offsetWidth);
-    svg.setAttribute('height', w.offsetHeight);
-    edges.forEach(function (e, i) {
-      var ea = nodeEl(e.from), eb = nodeEl(e.to);
-      if (!ea || !eb) return;
-      var a = box(ea), b = box(eb), ax = a.x + a.w / 2, bx = b.x + b.w / 2, d, ly;
-      if (e.to.indexOf('ext:') === 0) {
-        var y1 = a.y + a.h, y2 = b.y, my = (y1 + y2) / 2;
-        d = 'M' + ax + ' ' + y1 + ' C' + ax + ' ' + my + ' ' + bx + ' ' + my + ' ' + bx + ' ' + y2;
-        ly = my;
-      } else {
-        var y = a.y, top = y - 40 - 24 * (i % 3);
-        d = 'M' + ax + ' ' + y + ' C' + ax + ' ' + top + ' ' + bx + ' ' + top + ' ' + bx + ' ' + y;
-        ly = 0.25 * y + 0.75 * top;
-      }
-      var path = document.createElementNS(SVG, 'path');
-      path.setAttribute('class', 'edge' + (STATUS[e.status] ? ' st-' + e.status : ''));
-      path.setAttribute('d', d);
-      path.setAttribute('marker-end', 'url(#arrow)');
-      svg.appendChild(path);
-      var t = document.createElementNS(SVG, 'text');
-      t.setAttribute('class', 'elabel');
-      t.setAttribute('x', (ax + bx) / 2);
-      t.setAttribute('y', ly - 4);
-      t.setAttribute('text-anchor', 'middle');
-      t.textContent = e.label;
-      svg.appendChild(t);
-    });
+  // The element of a node: a row, or a step line in an open row.
+  function nodeEl(n) {
+    return $('list').querySelector(n.type === 'step' ? '.db ' + sel('data-key', n.key) : sel('data-row', n.key));
   }
 
   function draw() {
-    var w = state.world, sys = state.pi < 0;
-    if (!(state.data.projects || []).length) {
-      state.m = null;
-      state.byKey = {};
-      w.innerHTML = '<p class="empty-state">No projects yet. Run mirror:init.</p>';
+    var p = currentProject();
+    if (!p) {
+      $('list').innerHTML = '<p class="empty-state">No projects yet. Run mirror:init.</p>';
       return;
     }
-    var m = state.m = sys ? state.sys : model(currentProject(), state.links);
-    state.byKey = {};
-    m.all.forEach(function (n) { state.byKey[n.key] = n; });
+    var m = state.m = model(p);
     state.hits = m.all.filter(function (n) { return matches(n, state.q); });
     if (state.hit >= state.hits.length) state.hit = state.hits.length - 1;
-    if (sys) {
-      w.innerHTML = '<svg class="edges" aria-hidden="true"><defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" ' +
-        'markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow" d="M0 0L10 5L0 10z"/></marker></defs></svg>' +
-        '<div class="row system top">' + m.projects.map(function (n) { return cardHtml(n); }).join('') + '</div>' +
-        (m.externals.length ? '<div class="row system">' + m.externals.map(function (n) { return cardHtml(n); }).join('') + '</div>' : '');
-    } else {
-      w.innerHTML = '<svg class="edges" aria-hidden="true"></svg><div class="row">' + cardHtml(m.project) + '</div>' +
-        (m.flows.length ? '<div class="row groups">' + m.groups.map(function (g) {
-          return '<div class="group" role="group" aria-label="' + esc(g.name || 'flows') + '">' +
-            (g.name ? '<div class="gh">' + esc(g.name) + ' <small>' + g.flows.length + '</small></div>' : '') +
-            '<div class="gflows">' + g.flows.map(function (f) { return cardHtml(f, state.expanded[f.key]); }).join('') + '</div></div>';
-        }).join('') + '</div>' : '');
-    }
+    function row(n) { return rowHtml(n, state.expanded[n.key], state.rtab[n.key]); }
+    $('list').innerHTML = '<div class="lwrap">' + row(m.project) + m.groups.map(function (g) {
+      return (g.name ? '<h3 class="sec">' + esc(g.name) + ' <small>' + g.flows.length + '</small></h3>' : '') + g.flows.map(row).join('');
+    }).join('') + '</div>';
     state.hits.forEach(function (n, i) {
-      var e = nodeEl(n.key);
+      var e = nodeEl(n);
       if (e) e.classList.add('match', i === state.hit ? 'current' : 'match');
     });
-    var s = state.sel && nodeEl(state.sel);
-    if (s) s.classList.add('sel');
-    if (sys) drawSystemEdges(m.edges); else drawEdges();
     $('qcount').textContent = state.q.trim() ? (state.hits.length ? (state.hit + 1) + '/' + state.hits.length : '0') : '';
-    $('legend').classList.toggle('on', m.all.some(function (n) { return STATUS[n.status]; }) ||
-      (m.edges || []).some(function (e) { return STATUS[e.status]; }));
+    $('legend').classList.toggle('on', m.all.some(function (n) { return STATUS[n.status]; }));
   }
 
-  function toggleFlow(key) {
+  // Scroll an element into view and flash it.
+  function reveal(e) {
+    if (!e) return;
+    e.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    e.classList.remove('flash');
+    void e.offsetWidth;
+    e.classList.add('flash');
+  }
+
+  function toggleRow(key) {
     state.expanded[key] = !state.expanded[key];
-    if (!state.expanded[key] && state.open && state.open.parentKey === key) closeDrawer();
     draw();
-    if (state.expanded[key]) animateSteps(nodeEl(key));
-    var b = state.world.querySelector(sel('data-toggle', key));
+    var b = $('list').querySelector(sel('data-toggle', key));
     if (b) b.focus();
   }
 
-  // Play the step animation only on flows the user just opened, not on each redraw.
-  function animateSteps(card) {
-    var ol = card && card.querySelector('.steps');
-    if (ol) ol.classList.add('enter');
+  function setRowTab(key, tab) {
+    state.rtab[key] = tab;
+    draw();
+    var b = $('list').querySelector(sel('data-for', key) + sel('data-rtab', tab));
+    if (b) b.focus();
   }
 
   function setAll(open) {
     state.expanded = {};
-    if (open && state.m && state.m.flows) state.m.flows.forEach(function (f) { if (f.steps.length) state.expanded[f.key] = true; });
-    if (!open && state.open && state.open.type === 'step') closeDrawer();
+    if (open && state.m) state.m.flows.forEach(function (f) { state.expanded[f.key] = true; });
     draw();
-    if (open && state.m && state.m.flows) state.m.flows.forEach(function (f) { animateSteps(nodeEl(f.key)); });
-    initialView();
-  }
-
-  function select(key, center) {
-    var n = state.byKey[key];
-    if (!n) return;
-    var old = state.sel && nodeEl(state.sel);
-    if (old) old.classList.remove('sel');
-    state.sel = key;
-    var e = nodeEl(key);
-    if (e) e.classList.add('sel');
-    openDrawer(n);
-    if (center) centerOn(key);
-  }
-
-  function projectIndex(id) {
-    return (state.data.projects || []).map(function (p) { return p.id; }).indexOf(id);
-  }
-
-  // The tab that shows a key: a flow or a step in its project; a bare project or an external on System.
-  function tabOf(key) {
-    return key.indexOf('ext:') === 0 || key.indexOf('/') < 0 ? -1 : projectIndex(key.split('/')[0]);
-  }
-
-  function goto(key) {
-    var t = tabOf(key);
-    if (t !== state.pi) switchProject(t, false);
-    var n = state.byKey[key];
-    if (n && n.type === 'step' && !state.expanded[n.parentKey]) {
-      state.expanded[n.parentKey] = true;
-      draw();
-    }
-    select(key, true);
   }
 
   function switchProject(i, focus) {
     var projects = state.data.projects || [];
-    if (i < -1 || i >= projects.length) return;
-    closeDrawer();
+    if (i < 0 || i >= projects.length) return;
     state.pi = i;
     state.hit = -1;
-    try { history.replaceState(null, '', i < 0 ? location.pathname + location.search : '#' + encodeURIComponent(projects[i].id)); } catch (e) { /* file:// in some browsers */ }
+    try { history.replaceState(null, '', '#' + encodeURIComponent(projects[i].id)); } catch (e) { /* file:// in some browsers */ }
     renderTabs();
     draw();
-    initialView();
+    $('list').scrollTop = 0;
     if (focus) $('ptabs').querySelector('.ptab.on').focus();
-  }
-
-  function projectFromHash() {
-    return tabFromHash(location.hash, state.data.projects);
   }
 
   // ---- Search ----
 
   function search(q) {
     state.q = q;
-    // The System tab holds no flows: move to the first project tab with a match.
-    if (state.pi < 0 && q.trim() && !state.sys.all.some(function (n) { return matches(n, q); })) {
+    var p = currentProject();
+    if (q.trim() && p && !model(p).all.some(function (n) { return matches(n, q); })) {
       var t = firstTabWithMatch(state.data, q);
       if (t >= 0) switchProject(t, false);
     }
-    var p = currentProject();
-    if (q.trim() && p) {
-      model(p).flows.forEach(function (f) {
-        if (f.steps.some(function (s) { return matches(s, q); })) state.expanded[f.key] = true;
+    // Open the steps of each flow with a matching step, so that the step line is in the page.
+    if (q.trim() && currentProject()) {
+      model(currentProject()).flows.forEach(function (f) {
+        if (!f.steps.some(function (s) { return matches(s, q); })) return;
+        state.expanded[f.key] = true;
+        state.rtab[f.key] = f.unit === 'action' ? 'actions' : 'steps';
       });
     }
     state.hit = -1;
@@ -877,99 +508,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     if (!state.hits.length) return;
     state.hit = (state.hit + dir + state.hits.length) % state.hits.length;
     draw();
-    centerOn(state.hits[state.hit].key);
-  }
-
-  // ---- Drawer ----
-
-  function refHtml(ref) {
-    return ref ? '<div class="coderef"><code>' + esc(ref) + '</code><button class="btn copy" data-copy="' + esc(ref) + '">Copy</button></div>' : '';
-  }
-
-  // The bullets under a step header. Old data has no details: its text holds them.
-  function detailsHtml(s) {
-    var d = s.details || [];
-    return d.length ? '<ul class="details">' + d.map(function (x) { return '<li>' + inline(x) + '</li>'; }).join('') + '</ul>' : '';
-  }
-
-  function linkList(items) {
-    return items.length ? '<ul class="list">' + items.map(function (x) {
-      return '<li><div><span class="meta">' + esc(x.verb) + '</span> <button class="link" data-goto="' + esc(x.key) + '">' + esc(x.text) + '</button>' +
-        (x.note ? '<div class="meta">' + inline(x.note) + '</div>' : '') + '</div></li>';
-    }).join('') + '</ul>' : '<p class="empty">None.</p>';
-  }
-
-  function keyOf(to) { return state.ext[to] ? 'ext:' + to : to; }
-
-  // The bullets of a step, or of an action with its Call links.
-  function bulletsHtml(s, isAction) { return isAction ? actionDetails(s.details, keyOf) : detailsHtml(s); }
-
-  function body(n, tab) {
-    var it = n.item, act;
-    if (tab === 'step') {
-      act = typeof n.parent.actions === 'string';
-      return bulletsHtml(it, act) + '<h5>Code</h5>' + (refHtml(it.ref) || '<p class="empty">No code reference.</p>') +
-        '<h5>' + (act ? 'Page' : 'Flow') + '</h5><p><button class="link" data-goto="' + esc(n.parentKey) + '">' + esc(n.parent.id) + '</button></p>';
-    }
-    if (tab === 'flows') {
-      var flows = it.flows || [];
-      return flows.length ? '<ol class="list">' + flows.map(function (f) {
-        return '<li><div><button class="link" data-goto="' + esc(it.id + '/' + f.id) + '">' + esc(f.id) + '</button>' +
-          '<div class="meta">' + esc([BADGE[f.trigger], f.entry].filter(Boolean).join(' \u00b7 ')) + '</div></div></li>';
-      }).join('') + '</ol>' : '<p class="empty">No flows.</p>';
-    }
-    if (tab === 'steps' || tab === 'actions') {
-      var steps = it.steps || [], tag = tab === 'actions' ? 'ul' : 'ol';
-      act = tab === 'actions';
-      return steps.length ? '<' + tag + ' class="list">' + steps.map(function (s, i) {
-        return '<li' + (STATUS[s.status] ? ' class="st-' + s.status + '"' : '') + '><span class="n">' + (act ? '•' : esc(s.n)) + '</span><div><button class="link" data-goto="' + esc(n.key + '#' + i) + '">' +
-          inline(s.title || s.text) + '</button>' + bulletsHtml(s, act) + refHtml(s.ref) + '</div></li>';
-      }).join('') + '</' + tag + '>' : '<p class="empty">' + (act ? 'No actions.' : 'No steps.') + '</p>';
-    }
-    if (tab === 'links') {
-      var used = '<h5>Used by</h5>' + linkList((n.into || []).map(function (l) { return { key: l.from, text: l.from, verb: l.verb, note: l.note }; }));
-      if (n.type === 'external') return used;
-      return '<h5>Uses</h5>' + linkList((n.out || []).map(function (l) { return { key: l.key, text: l.to, verb: l.verb, note: l.note }; })) + used;
-    }
-    // A changed item keeps its old values in `old`: show the changed lines of this tab.
-    if (it.old) {
-      var before = tabText(Object.assign({}, it, it.old), tab), after = tabText(it, tab);
-      if (before !== after) return diffHtml(before, after);
-    }
-    return it[tab] ? renderMd(it[tab]) : '<p class="empty">Nothing here yet.</p>';
-  }
-
-  function openDrawer(n) {
-    var tabs = n.type === 'project' ? ['definition', 'flows'] : n.type === 'step' ? [] : n.type === 'external' ? ['links'] :
-      ['definition', typeof n.item.actions === 'string' ? 'actions' : 'steps', 'boundary', 'links', 'rules'];
-    if (tabs.length && tabs.indexOf(state.tab) < 0) state.tab = tabs[0];
-    var h = ['<div class="dh"><div>', '<span class="chip" style="--c: var(--' + n.type + ')">' + esc(n.badge || n.type.toUpperCase()) + '</span>'];
-    if (STATUS[n.status]) h.push('<span class="chip" style="--c: var(--' + n.status + ')">' + n.status + '</span>');
-    h.push('<h2>' + esc(n.label) + '</h2>');
-    if (n.sub && n.type !== 'step') h.push('<div class="meta">' + esc(n.sub) + '</div>');
-    h.push('</div><button class="btn close" data-close aria-label="Close">\u00d7</button></div>');
-    if (tabs.length) {
-      h.push('<div class="tabs" role="tablist">' + tabs.map(function (k) {
-        return '<button class="tab' + (k === state.tab ? ' on' : '') + '" role="tab" aria-selected="' + (k === state.tab) + '" data-tab="' + k + '">' +
-          k.charAt(0).toUpperCase() + k.slice(1) + '</button>';
-      }).join('') + '</div>');
-    }
-    h.push('<div class="db">' + body(n, tabs.length ? state.tab : 'step') + '</div>');
-    var d = $('drawer');
-    d.innerHTML = h.join('');
-    d.classList.add('open');
-    d.setAttribute('aria-hidden', 'false');
-    state.open = n;
-  }
-
-  function closeDrawer() {
-    var d = $('drawer');
-    d.classList.remove('open');
-    d.setAttribute('aria-hidden', 'true');
-    var old = state.sel && state.world && nodeEl(state.sel);
-    if (old) old.classList.remove('sel');
-    state.sel = null;
-    state.open = null;
+    reveal(nodeEl(state.hits[state.hit]));
   }
 
   function copy(value, btn) {
@@ -988,51 +527,24 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 
   // ---- Wiring ----
 
-  function activate(target) {
-    var g = target.closest('[data-goto]');
-    if (g) { goto(g.getAttribute('data-goto')); return true; }
-    var tg = target.closest('[data-toggle]');
-    if (tg) { toggleFlow(tg.getAttribute('data-toggle')); return true; }
-    var node = target.closest('[data-key]');
-    if (!node) return false;
-    var key = node.getAttribute('data-key'), n = state.byKey[key];
-    if (state.pi < 0 && n && n.type === 'project') switchProject(projectIndex(key), false);
-    else select(key, false);
-    return true;
-  }
-
   function main() {
     applyTheme();
     if (media && media.addEventListener) media.addEventListener('change', applyTheme);
     state.data = JSON.parse($('mirror-data').textContent);
-    state.world = $('world');
-    state.links = linkIndex(state.data);
-    state.ext = {};
-    (state.data.external || []).forEach(function (x) { state.ext[x.id] = 1; });
-    state.sys = systemModel(state.data, state.links);
     document.body.classList.toggle('review', (state.data.projects || []).some(hasChanges));
     document.title = state.data.title || 'Mirror';
     $('title').textContent = state.data.title || 'Mirror';
     $('meta').textContent = state.data.generated ? 'generated ' + state.data.generated : '';
-    state.pi = projectFromHash();
+    state.pi = tabFromHash(location.hash, state.data.projects);
     renderTabs();
     draw();
-    initialView();
-    bindCanvas($('canvas'));
 
-    state.world.addEventListener('click', function (e) { if (!state.dragged) activate(e.target); });
-    state.world.addEventListener('keydown', function (e) {
-      // Buttons fire their own click on Enter and Space.
-      if ((e.key !== 'Enter' && e.key !== ' ') || e.target.tagName === 'BUTTON') return;
-      if (activate(e.target)) e.preventDefault();
-    });
-    $('drawer').addEventListener('click', function (e) {
+    $('list').addEventListener('click', function (e) {
       var b = e.target.closest('button');
       if (!b) return;
-      if (b.hasAttribute('data-close')) closeDrawer();
-      else if (b.hasAttribute('data-tab')) { state.tab = b.getAttribute('data-tab'); openDrawer(state.open); }
+      if (b.hasAttribute('data-toggle')) toggleRow(b.getAttribute('data-toggle'));
+      else if (b.hasAttribute('data-rtab')) setRowTab(b.getAttribute('data-for'), b.getAttribute('data-rtab'));
       else if (b.hasAttribute('data-copy')) copy(b.getAttribute('data-copy'), b);
-      else if (b.hasAttribute('data-goto')) goto(b.getAttribute('data-goto'));
     });
     $('ptabs').addEventListener('click', function (e) {
       var b = e.target.closest('[data-pi]');
@@ -1043,7 +555,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
       else if (e.key === 'ArrowLeft') switchProject(state.pi - 1, true);
     });
     window.addEventListener('hashchange', function () {
-      var i = projectFromHash();
+      var i = tabFromHash(location.hash, state.data.projects);
       if (i !== state.pi) switchProject(i, false);
     });
     $('q').addEventListener('input', function (e) { search(e.target.value); });
@@ -1054,13 +566,9 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     $('collapse-all').addEventListener('click', function () { setAll(false); });
     $('expand-all').addEventListener('click', function () { setAll(true); });
     $('theme').addEventListener('click', toggleTheme);
-    $('zoom-in').addEventListener('click', function () { zoomBy(1.25); });
-    $('zoom-out').addEventListener('click', function () { zoomBy(0.8); });
-    $('fit').addEventListener('click', fit);
     document.addEventListener('keydown', function (e) {
       var typing = /^(INPUT|TEXTAREA)$/.test(document.activeElement && document.activeElement.tagName);
-      if (e.key === 'Escape' && state.open) closeDrawer();
-      else if (e.key === '/' && !typing) { e.preventDefault(); $('q').focus(); }
+      if (e.key === '/' && !typing) { e.preventDefault(); $('q').focus(); }
     });
   }
 

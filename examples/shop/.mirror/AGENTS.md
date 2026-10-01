@@ -10,10 +10,10 @@ change the mirror, get a review, then change the code.
 - `.mirror/xsrc/<project>/definition.md`: what the project is for, its stack, its technical decisions.
 - `.mirror/xsrc/<project>/<flow-or-page>/`: `definition.md`, `steps.md` (a page:
   `actions.md`), `boundary.md`, `rules.md`.
-- `.mirror/visualize.html`: the current graph. `.mirror/visualize.md`: its colors and sizes.
+- `.mirror/visualize.html`: the current viewer page. `.mirror/visualize.md`: its colors and fonts.
 - `.mirror/rules/`: the format of each document.
 - `.mirror/WORKFLOW.md`: the steps of each change.
-- `.mirror/BUILD.md`: how to build the graph and a review page.
+- `.mirror/BUILD.md`: how to build the viewer page and a review page.
 - `.mirror/features/`: the review page of each past change.
 
 ## Rules

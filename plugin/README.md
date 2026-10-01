@@ -2,7 +2,7 @@
 
 **Your code, mirrored. Intent first, code second.**
 
-Mirror keeps the intent of each flow and page next to the code, and draws it as a graph in
+Mirror keeps the intent of each flow and page next to the code, and shows it as a list in
 one HTML file. Claude changes the mirror first, shows you a review page, and changes the
 code only after your OK.
 
@@ -22,7 +22,7 @@ From then on, Claude changes the mirror first, you review it, then the code foll
 ## What it does
 
 - **Init.** Finds each flow and page in your code and writes down its intent.
-- **Graph.** Draws all flows and pages in one HTML page you can search and open.
+- **Viewer.** Lists all flows and pages in one HTML page you can search and open.
 - **Review.** For each change, Claude updates the mirror and shows you a review page. The
   code changes only after your OK.
 

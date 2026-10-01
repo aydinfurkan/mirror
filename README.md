@@ -3,7 +3,7 @@
 **Your code, mirrored. Intent first, code second.**
 
 A Claude Code plugin. Mirror keeps the intent of each flow and page next to the code, and
-draws it as a graph.
+shows it in one HTML page.
 
 ## Install
 

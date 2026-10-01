@@ -1,10 +1,10 @@
 # Shop example
 
 A small online shop, described only by its mirror. **This example has no code.** The `Code:`
-paths in the mirror show where the code would be. Use it to see what Mirror draws for
-three projects, five external systems, and the links between them.
+paths in the mirror show where the code would be. Use it to see what Mirror shows for
+three projects that share five external systems.
 
-Open `.mirror/visualize.html` in a browser. Start on the **System** tab.
+Open `.mirror/visualize.html` in a browser. Each project has a tab. Click a flow to open it.
 
 ## Projects
 
