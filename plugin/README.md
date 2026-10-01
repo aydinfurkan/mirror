@@ -28,15 +28,14 @@ From then on, Claude changes the mirror first, you review it, then the code foll
 
 ### What it runs, reads and sends
 
-- **Hook.** At session start, a small Node.js script loads the mirror rules into Claude.
+- **Hook.** At session start, a shell command loads the mirror rules into Claude.
 - **Files.** Reads your code. Writes only to the `.mirror/` folder.
-- **Commands.** Runs `node` to check a page and `code` to open it in VS Code.
+- **Commands.** Runs `code` to open a page in VS Code.
 - **Network.** No network calls. The HTML pages load fonts from Google Fonts.
 
 ## Requirements
 
 - Claude Code.
-- Node.js 18 or later, for the hook and the page check.
 - VS Code with the `code` command, optional, to open the pages.
 
 ## License

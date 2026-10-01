@@ -86,17 +86,15 @@ Follow the rule of each document in `${CLAUDE_PLUGIN_ROOT}/templates/rules/`.
 1. Copy `${CLAUDE_PLUGIN_ROOT}/templates/AGENTS.md` to `.mirror/AGENTS.md` if it does not exist.
 2. Copy `${CLAUDE_PLUGIN_ROOT}/templates/WORKFLOW.md` to `.mirror/WORKFLOW.md` if it does not exist.
 3. Copy `${CLAUDE_PLUGIN_ROOT}/templates/BUILD.md` to `.mirror/BUILD.md` if it does not exist.
-4. Copy `${CLAUDE_PLUGIN_ROOT}/templates/build.mjs` to `.mirror/build.mjs`. Replace an older copy.
-5. Copy each file of `${CLAUDE_PLUGIN_ROOT}/templates/rules/` and its `examples/` folder to `.mirror/rules/`. Skip each file that exists.
+4. Copy each file of `${CLAUDE_PLUGIN_ROOT}/templates/rules/` and its `examples/` folder to `.mirror/rules/`. Skip each file that exists.
 
 ## 5. Draw
 
 1. Copy `${CLAUDE_PLUGIN_ROOT}/templates/visualize.md` to `.mirror/visualize.md` if it does
    not exist.
-2. Run `node .mirror/build.mjs .mirror --template "${CLAUDE_PLUGIN_ROOT}/templates/visualize.html"`.
-   When it prints link errors, fix them and run it again.
-3. Run `node "${CLAUDE_PLUGIN_ROOT}/templates/visualize.check.mjs" .mirror/visualize.html`.
-   It must print `ok`.
+2. Build `.mirror/visualize.html` with "Build the data" and "Write the page" in
+   `.mirror/BUILD.md`. Use `${CLAUDE_PLUGIN_ROOT}/templates/visualize.html` as the template.
+3. Check the page with step 4 of "Write the page" in `.mirror/BUILD.md`.
 
 ## 6. Report
 

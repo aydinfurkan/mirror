@@ -31,24 +31,27 @@
 html, body { margin: 0; height: 100%; }
 body { background: var(--bg); color: var(--text); font: 18px/1.5 var(--font); display: flex; flex-direction: column; overflow: hidden; -webkit-font-smoothing: antialiased; }
 button, input { font: inherit; color: inherit; }
-header { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--border); z-index: 2; }
+header { display: flex; align-items: center; gap: 12px; margin: 12px 12px 0; padding: 8px 10px 8px 16px; background: var(--panel); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 2px 10px rgb(0 0 0 / .06); z-index: 2; }
 .brand { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
 .brand h1 { font-size: 19px; font-weight: 650; margin: 0; white-space: nowrap; }
 .brand h1::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 8px; background: linear-gradient(135deg, var(--project), var(--flow)); }
 .meta { color: var(--muted); font-size: 14px; }
 .search { position: relative; flex: 1; max-width: 420px; margin: 0 auto; }
-.search input { width: 100%; height: 34px; font-size: 15px; padding: 0 56px 0 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); outline: none; }
+.search input { width: 100%; height: 36px; font-size: 15px; padding: 0 56px 0 36px; border: 1px solid transparent; border-radius: 10px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='7' cy='7' r='5'/%3E%3Cpath d='m11 11 3.5 3.5'/%3E%3C/svg%3E") no-repeat 12px 50%, var(--bg); outline: none; }
 .search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
 .search .count { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; }
 .tools { display: flex; gap: 6px; font-size: 15px; }
 .btn { height: 34px; min-width: 34px; padding: 0 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); cursor: pointer; white-space: nowrap; }
 .btn:hover { border-color: var(--accent); }
+.tools .btn { background: var(--bg); border-color: transparent; font-weight: 500; }
+.tools .btn:hover { border-color: var(--border); }
 .btn:focus-visible, .tab:focus-visible, .link:focus-visible, .toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.ptabs { display: flex; gap: 2px; padding: 0 12px; overflow-x: auto; background: var(--panel); border-bottom: 1px solid var(--border); z-index: 2; }
+.ptabs { align-self: flex-start; display: flex; gap: 4px; max-width: calc(100% - 24px); margin: 10px 12px 0; padding: 4px; overflow-x: auto; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 2px 10px rgb(0 0 0 / .06); z-index: 2; }
 .ptabs:empty { display: none; }
-.ptab { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--muted); font-weight: 600; white-space: nowrap; cursor: pointer; }
+.ptab { display: flex; align-items: center; gap: 8px; padding: 6px 14px; border: 0; border-radius: 9px; background: none; color: var(--muted); font-weight: 500; white-space: nowrap; cursor: pointer; }
+.ptab:hover { background: color-mix(in srgb, var(--text) 5%, transparent); }
 .ptab small { font-weight: 400; font-size: 13px; }
-.ptab.on { color: var(--text); border-bottom-color: var(--accent); }
+.ptab.on { color: var(--flow); background: color-mix(in srgb, var(--flow) 12%, transparent); }
 .ptab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .ptab .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--changed); }
 main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
@@ -127,16 +130,16 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 #legend.on { display: flex; }
 #legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; background: var(--c); }
 /* Drawer */
-#drawer { position: absolute; top: 0; right: 0; bottom: 0; width: min(420px, 100%); display: flex; flex-direction: column; background: var(--panel); border-left: 1px solid var(--border); box-shadow: -8px 0 24px rgb(0 0 0 / .08); transform: translateX(100%); visibility: hidden; transition: transform .2s ease, visibility .2s; z-index: 3; }
+#drawer { position: absolute; top: 12px; right: 12px; bottom: 12px; width: min(420px, calc(100% - 24px)); overflow: hidden; border: 1px solid var(--border); border-radius: 16px; display: flex; flex-direction: column; background: var(--panel); box-shadow: -8px 0 24px rgb(0 0 0 / .08); transform: translateX(100%); visibility: hidden; transition: transform .2s ease, visibility .2s; z-index: 3; }
 #drawer.open { transform: none; visibility: visible; }
 .dh { display: flex; align-items: flex-start; gap: 10px; padding: 16px 16px 10px; }
 .dh h2 { font-size: 20px; line-height: 1.35; margin: 6px 0 2px; overflow-wrap: anywhere; }
 .dh > div { flex: 1; min-width: 0; }
 .dh .close { flex: none; }
 .chip { display: inline-block; margin-right: 4px; padding: 1px 8px; border-radius: 999px; font-size: 15px; font-weight: 700; letter-spacing: .03em; color: var(--c); background: color-mix(in srgb, var(--c) 15%, transparent); }
-.tabs { display: flex; gap: 2px; padding: 0 12px; border-bottom: 1px solid var(--border); }
-.tab { padding: 8px 10px; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--muted); cursor: pointer; }
-.tab.on { color: var(--text); border-bottom-color: var(--accent); }
+.tabs { display: flex; gap: 4px; padding: 0 16px 10px; border-bottom: 1px solid var(--border); }
+.tab { padding: 5px 12px; border: 0; border-radius: 8px; background: none; color: var(--muted); font-weight: 500; cursor: pointer; }
+.tab.on { color: var(--flow); background: color-mix(in srgb, var(--flow) 12%, transparent); }
 .db { flex: 1; overflow: auto; padding: 12px 16px 24px; }
 .db h4, .db h5, .db h6 { margin: 18px 0 6px; font-size: 16px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
 .db code { font: 16px var(--mono); padding: 1px 5px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg); }
@@ -275,8 +278,8 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
   }
 
   // One project as cards: the project, its flows, and the steps inside each flow.
-  // The build puts the links of each flow in `out` and `into`.
-  function model(p) {
+  // idx (from linkIndex) adds the outgoing and incoming links of each flow.
+  function model(p, idx) {
     var pn = projectNode(p);
     var all = [pn];
     var flows = (p.flows || []).map(function (f) {
@@ -284,8 +287,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
       var fn = { key: key, type: f.kind === 'page' ? 'page' : 'flow', title: f.id, label: f.id, sub: f.entry || '',
         badge: BADGE[f.trigger] || '', status: f.status || null, item: f };
       fn.unit = typeof f.actions === 'string' ? 'action' : 'step';
-      fn.out = f.out || [];
-      fn.into = f.into || [];
+      if (idx) { fn.out = idx.out[key] || []; fn.into = idx.into[key] || []; }
       all.push(fn);
       fn.steps = (f.steps || []).map(function (s, i) {
         var sn = { key: key + '#' + i, type: 'step', title: s.n + '. ' + s.text, label: s.title || s.text, num: s.n, sub: s.ref || '',
@@ -311,16 +313,15 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     return out;
   }
 
-  // The System tab as cards: each project, then each external system. The build puts the
-  // incoming links of each external in `into`, and the lines in `system.edges`.
-  function systemModel(data) {
+  // The System tab as cards: each project, then each external system.
+  function systemModel(data, idx) {
     var projects = (data.projects || []).map(projectNode);
     var externals = (data.external || []).map(function (x) {
       var key = 'ext:' + x.id;
       return { key: key, type: 'external', title: x.id, label: x.id, sub: x.name || '', badge: String(x.kind || '').toUpperCase(),
-        status: x.status || null, item: x, out: [], into: x.into || [] };
+        status: x.status || null, item: x, out: [], into: idx.into[key] || [] };
     });
-    return { projects: projects, externals: externals, all: projects.concat(externals), edges: (data.system && data.system.edges) || [] };
+    return { projects: projects, externals: externals, all: projects.concat(externals), edges: systemEdges(data) };
   }
 
   // The index of the first project with a flow or step that matches the search, or -1.
@@ -428,8 +429,129 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     return ['trigger: ' + (it.trigger || ''), 'entry: ' + (it.entry || ''), 'group: ' + (it.group || ''), '', it.definition || ''].join('\n');
   }
 
+  var VERBS = ['calls', 'publishes', 'consumes', 'reads', 'writes'];
+  var LINK = /^\s*[-*]\s+(\w+)\s+`([^`]+)`\s*(?::\s*(.*?))?\s*$/;
+
+  // The links in the `## Dependencies` section of a boundary text. A bullet that starts with a
+  // verb and has a backtick but does not match the link form is `bad`. Other bullets are notes.
+  function parseLinks(md) {
+    var out = [], on = false;
+    String(md || '').split(/\r?\n/).forEach(function (line) {
+      if (/^#{1,6}\s/.test(line)) { on = /^##\s+Dependencies\s*$/i.test(line); return; }
+      if (!on || !/^\s*[-*]\s/.test(line)) return;
+      var first = (/^\s*[-*]\s+(\w+)/.exec(line) || [])[1];
+      if (VERBS.indexOf(String(first).toLowerCase()) < 0) return;
+      var m = LINK.exec(line);
+      if (m) out.push({ verb: m[1].toLowerCase(), to: m[2].trim(), note: m[3] || '' });
+      else if (line.indexOf('`') >= 0) out.push({ bad: true, text: line.trim() });
+    });
+    return out;
+  }
+
+  var CALL = /^\s*[-*]\s+Call:\s*`([^`]+)`\s*(?::\s*(.*?))?\s*$/i;
+
+  // The `Call:` bullets of an actions text, as `calls` links. A bullet that starts like a call
+  // (`Calls:`, `Call` without a colon, `**Call:**`) but does not match the call form is `bad`.
+  // Other bullets are not links.
+  function parseCalls(md) {
+    var out = [];
+    String(md || '').split(/\r?\n/).forEach(function (line) {
+      if (!/^\s*[-*]\s+\**calls?\b/i.test(line)) return;
+      var m = CALL.exec(line);
+      out.push(m ? { verb: 'calls', to: m[1].trim(), note: m[2] || '' } : { bad: true, call: true, text: line.trim() });
+    });
+    return out;
+  }
+
+  // The links of a flow: the `Call:` lines of its actions when it has actions, else the
+  // Dependencies of its boundary. old: use the values before a review change. `old.actions: null`
+  // means the old flow had no actions.
+  function flowLinks(f, old) {
+    var o = old && f.old ? f.old : {};
+    var actions = 'actions' in o ? o.actions : f.actions;
+    var boundary = 'boundary' in o ? o.boundary : f.boundary;
+    return typeof actions === 'string' ? parseCalls(actions) : parseLinks(boundary);
+  }
+
+  function extIds(data) {
+    var ext = {};
+    (data.external || []).forEach(function (x) { ext[x.id] = 1; });
+    return ext;
+  }
+
+  // Each flow's outgoing links, and each target's incoming links. Keys: `p/f`, `p`, `ext:<id>`.
+  function linkIndex(data) {
+    var ext = extIds(data), out = {}, into = {};
+    (data.projects || []).forEach(function (p) {
+      (p.flows || []).forEach(function (f) {
+        var from = p.id + '/' + f.id;
+        out[from] = flowLinks(f).filter(function (l) { return !l.bad; }).map(function (l) {
+          var key = ext[l.to] ? 'ext:' + l.to : l.to;
+          (into[key] = into[key] || []).push({ from: from, verb: l.verb, note: l.note });
+          return { verb: l.verb, to: l.to, note: l.note, key: key };
+        });
+      });
+    });
+    return { out: out, into: into };
+  }
+
+  // The lines of the System tab: one per project pair or project-external pair, counted by verb.
+  // A line only in the new links is `added`. A line only in the old links (`old.boundary`) is `removed`.
+  function systemEdges(data) {
+    var ext = extIds(data), pids = {}, edges = [], by = {};
+    (data.projects || []).forEach(function (p) { pids[p.id] = 1; });
+    function add(side, from, l) {
+      if (l.bad) return;
+      var to = ext[l.to] ? 'ext:' + l.to : l.to.split('/')[0];
+      if (to === from || !(ext[l.to] || pids[to])) return;
+      var e = by[from + '>' + to];
+      if (!e) edges.push(e = by[from + '>' + to] = { from: from, to: to, old: {}, now: {} });
+      e[side][l.verb] = (e[side][l.verb] || 0) + 1;
+    }
+    (data.projects || []).forEach(function (p) {
+      (p.flows || []).forEach(function (f) {
+        if (f.status !== 'added') flowLinks(f, true).forEach(function (l) { add('old', p.id, l); });
+        if (f.status !== 'removed') flowLinks(f).forEach(function (l) { add('now', p.id, l); });
+      });
+    });
+    return edges.map(function (e) {
+      var had = Object.keys(e.old).length > 0, has = Object.keys(e.now).length > 0, c = has ? e.now : e.old;
+      return { from: e.from, to: e.to, status: had && has ? null : has ? 'added' : 'removed',
+        label: VERBS.filter(function (v) { return c[v]; }).map(function (v) { return c[v] + ' ' + v; }).join(' · ') };
+    });
+  }
+
+  // Problems in the links: an external with a project id, a bad bullet, an unknown target.
+  function linkErrors(data) {
+    var ids = {}, errs = [];
+    (data.projects || []).forEach(function (p) {
+      ids[p.id] = 1;
+      (p.flows || []).forEach(function (f) { if (f.status !== 'removed') ids[p.id + '/' + f.id] = 1; });
+    });
+    (data.external || []).forEach(function (x) {
+      if (ids[x.id]) errs.push('external `' + x.id + '` has the id of a project');
+      else if (x.status !== 'removed') ids[x.id] = 1;
+    });
+    (data.projects || []).forEach(function (p) {
+      (p.flows || []).forEach(function (f) {
+        if (f.status === 'removed') return;
+        var at = p.id + '/' + f.id + ': ';
+        flowLinks(f).forEach(function (l) {
+          if (l.bad && l.call) errs.push(at + 'write the call as "- Call: `<target>`: <note>": ' + l.text);
+          else if (l.bad) errs.push(at + 'write the link as "- <verb> `<target>`: <note>": ' + l.text);
+          else if (!ids[l.to]) errs.push(at + 'unknown target `' + l.to + '`');
+        });
+        if (typeof f.actions === 'string' && parseLinks(f.boundary).length) {
+          errs.push(at + 'move the links of boundary.md to `Call:` lines in actions.md');
+        }
+      });
+    });
+    return errs;
+  }
+
   globalThis.MirrorViewer = { esc: esc, renderMd: renderMd, summary: summary, model: model, groups: groups, cardHtml: cardHtml, matches: matches, hasChanges: hasChanges, diffHtml: diffHtml,
-    systemModel: systemModel, tabFromHash: tabFromHash, firstTabWithMatch: firstTabWithMatch, actionDetails: actionDetails };
+    parseLinks: parseLinks, linkIndex: linkIndex, systemEdges: systemEdges, linkErrors: linkErrors, systemModel: systemModel, tabFromHash: tabFromHash, firstTabWithMatch: firstTabWithMatch,
+    parseCalls: parseCalls, flowLinks: flowLinks, actionDetails: actionDetails };
   if (typeof document === 'undefined') return;
 
   // ---- Browser only below ----
@@ -628,7 +750,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
       w.innerHTML = '<p class="empty-state">No projects yet. Run mirror:init.</p>';
       return;
     }
-    var m = state.m = sys ? state.sys : model(currentProject());
+    var m = state.m = sys ? state.sys : model(currentProject(), state.links);
     state.byKey = {};
     m.all.forEach(function (n) { state.byKey[n.key] = n; });
     state.hits = m.all.filter(function (n) { return matches(n, state.q); });
@@ -884,9 +1006,10 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     if (media && media.addEventListener) media.addEventListener('change', applyTheme);
     state.data = JSON.parse($('mirror-data').textContent);
     state.world = $('world');
+    state.links = linkIndex(state.data);
     state.ext = {};
     (state.data.external || []).forEach(function (x) { state.ext[x.id] = 1; });
-    state.sys = systemModel(state.data);
+    state.sys = systemModel(state.data, state.links);
     document.body.classList.toggle('review', (state.data.projects || []).some(hasChanges));
     document.title = state.data.title || 'Mirror';
     $('title').textContent = state.data.title || 'Mirror';
