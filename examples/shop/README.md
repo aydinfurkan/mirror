@@ -34,3 +34,19 @@ Open `.mirror/visualize.html` in a browser. Start on the **System** tab.
 4. `worker/send-receipt` consumes the event and calls `mailer`. `worker/update-stock` consumes
    it and writes the stock to `shop-db`.
 5. `web/order-status` calls `api/get-order` until the order is paid.
+
+## A review example
+
+`.mirror/features/0001-cancel-order.html` is the review page of one change: "Let a customer
+cancel a paid order for 24 hours." Open it in a browser. It shows the change as it was before
+the OK:
+
+| Item | Status | What changes |
+| --- | --- | --- |
+| `api/cancel-order` | added | A new flow. It refunds with `stripe`, writes `shop-db`, and publishes `order.cancelled` to `order-events`. |
+| `web/order-status` | changed | A new action "Cancel the order" calls `api/cancel-order`. |
+| `worker/update-stock` | changed | It also consumes `order.cancelled` and puts the items back in the stock. |
+
+The worker is an affected flow: it consumes `order-events`, where the new flow publishes. The
+mirror in `.mirror/xsrc/` and `.mirror/visualize.html` show the state after the OK. See
+`.mirror/WORKFLOW.md` for the steps of a change.

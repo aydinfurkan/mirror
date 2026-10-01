@@ -1,4 +1,4 @@
-**Relates to:** `api/stripe-webhook`
+**Relates to:** `api/stripe-webhook`, `api/cancel-order`
 **Inherits:** none
 **Supersedes:** none
 
@@ -9,6 +9,7 @@ The stock must show what is left after each paid order, so the shop does not sel
 ## Goal
 
 - Lower the stock by the paid quantity of each item.
+- Raise the stock by the quantity of each item of a cancelled order.
 
 ## Non-goal
 
@@ -22,6 +23,7 @@ The stock must show what is left after each paid order, so the shop does not sel
 ## Acceptance criteria
 
 - Lower the stock for an `order.paid` event.
+- Raise the stock for an `order.cancelled` event.
 - Change nothing for a second copy of the same event.
 - Change all items or none.
 

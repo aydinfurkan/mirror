@@ -1,4 +1,4 @@
-**Relates to:** `api/get-order`, `web/checkout`
+**Relates to:** `api/get-order`, `api/cancel-order`, `web/checkout`
 **Inherits:** none
 **Supersedes:** none
 
@@ -9,6 +9,7 @@ Stripe sends the customer back to the shop. The webhook can come a few seconds a
 ## Goal
 
 - Show the customer that the order is paid.
+- Let the customer cancel a paid order for 24 hours.
 
 ## Non-goal
 
@@ -23,6 +24,8 @@ Stripe sends the customer back to the shop. The webhook can come a few seconds a
 - Show "Paid" for a paid order.
 - Ask again while the order is `pending`, at most 10 times.
 - Clear the cart when the order is paid.
+- Show "Cancel order" only for a paid order of the last 24 hours.
+- Ask the customer to confirm before the cancel.
 
 ## Open Questions
 

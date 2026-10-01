@@ -12,4 +12,5 @@ Route `/orders/:id`:
 | --- | --- | --- |
 | Paid | "Paid", the items and the total. | The status is `paid`. |
 | Pending | "Waiting for the payment…" | The status is `pending`. |
+| Cancelled | "Cancelled", the items and the total. | The status is `cancelled`. |
 | Alert | "Order not found." | The API returns 404. |

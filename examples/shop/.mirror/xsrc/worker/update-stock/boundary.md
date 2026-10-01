@@ -1,6 +1,6 @@
 ## Input
 
-Topic `order.events`, event `order.paid`:
+Topic `order.events`, events `order.paid` and `order.cancelled`:
 
 | Field | Type | Required | Validation |
 | --- | --- | --- | --- |
@@ -18,10 +18,11 @@ Example:
 
 | Result | When |
 | --- | --- |
-| Lower the stock of each item | The event is new. |
-| Do nothing | The event is not `order.paid`, or its id is already recorded. |
+| Lower the stock of each item | The event is a new `order.paid`. |
+| Raise the stock of each item | The event is a new `order.cancelled`. |
+| Do nothing | The event is of another type, or its id is already recorded. |
 
 ## Dependencies
 
-- consumes `order-events`: the event `order.paid`.
+- consumes `order-events`: the events `order.paid` and `order.cancelled`.
 - writes `shop-db`: the stock and `stock_events`.
