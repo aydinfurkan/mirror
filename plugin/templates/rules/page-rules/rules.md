@@ -1,0 +1,29 @@
+# Rule: page `rules.md`
+
+Path: `.mirror/xsrc/<project>/<page>/rules.md`.
+
+## Header
+
+Three lines at the top. Write `none` when a line has no value.
+
+- `**Relates to:**`: the other flows or pages that this page calls or links to, as
+  `<project>/<flow>` in backticks.
+- `**Inherits:**`: the pages or flows whose rules also apply here. Name what is inherited. Do not
+  repeat those rules.
+- `**Supersedes:**`: the pages or rules that this one replaces.
+
+## Sections
+
+In this order. Each section is a bullet list, except `## Context`.
+
+- `## Context`: one to three short sentences. Who uses the page, and why.
+- `## Goal`: what the page does for the user.
+- `## Non-goal`: what the page does not do on purpose.
+- `## Constraints`: the rules that need state or context: for example "only the author can
+  delete a post". Put the look of the page in `design.md`, not here.
+- `## Acceptance criteria`: each item becomes a test.
+- `## Open Questions`: what is not decided yet. Write `- None.` when all is decided.
+
+## Example
+
+See `.mirror/rules/page-rules/examples/rules.md`.

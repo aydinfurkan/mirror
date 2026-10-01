@@ -10,7 +10,7 @@ Open `.mirror/visualize.html` in a browser. Each project has a tab. Click a flow
 
 | Project | Kind | What it does |
 | --- | --- | --- |
-| `web` | frontend | The shop pages. Each page has `actions.md`. |
+| `web` | frontend | The shop pages. Each page has `actions.md` and `design.md`. |
 | `api` | backend | The HTTP API. |
 | `worker` | consumer | Handles the events of the Kafka topic `order.events`. |
 
@@ -49,4 +49,4 @@ the OK:
 
 The worker is an affected flow: it consumes `order-events`, where the new flow publishes. The
 mirror in `.mirror/xsrc/` and `.mirror/visualize.html` show the state after the OK. See
-`.mirror/WORKFLOW.md` for the steps of a change.
+`.mirror/rules/WORKFLOW.md` for the steps of a change.

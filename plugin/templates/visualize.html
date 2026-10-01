@@ -322,7 +322,8 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
   }
 
   function rowTabs(n) {
-    return n.type === 'project' ? ['definition'] : ['definition', n.unit === 'action' ? 'actions' : 'steps', 'boundary', 'rules'];
+    return n.type === 'project' ? ['definition'] : n.type === 'page' ? ['definition', n.unit === 'action' ? 'actions' : 'steps', 'design', 'rules']
+      : ['definition', 'steps', 'boundary', 'rules'];
   }
 
   function refHtml(ref) {

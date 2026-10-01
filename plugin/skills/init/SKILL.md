@@ -37,7 +37,7 @@ existing files. Skip each existing `config.json` entry, `definition.md` and flow
    `database`, `queue`, `cache`, `storage`, `api` or `service`. Do not use the id of a project.
 5. Show the projects and the external systems to the user as two tables. Wait for an OK. Apply
    the changes the user asks for.
-6. Write `.mirror/config.json`:
+6. Write `.mirror/xsrc/config.json`:
 
 ```json
 { "projects": {
@@ -66,14 +66,17 @@ Show the list per project to the user. Wait for an OK. The user can rename, merg
 
 ## 3. Write the documents
 
-Follow the rule of each document in `${CLAUDE_PLUGIN_ROOT}/templates/rules/`.
+Follow the rule of each document in `${CLAUDE_PLUGIN_ROOT}/templates/rules/`: `project-rules/`,
+`flow-rules/` and `page-rules/`.
 
-1. Write `.mirror/xsrc/<project>/definition.md`. Use `rules/project-definition.md`.
+1. Write `.mirror/xsrc/<project>/definition.md`. Use `project-rules/definition.md`.
 2. For each flow or page, trace the code from the entry point. Then write the four files in
-   `.mirror/xsrc/<project>/<flow>/`. Use `rules/flow-definition.md`, `rules/steps.md` (a page:
-   `rules/actions.md`), `rules/boundary.md` and `rules/rules.md`.
-3. Read the request schemas and validators to fill the Input table of `boundary.md`. Read the
-   error mapping to fill the Output table.
+   `.mirror/xsrc/<project>/<flow-or-page>/`. For a flow, use `definition.md`, `steps.md`,
+   `boundary.md` and `rules.md` in `flow-rules/`. For a page, use `definition.md`,
+   `actions.md`, `design.md` and `rules.md` in `page-rules/`.
+3. For a flow, read the request schemas and validators to fill the Input table of `boundary.md`.
+   Read the error mapping to fill the Output table. For a page, read the components, the styles
+   and the design links to write `design.md`.
 4. Write the links. For a flow, write them in `## Dependencies` of `boundary.md` with the
    "Links" rule. For a page, write one `Call:` bullet per call in `actions.md`. Find the actions
    from the load effect, the event handlers and the form submits. For each API call, find the
@@ -83,22 +86,21 @@ Follow the rule of each document in `${CLAUDE_PLUGIN_ROOT}/templates/rules/`.
 
 ## 4. Agent rules and build guide
 
-1. Copy `${CLAUDE_PLUGIN_ROOT}/templates/AGENTS.md` to `.mirror/AGENTS.md` if it does not exist.
-2. Copy `${CLAUDE_PLUGIN_ROOT}/templates/WORKFLOW.md` to `.mirror/WORKFLOW.md` if it does not exist.
-3. Copy `${CLAUDE_PLUGIN_ROOT}/templates/BUILD.md` to `.mirror/BUILD.md` if it does not exist.
-4. Copy each file of `${CLAUDE_PLUGIN_ROOT}/templates/rules/` and its `examples/` folder to `.mirror/rules/`. Skip each file that exists.
+1. Copy each file and folder of `${CLAUDE_PLUGIN_ROOT}/templates/rules/` to `.mirror/rules/`:
+   `AGENTS.md`, `WORKFLOW.md`, `BUILD.md`, `project-rules/`, `flow-rules/` and `page-rules/`.
+   Skip each file that exists.
 
 ## 5. Draw
 
 1. Copy `${CLAUDE_PLUGIN_ROOT}/templates/visualize.md` to `.mirror/visualize.md` if it does
    not exist.
 2. Build `.mirror/visualize.html` with "Build the data" and "Write the page" in
-   `.mirror/BUILD.md`. Use `${CLAUDE_PLUGIN_ROOT}/templates/visualize.html` as the template.
-3. Check the page with step 4 of "Write the page" in `.mirror/BUILD.md`.
+   `.mirror/rules/BUILD.md`. Use `${CLAUDE_PLUGIN_ROOT}/templates/visualize.html` as the template.
+3. Check the page with step 4 of "Write the page" in `.mirror/rules/BUILD.md`.
 
 ## 6. Report
 
 1. Open `.mirror/visualize.html` in VS Code with `code -r <file>`. If `code` is not found,
    tell the user to open the file.
 2. Tell the user the number of projects, flows and pages. From now on, each change goes
-   through the change workflow in `.mirror/AGENTS.md`: mirror first, then review, then code.
+   through the change workflow in `.mirror/rules/AGENTS.md`: mirror first, then review, then code.
