@@ -24,6 +24,6 @@ A customer opens the shop. The page shows all the products that are for sale.
 - Show the products for sale, sorted by name.
 - Show an empty list when no product is for sale.
 
-## Open Questions
+## Open questions
 
 - None.

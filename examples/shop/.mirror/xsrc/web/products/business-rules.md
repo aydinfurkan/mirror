@@ -24,6 +24,6 @@ A customer opens the shop to see what it sells.
 - Show "Sold out" for a product with no stock.
 - Show an error when the products cannot be loaded.
 
-## Open Questions
+## Open questions
 
 - None.

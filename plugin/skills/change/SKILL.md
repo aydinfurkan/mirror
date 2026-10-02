@@ -5,8 +5,6 @@ description: Use before any change to code in a repo with a .mirror/ folder. Cha
 
 # Mirror — Change workflow
 
-Use this workflow for every change to the code.
-
 Do not change code before the user approves the review.
 
 ## 1. Understand

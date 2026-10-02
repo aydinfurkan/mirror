@@ -29,6 +29,6 @@ A customer can change their mind after the payment. The shop lets them cancel fo
 - When the refund fails, the order stays paid and the customer sees an error.
 - The items of a cancelled order go back in the stock one time.
 
-## Open Questions
+## Open questions
 
 - Should the customer get an email for the refund?

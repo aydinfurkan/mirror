@@ -32,7 +32,4 @@ fonts. `:root[data-theme="dark"]` holds the dark theme colors.
 | `--project`, `--flow` | Badge, border and tint of each row type. `--flow` is used by flows and pages. |
 | `--tab-1` … `--tab-5` | Color of each project tab, in order. The 6th tab uses `--tab-1` again. |
 | `--added`, `--changed`, `--removed` | Row and step colors on a feature review page. |
-| `--font`, `--mono` | Text font. Code font. The page loads `Geist` and `Geist Mono` from Google Fonts. Without a network, it uses the system font. |
-
-The viewer follows the light or dark setting of the system. The theme button stores the
-choice of the reader in the browser.
+| `--font`, `--mono` | Text font. Code font. |

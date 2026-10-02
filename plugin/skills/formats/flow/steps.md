@@ -1,4 +1,4 @@
-# Rule: `steps.md`
+# Rule: flow `steps.md`
 
 Path: `.mirror/xsrc/<project>/<flow>/steps.md`. Use it for `backend`, `worker` and `consumer`
 flows.

@@ -5,8 +5,8 @@ description: Build .mirror/visualize.html, or a review page in .mirror/features/
 
 # Build visualize.html
 
-The `mirror:init` and `mirror:change` skills use this procedure. The templates `visualize.html`
-and `visualize.md` of this skill are in the base directory of this skill.
+The templates `visualize.html` and `visualize.md` of this skill are in the base directory of
+this skill.
 
 ## Inputs
 
@@ -32,19 +32,19 @@ and `visualize.md` of this skill are in the base directory of this skill.
    - `boundary`: for a flow, the full text of `boundary.md`. For a page, leave it out.
    - `design`: for a page, the full text of `design.md`. For a flow, leave it out.
    - `rules`: the full text of `business-rules.md`.
-   - `actions`: the full text of `actions.md`, for a page that has it. Else leave it out.
+   - `actions`: for a page, the full text of `actions.md`. For a flow, leave it out.
    - `status`: `null`.
    - `steps`: for a flow, one entry for each `## N. <step>` header in `steps.md`, in order. For
-     a page with `actions.md`, see "Page actions".
+     a page, see "Page actions".
      - `n`: the number `N`.
      - `title`: the header text after `N.`. End it with a period.
      - `details`: each other bullet under the header, in order, without the `- `. End each
-       with a period. The step detail shows them as bullets. Use `[]` when there is none.
+       with a period. Use `[]` when there is none.
      - `text`: the header text after `N.`, then each other bullet under the header, joined
        with a space. End each part with a period.
      - `status`: `null`.
 3. Set `generated` to today in the form `YYYY-MM-DD`. Set `title` to the repository folder name.
-4. Write the data as JSON. Replace each `<` with `<`.
+4. Write the data as JSON. Replace each `<` with `\u003c`.
 
 The shape:
 
@@ -65,7 +65,7 @@ The shape:
 
 ### Page actions
 
-For a page with `actions.md`, make one `steps` entry for each `## <action>` header, in order:
+For a page, make one `steps` entry for each `## <action>` header in `actions.md`, in order:
 
 - `n`: the position of the action, from 1.
 - `title`: the header text. End it with a period.
@@ -73,8 +73,6 @@ For a page with `actions.md`, make one `steps` entry for each `## <action>` head
   `Then: …`, `Fail: …`). End each with a period.
 - `text`: the title, then each detail, joined with a space.
 - `status`: `null`.
-
-A page without `actions.md` builds its `steps` from `steps.md`.
 
 ## Write the page
 
@@ -87,8 +85,7 @@ A page without `actions.md` builds its `steps` from `steps.md`.
 ## Review page
 
 1. Read the old data: the JSON in `<script id="mirror-data">` of the current `.mirror/visualize.html`.
-   The old data is the last built page. When `.mirror/visualize.html` does not exist, use
-   empty old data, so each item is `added`.
+   When `.mirror/visualize.html` does not exist, use empty old data, so each item is `added`.
 2. Build the new data from `.mirror/xsrc/` with "Build the data".
 3. Compare project by `id`, flow by project `id` + flow `id`, and step by `text`.
    - A project, flow or step only in the new data: set `status` to `added`.
@@ -100,6 +97,5 @@ A page without `actions.md` builds its `steps` from `steps.md`.
      the same `definition` keeps `status` `null`, even when its flows changed.
    - For each `changed` project or flow, add `old`: an object with the old value of each of
      `trigger`, `entry`, `group`, `definition`, `boundary`, `design`, `rules` and `actions` that is
-     different. The page shows the old lines crossed out and the new lines in yellow. When the
-     old flow has no `actions` and the new one has, set `old.actions` to `null`.
+     different.
 4. Write the page with "Write the page" to `.mirror/features/NNNN-<slug>.html`.

@@ -24,6 +24,6 @@ A customer reads about one product and decides to buy it.
 - Add to the quantity when the product is already in the cart.
 - Show "Product not found." for a product that does not exist.
 
-## Open Questions
+## Open questions
 
 - None.

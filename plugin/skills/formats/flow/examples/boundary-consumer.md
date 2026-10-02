@@ -30,3 +30,4 @@ Example (published):
 
 - consumes `user-created`: the message that starts this flow.
 - publishes `welcome-email-requested`: when the message is valid.
+- publishes `user-created-dlq`: when the message is not valid.

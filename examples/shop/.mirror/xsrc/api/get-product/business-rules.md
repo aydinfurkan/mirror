@@ -24,6 +24,6 @@ A customer opens one product to read about it before they add it to the cart.
 - A customer sees "not found" for a product that does not exist.
 - A customer sees "not found" for a product that is not for sale.
 
-## Open Questions
+## Open questions
 
 - None.

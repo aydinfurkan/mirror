@@ -24,6 +24,6 @@ A customer pays. They expect an email with the order in a few minutes.
 - Send nothing when the shop hears about the same payment again.
 - After 5 failed tries, put the receipt aside for a person to check.
 
-## Open Questions
+## Open questions
 
 - None.

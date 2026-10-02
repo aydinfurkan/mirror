@@ -23,6 +23,6 @@ A customer comes back from the payment and wants to know if the order is paid.
 - A customer sees an order that exists.
 - A customer sees "not found" for an order that does not exist.
 
-## Open Questions
+## Open questions
 
 - Should the customer need a link from the email to see the order?

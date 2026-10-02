@@ -27,6 +27,6 @@ Stripe tells the shop when a customer pays. It is the only way an order becomes 
 - A message that does not come from Stripe changes nothing.
 - Other news from Stripe changes nothing.
 
-## Open Questions
+## Open questions
 
 - None.

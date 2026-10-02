@@ -27,6 +27,6 @@ Stripe sends the customer back to the shop. The payment confirmation can come a 
 - Show "Cancel order" only for a paid order of the last 24 hours.
 - Ask the customer to confirm before the cancel.
 
-## Open Questions
+## Open questions
 
 - None.

@@ -24,6 +24,6 @@ A user changes their own name or email.
 - Open the profile of the user after a save.
 - Show "User not found." for a user that does not exist.
 
-## Open Questions
+## Open questions
 
 - None.

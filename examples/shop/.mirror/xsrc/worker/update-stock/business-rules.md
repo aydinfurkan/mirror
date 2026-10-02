@@ -27,6 +27,6 @@ The stock must show what is left after each paid order, so the shop does not sel
 - Change nothing when the shop hears about the same payment or cancel again.
 - Change all items of the order or none.
 
-## Open Questions
+## Open questions
 
 - Should the shop alert a person when the stock goes below 0?

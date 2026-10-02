@@ -23,6 +23,6 @@ An author removes a post that they do not want to show.
 - Delete the post when the author asks.
 - Refuse when another user asks.
 
-## Open Questions
+## Open questions
 
 - Should an admin be able to delete any post?

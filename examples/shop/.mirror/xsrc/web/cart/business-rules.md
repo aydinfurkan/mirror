@@ -24,6 +24,6 @@ A customer checks what they will buy before they pay.
 - Remove an item when its quantity changes to 0.
 - Disable "Checkout" when the cart is empty.
 
-## Open Questions
+## Open questions
 
 - None.

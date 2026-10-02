@@ -26,7 +26,7 @@ In this order. Each section is a bullet list, except `## Context`.
 - `## Constraints`: the rules that need state or context: for example "only the author can
   delete a post". Put the look of the page in `design.md`, not here.
 - `## Acceptance criteria`: each item becomes a test.
-- `## Open Questions`: what is not decided yet. Write `- None.` when all is decided.
+- `## Open questions`: what is not decided yet. Write `- None.` when all is decided.
 
 ## Example
 

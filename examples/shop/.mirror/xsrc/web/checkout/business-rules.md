@@ -24,6 +24,6 @@ A customer is ready to pay. The shop hands the payment to Stripe.
 - Tell the customer when the stock is too low for the cart.
 - Keep the cart when the payment fails.
 
-## Open Questions
+## Open questions
 
 - None.

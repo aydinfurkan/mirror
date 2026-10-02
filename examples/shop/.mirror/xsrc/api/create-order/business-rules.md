@@ -28,6 +28,6 @@ A customer clicks "Pay" on the checkout page. The shop saves the order and sends
 - A cart with more items than the stock is refused.
 - When Stripe fails, the order stays unpaid and the customer sees an error.
 
-## Open Questions
+## Open questions
 
 - Should an unpaid order expire after 24 hours?
