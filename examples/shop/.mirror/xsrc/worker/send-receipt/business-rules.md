@@ -20,9 +20,9 @@ A customer pays. They expect an email with the order in a few minutes.
 
 ## Acceptance criteria
 
-- Send the receipt for an `order.paid` event.
-- Send nothing for a second copy of the same event.
-- Send the event to the dead-letter topic after 5 failures.
+- Send the receipt when an order is paid.
+- Send nothing when the shop hears about the same payment again.
+- After 5 failed tries, put the receipt aside for a person to check.
 
 ## Open Questions
 

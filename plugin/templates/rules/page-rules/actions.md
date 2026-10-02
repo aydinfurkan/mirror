@@ -13,7 +13,6 @@ projects.
     is optional.
   - `- Then: ` and what the page does after a success.
   - `- Fail: ` and what the page does after a failure.
-  - `- Code: ` and the code reference in backticks. Write it one time, last.
 - Skip a `Call:`, `Then:` or `Fail:` bullet when the action does not have it.
 
 ## Calls
@@ -23,12 +22,6 @@ projects.
 - Each `Call:` is a `calls` link.
 - Write local work (state, navigation, storage) in `Then:` or `Fail:`, not in `Call:`.
 - Put the target in backticks. Use only a target that exists.
-
-## Code reference
-
-- The form is `path#function`, as in `steps.md`.
-- Use the handler of the action: the page component for "Open", the handler for a click or a
-  submit.
 
 ## Example
 

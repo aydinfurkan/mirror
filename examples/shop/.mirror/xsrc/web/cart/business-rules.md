@@ -12,7 +12,7 @@ A customer checks what they will buy before they pay.
 
 ## Non-goal
 
-- Check the prices. The API does it when it creates the order.
+- Check the prices. The shop checks them when it creates the order.
 
 ## Constraints
 

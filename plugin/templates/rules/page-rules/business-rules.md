@@ -1,6 +1,6 @@
-# Rule: page `rules.md`
+# Rule: page `business-rules.md`
 
-Path: `.mirror/xsrc/<project>/<page>/rules.md`.
+Path: `.mirror/xsrc/<project>/<page>/business-rules.md`.
 
 ## Header
 
@@ -14,6 +14,10 @@ Three lines at the top. Write `none` when a line has no value.
 
 ## Sections
 
+Write in business words only, as the people who use the product talk. Do not write HTTP status
+codes, endpoints, event or topic names, APIs, databases, caches, storage, retries or field
+names. Put those in `actions.md` or `design.md`.
+
 In this order. Each section is a bullet list, except `## Context`.
 
 - `## Context`: one to three short sentences. Who uses the page, and why.
@@ -26,4 +30,4 @@ In this order. Each section is a bullet list, except `## Context`.
 
 ## Example
 
-See `.mirror/rules/page-rules/examples/rules.md`.
+See `.mirror/rules/page-rules/examples/business-rules.md`.

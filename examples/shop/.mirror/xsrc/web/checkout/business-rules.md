@@ -8,7 +8,7 @@ A customer is ready to pay. The shop hands the payment to Stripe.
 
 ## Goal
 
-- Create the order and open the Stripe payment page.
+- Create the order and send the customer to the Stripe payment page.
 
 ## Non-goal
 
@@ -20,8 +20,8 @@ A customer is ready to pay. The shop hands the payment to Stripe.
 
 ## Acceptance criteria
 
-- Open Stripe Checkout with the session id from the API.
-- Show the error of the API for 409.
+- Send the customer to the Stripe payment page after the order is created.
+- Tell the customer when the stock is too low for the cart.
 - Keep the cart when the payment fails.
 
 ## Open Questions

@@ -16,13 +16,13 @@ A user changes their own name or email.
 
 ## Constraints
 
-- Show the form only to the user with the given id.
+- Show the form only to the user it belongs to.
 
 ## Acceptance criteria
 
 - Fill the form with the current name and email.
-- Open `/users/<id>` after a save.
-- Show "User not found." for 404.
+- Open the profile of the user after a save.
+- Show "User not found." for a user that does not exist.
 
 ## Open Questions
 

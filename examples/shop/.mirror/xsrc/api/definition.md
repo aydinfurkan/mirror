@@ -3,7 +3,7 @@ The `api` project is the HTTP API of the shop. It serves the products, creates t
 ## Stack
 
 - TypeScript on Node 20. Fastify 4. zod. `pg` for Postgres, `ioredis` for Redis, `kafkajs` for Kafka, the Stripe SDK.
-- This example has no code. The paths in `Code:` show where the code would be.
+- This example has no code.
 
 ## Technical decisions
 

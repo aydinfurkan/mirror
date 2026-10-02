@@ -17,16 +17,16 @@ The stock must show what is left after each paid order, so the shop does not sel
 
 ## Constraints
 
-- Apply each event at most one time.
+- Change the stock only one time for each payment and each cancel.
 - The stock can go below 0 when two customers pay for the last item. A person then fixes it.
 
 ## Acceptance criteria
 
-- Lower the stock for an `order.paid` event.
-- Raise the stock for an `order.cancelled` event.
-- Change nothing for a second copy of the same event.
-- Change all items or none.
+- Lower the stock when an order is paid.
+- Raise the stock when an order is cancelled.
+- Change nothing when the shop hears about the same payment or cancel again.
+- Change all items of the order or none.
 
 ## Open Questions
 
-- Should the worker alert a person when the stock goes below 0?
+- Should the shop alert a person when the stock goes below 0?

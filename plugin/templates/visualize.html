@@ -12,7 +12,8 @@
 :root {
   --bg: #fafafa;  --surface: #ffffff;  --panel: #ffffff;  --border: #e4e4e7;
   --text: #09090b;  --muted: #52525b;  --accent: #09090b;
-  --project: #09090b;  --flow: #2563eb;  --page: #d97706;
+  --project: #09090b;  --flow: #2563eb;
+  --tab-1: #2563eb;  --tab-2: #7c3aed;  --tab-3: #059669;  --tab-4: #db2777;  --tab-5: #ea580c;
   --added: #16a34a;  --changed: #eab308;  --removed: #dc2626;
   --font: Geist, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "Geist Mono", ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
@@ -20,7 +21,8 @@
 :root[data-theme="dark"] {
   --bg: #09090b;  --surface: #18181b;  --panel: #111113;  --border: #27272a;
   --text: #fafafa;  --muted: #a1a1aa;  --accent: #fafafa;
-  --project: #fafafa;  --flow: #60a5fa;  --page: #fbbf24;
+  --project: #fafafa;  --flow: #60a5fa;
+  --tab-1: #60a5fa;  --tab-2: #a78bfa;  --tab-3: #34d399;  --tab-4: #f472b6;  --tab-5: #fb923c;
   --added: #22c55e;  --changed: #facc15;  --removed: #f87171;
 }
 /* MIRROR:TOKENS:END */
@@ -43,14 +45,17 @@ header { display: flex; align-items: center; gap: 12px; margin: 12px 12px 0; pad
 .tools .btn { background: var(--bg); border-color: transparent; font-weight: 500; }
 .tools .btn:hover { border-color: var(--border); }
 .btn:focus-visible, .tab:focus-visible, .oph:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.ptabs { align-self: flex-start; display: flex; gap: 4px; max-width: calc(100% - 24px); margin: 10px 12px 0; padding: 4px; overflow-x: auto; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 2px 10px rgb(0 0 0 / .06); z-index: 2; }
+.ptabs { align-self: flex-start; display: flex; gap: 6px; max-width: calc(100% - 24px); margin: 10px 12px 0; padding: 4px; overflow-x: auto; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 2px 10px rgb(0 0 0 / .06); z-index: 2; }
 .ptabs:empty { display: none; }
-.ptab { display: flex; align-items: center; gap: 8px; padding: 6px 14px; border: 0; border-radius: 9px; background: none; color: var(--muted); font-weight: 500; white-space: nowrap; cursor: pointer; }
-.ptab:hover { background: color-mix(in srgb, var(--text) 5%, transparent); }
-.ptab small { font-weight: 400; font-size: 13px; }
-.ptab.on { color: var(--flow); background: color-mix(in srgb, var(--flow) 12%, transparent); }
-.ptab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-.ptab .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--changed); }
+.ptab { --c: var(--flow); position: relative; display: flex; flex-direction: column; align-items: flex-start; padding: 6px 16px; border: 0; border-radius: 9px; background: color-mix(in srgb, var(--c) 10%, transparent); color: var(--c); font-weight: 600; line-height: 1.25; white-space: nowrap; cursor: pointer; transition: background .2s, color .2s, box-shadow .2s, transform .15s; }
+.ptab:hover { background: color-mix(in srgb, var(--c) 20%, transparent); box-shadow: 0 4px 12px color-mix(in srgb, var(--c) 25%, transparent); transform: translateY(-1px); }
+.ptab:active { transform: scale(.95); }
+.ptab small { font-weight: 500; font-size: 12px; color: var(--muted); transition: color .2s; }
+.ptab.on { background: var(--c); color: var(--surface); box-shadow: 0 4px 14px color-mix(in srgb, var(--c) 40%, transparent); animation: tabpop .3s ease; }
+.ptab.on small { color: color-mix(in srgb, var(--surface) 80%, transparent); }
+.ptab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ptab .dot { position: absolute; top: 5px; right: 5px; width: 7px; height: 7px; border-radius: 50%; background: var(--changed); box-shadow: 0 0 0 2px var(--panel); }
+@keyframes tabpop { 0% { transform: scale(.92); } 60% { transform: scale(1.05); } 100% { transform: none; } }
 main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 .empty-state { padding: 40px; color: var(--muted); }
 /* Rows */
@@ -60,8 +65,20 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 .sec small { font-weight: 500; }
 .sec::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 .op { --c: var(--flow); margin: 8px 0; border: 1px solid color-mix(in srgb, var(--c) 35%, var(--border)); border-radius: 12px; background: color-mix(in srgb, var(--c) 6%, var(--surface)); overflow: hidden; scroll-margin: 12px; }
-.op.page { --c: var(--page); }
-.op.project { --c: var(--project); margin-top: 12px; }
+.proj { --c: var(--flow); position: relative; margin: 14px 0 22px; padding: 20px 24px 10px 28px; border: 1px solid color-mix(in srgb, var(--c) 30%, var(--border)); border-radius: 16px; background: linear-gradient(135deg, color-mix(in srgb, var(--c) 12%, var(--surface)), var(--surface) 55%); box-shadow: 0 10px 30px color-mix(in srgb, var(--c) 12%, transparent); overflow: hidden; scroll-margin: 12px; }
+.proj::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 5px; background: var(--c); }
+.proj-head { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.proj-head h2 { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -.02em; }
+.proj-head .kind { padding: 3px 12px; border-radius: 999px; font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--surface); background: var(--c); }
+.proj .db { padding: 8px 0 0; }
+.proj .db > p { margin: 0 0 12px; max-width: 75ch; font-size: 19px; }
+.proj .fold { border-top-color: color-mix(in srgb, var(--c) 20%, var(--border)); }
+.proj.st-added { border-color: var(--added); }
+.proj.st-changed { border-color: var(--changed); }
+.proj.st-removed { border-color: var(--removed); opacity: .7; }
+.proj.st-removed h2 { text-decoration: line-through; }
+.proj.match { box-shadow: 0 0 0 2px var(--accent); }
+.proj.current { box-shadow: 0 0 0 3px var(--accent); }
 .oph { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 14px; border: 0; background: none; text-align: left; cursor: pointer; }
 .badge { flex: none; min-width: 62px; padding: 4px 8px; border-radius: 8px; font-size: 13px; font-weight: 700; letter-spacing: .04em; text-align: center; background: var(--c); color: var(--surface); }
 .oph .entry { font: 600 16px var(--mono); overflow-wrap: anywhere; }
@@ -81,14 +98,22 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 .list li.match { background: color-mix(in srgb, var(--accent) 12%, transparent); border-radius: 6px; }
 .flash { animation: flash 1.2s ease-out; }
 @keyframes flash { from { box-shadow: 0 0 0 4px color-mix(in srgb, var(--flow) 60%, transparent); } }
-@media (prefers-reduced-motion: reduce) { .flash { animation: none; } .oph .chev { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .flash, .ptab.on { animation: none; } .oph .chev, .ptab, .ptab small, .fold > summary::before { transition: none; } .ptab:hover, .ptab:active { transform: none; } }
 .chip { display: inline-block; margin-right: 4px; padding: 1px 8px; border-radius: 999px; font-size: 15px; font-weight: 700; letter-spacing: .03em; color: var(--c); background: color-mix(in srgb, var(--c) 15%, transparent); }
 /* Row body */
 .tabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 10px 16px; border-bottom: 1px solid var(--border); }
 .tab { padding: 5px 12px; border: 0; border-radius: 8px; background: none; color: var(--muted); font-weight: 500; cursor: pointer; }
 .tab.on { color: var(--flow); background: color-mix(in srgb, var(--flow) 12%, transparent); }
 .db { padding: 6px 18px 18px; }
-.db h4, .db h5, .db h6 { margin: 18px 0 6px; font-size: 16px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.db h4, .db h5, .db h6, .fold > summary { margin: 18px 0 6px; font-size: 16px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.fold { border-top: 1px solid var(--border); }
+.fold > summary { margin: 0; padding: 12px 0; list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: color .15s; }
+.fold > summary::-webkit-details-marker { display: none; }
+.fold > summary::before { content: "\25b8"; font-size: 13px; transition: transform .15s; }
+.fold[open] > summary::before { transform: rotate(90deg); }
+.fold > summary:hover { color: var(--text); }
+.fold > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.fold > div { padding-bottom: 10px; }
 .db code { font: 16px var(--mono); padding: 1px 5px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg); }
 .db pre { padding: 10px; overflow: auto; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); }
 .db pre code { padding: 0; border: 0; }
@@ -109,9 +134,6 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 .diff span, .diff del, .diff ins { display: block; padding: 0 6px; border-radius: 4px; }
 .diff del { text-decoration: line-through; color: var(--removed); background: color-mix(in srgb, var(--removed) 10%, transparent); }
 .diff ins { text-decoration: none; background: color-mix(in srgb, var(--changed) 35%, transparent); }
-.coderef { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
-.coderef code { min-width: 0; overflow-wrap: anywhere; }
-.copy { flex: none; height: 28px; padding: 0 8px; border-radius: 6px; font-size: 15px; }
 .empty { color: var(--muted); }
 /* Legend */
 #legend { position: absolute; right: 16px; bottom: 16px; display: none; gap: 14px; padding: 8px 12px; font-size: 16px; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 4px 16px rgb(0 0 0 / .08); }
@@ -147,9 +169,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     <span style="--c: var(--removed)">removed</span>
   </div>
 </main>
-<script type="application/json" id="mirror-data">
-{"generated":"","title":"Mirror","projects":[]}
-</script>
+<script type="application/json" id="mirror-data">{"generated":"","title":"Mirror","projects":[]}</script>
 <script id="mirror-app">
 (function () {
   'use strict';
@@ -165,8 +185,9 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
   }
 
   // Headings, bullet and numbered lists, tables, code fences, paragraphs. Input is escaped first.
-  function renderMd(text) {
-    var out = [], list = null, code = null;
+  // folds: when given, each `#` or `##` section becomes a closed <details>; folds[i] true opens section i.
+  function renderMd(text, folds) {
+    var out = [], list = null, code = null, sec = -1;
     function closeList() {
       if (list) { out.push(list === 'table' ? '</tbody></table>' : '</' + list + '>'); list = null; }
     }
@@ -194,6 +215,12 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
       if (/^```/.test(line)) { closeList(); code = []; return; }
       if ((m = /^(#{1,6})\s+(.*)$/.exec(line))) {
         closeList();
+        if (folds && m[1].length <= 2) {
+          if (sec >= 0) out.push('</div></details>');
+          sec++;
+          out.push('<details class="fold" data-fold="' + sec + '"' + (folds[sec] ? ' open' : '') + '><summary>' + inline(m[2]) + '</summary><div>');
+          return;
+        }
         var lv = Math.min(m[1].length + 3, 6);
         out.push('<h' + lv + '>' + inline(m[2]) + '</h' + lv + '>');
         return;
@@ -205,6 +232,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     });
     closeList();
     if (code !== null) out.push('<pre><code>' + esc(code.join('\n')) + '</code></pre>');
+    if (sec >= 0) out.push('</div></details>');
     return out.join('');
   }
 
@@ -234,7 +262,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
       fn.unit = typeof f.actions === 'string' ? 'action' : 'step';
       all.push(fn);
       fn.steps = (f.steps || []).map(function (s, i) {
-        var sn = { key: key + '#' + i, type: 'step', title: s.n + '. ' + s.text, label: s.title || s.text, num: s.n, sub: s.ref || '',
+        var sn = { key: key + '#' + i, type: 'step', title: s.n + '. ' + s.text, label: s.title || s.text, num: s.n, sub: '',
           status: s.status || null, item: s, parent: f, parentKey: key };
         all.push(sn);
         return sn;
@@ -326,9 +354,6 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
       : ['definition', 'steps', 'boundary', 'rules'];
   }
 
-  function refHtml(ref) {
-    return ref ? '<div class="coderef"><code>' + esc(ref) + '</code><button class="btn copy" data-copy="' + esc(ref) + '">Copy</button></div>' : '';
-  }
 
   // The bullets under a step header. Old data has no details: its text holds them.
   function detailsHtml(s) {
@@ -336,13 +361,13 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     return d.length ? '<ul class="details">' + d.map(function (x) { return '<li>' + inline(x) + '</li>'; }).join('') + '</ul>' : '';
   }
 
-  function body(n, tab) {
+  function body(n, tab, folds) {
     var it = n.item;
     if (tab === 'steps' || tab === 'actions') {
       var steps = it.steps || [], act = tab === 'actions', tag = act ? 'ul' : 'ol';
       return steps.length ? '<' + tag + ' class="list">' + steps.map(function (s, i) {
         return '<li data-key="' + esc(n.key + '#' + i) + '"' + (STATUS[s.status] ? ' class="st-' + s.status + '"' : '') + '><span class="n">' + (act ? '•' : esc(s.n)) + '</span><div><strong>' +
-          inline(s.title || s.text) + '</strong>' + (act ? actionDetails(s.details) : detailsHtml(s)) + refHtml(s.ref) + '</div></li>';
+          inline(s.title || s.text) + '</strong>' + (act ? actionDetails(s.details) : detailsHtml(s)) + '</div></li>';
       }).join('') + '</' + tag + '>' : '<p class="empty">' + (act ? 'No actions.' : 'No steps.') + '</p>';
     }
     // A changed item keeps its old values in `old`: show the changed lines of this tab.
@@ -350,12 +375,13 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
       var before = tabText(Object.assign({}, it, it.old), tab), after = tabText(it, tab);
       if (before !== after) return diffHtml(before, after);
     }
-    return it[tab] ? renderMd(it[tab]) : '<p class="empty">Nothing here yet.</p>';
+    // A project definition shows each section closed, so the page opens short.
+    return it[tab] ? renderMd(it[tab], n.type === 'project' ? folds || {} : null) : '<p class="empty">Nothing here yet.</p>';
   }
 
   // One row: a header line like an API operation. An open row shows its tabs below the header.
-  // tab: the open tab. A flow opens on its steps.
-  function rowHtml(n, open, tab) {
+  // tab: the open tab. A flow opens on its steps. folds: the open sections of a project definition.
+  function rowHtml(n, open, tab, folds) {
     var tabs = rowTabs(n);
     if (tabs.indexOf(tab) < 0) tab = tabs[Math.min(1, tabs.length - 1)];
     // A flow shows its entry first, like an API path. A project shows its name first.
@@ -375,16 +401,25 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
           k.charAt(0).toUpperCase() + k.slice(1) + '</button>';
       }).join('') + '</div>';
     }
-    return h + '<div class="db">' + body(n, tab) + '</div></div></section>';
+    return h + '<div class="db">' + body(n, tab, folds) + '</div></div></section>';
+  }
+
+  // The project card at the top of a tab. It is always open: no header button, no tabs.
+  // folds: the open sections of its definition. pi: the tab index, for the tab color.
+  function projectHtml(n, folds, pi) {
+    return '<section class="proj' + statusClass(n) + '" data-row="' + esc(n.key) + '" style="--c: var(--tab-' + ((pi || 0) % 5 + 1) + ')">' +
+      '<div class="proj-head"><h2>' + esc(n.label) + '</h2>' + (n.sub ? '<span class="kind">' + esc(n.sub) + '</span>' : '') +
+      (STATUS[n.status] ? '<span class="chip" style="--c: var(--' + n.status + ')">' + n.status + '</span>' : '') + '</div>' +
+      '<div class="db">' + body(n, 'definition', folds) + '</div></section>';
   }
 
   globalThis.MirrorViewer = { esc: esc, renderMd: renderMd, summary: summary, model: model, groups: groups, matches: matches, hasChanges: hasChanges,
-    diffHtml: diffHtml, tabFromHash: tabFromHash, firstTabWithMatch: firstTabWithMatch, actionDetails: actionDetails, rowHtml: rowHtml };
+    diffHtml: diffHtml, tabFromHash: tabFromHash, firstTabWithMatch: firstTabWithMatch, actionDetails: actionDetails, rowHtml: rowHtml, projectHtml: projectHtml };
   if (typeof document === 'undefined') return;
 
   // ---- Browser only below ----
 
-  var state = { pi: 0, expanded: {}, rtab: {}, hits: [], hit: -1, q: '' };
+  var state = { pi: 0, expanded: {}, rtab: {}, folds: {}, hits: [], hit: -1, q: '' };
 
   function $(id) { return document.getElementById(id); }
   function sel(attr, value) { return '[' + attr + '="' + String(value).replace(/["\\]/g, '\\$&') + '"]'; }
@@ -411,7 +446,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     $('ptabs').innerHTML = projects.map(function (p, i) {
       var on = i === state.pi;
       return '<button class="ptab' + (on ? ' on' : '') + '" role="tab" aria-selected="' + on + '" tabindex="' + (on ? 0 : -1) +
-        '" data-pi="' + i + '">' + esc(p.id) + (p.kind ? ' <small>' + esc(p.kind) + '</small>' : '') +
+        '" data-pi="' + i + '" style="--c: var(--tab-' + (i % 5 + 1) + ')"><span>' + esc(p.id) + '</span>' + (p.kind ? '<small>' + esc(p.kind) + '</small>' : '') +
         (hasChanges(p) ? '<span class="dot" title="Has changes"></span>' : '') + '</button>';
     }).join('');
   }
@@ -431,7 +466,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     state.hits = m.all.filter(function (n) { return matches(n, state.q); });
     if (state.hit >= state.hits.length) state.hit = state.hits.length - 1;
     function row(n) { return rowHtml(n, state.expanded[n.key], state.rtab[n.key]); }
-    $('list').innerHTML = '<div class="lwrap">' + row(m.project) + m.groups.map(function (g) {
+    $('list').innerHTML = '<div class="lwrap">' + projectHtml(m.project, state.folds[m.project.key], state.pi) + m.groups.map(function (g) {
       return (g.name ? '<h3 class="sec">' + esc(g.name) + ' <small>' + g.flows.length + '</small></h3>' : '') + g.flows.map(row).join('');
     }).join('') + '</div>';
     state.hits.forEach(function (n, i) {
@@ -512,19 +547,6 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     reveal(nodeEl(state.hits[state.hit]));
   }
 
-  function copy(value, btn) {
-    function done() { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy'; }, 1200); }
-    function fallback() {
-      var ta = document.createElement('textarea');
-      ta.value = value;
-      document.body.appendChild(ta);
-      ta.select();
-      try { if (document.execCommand('copy')) done(); } catch (e) { /* no clipboard */ }
-      document.body.removeChild(ta);
-    }
-    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(value).then(done, fallback);
-    else fallback();
-  }
 
   // ---- Wiring ----
 
@@ -545,8 +567,13 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
       if (!b) return;
       if (b.hasAttribute('data-toggle')) toggleRow(b.getAttribute('data-toggle'));
       else if (b.hasAttribute('data-rtab')) setRowTab(b.getAttribute('data-for'), b.getAttribute('data-rtab'));
-      else if (b.hasAttribute('data-copy')) copy(b.getAttribute('data-copy'), b);
     });
+    $('list').addEventListener('toggle', function (e) {
+      var d = e.target, r = d.closest && d.closest('[data-row]');
+      if (!r || !d.hasAttribute('data-fold')) return;
+      var k = r.getAttribute('data-row');
+      (state.folds[k] = state.folds[k] || {})[d.getAttribute('data-fold')] = d.open;
+    }, true);
     $('ptabs').addEventListener('click', function (e) {
       var b = e.target.closest('[data-pi]');
       if (b) switchProject(Number(b.getAttribute('data-pi')), false);

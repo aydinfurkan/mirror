@@ -3,7 +3,7 @@ The `web` project is the shop for customers. A customer finds products, fills a 
 ## Stack
 
 - TypeScript, React 18, React Router 6, Vite. Stripe.js for the payment page.
-- This example has no code. The paths in `Code:` show where the code would be.
+- This example has no code.
 
 ## Technical decisions
 

@@ -3,7 +3,7 @@ The `worker` project handles the order events from Kafka. It sends the receipt a
 ## Stack
 
 - TypeScript on Node 20. `kafkajs`, `pg`, the SendGrid SDK.
-- This example has no code. The paths in `Code:` show where the code would be.
+- This example has no code.
 
 ## Technical decisions
 

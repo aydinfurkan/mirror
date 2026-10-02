@@ -20,9 +20,9 @@ A customer opens the shop to see what it sells.
 
 ## Acceptance criteria
 
-- Show each product from the API.
-- Show "Sold out" for a product with stock 0.
-- Show the alert when the API fails.
+- Show each product for sale.
+- Show "Sold out" for a product with no stock.
+- Show an error when the products cannot be loaded.
 
 ## Open Questions
 

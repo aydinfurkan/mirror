@@ -4,7 +4,7 @@
 
 ## Context
 
-Stripe sends the customer back to the shop. The webhook can come a few seconds after the customer.
+Stripe sends the customer back to the shop. The payment confirmation can come a few seconds after the customer.
 
 ## Goal
 
@@ -17,13 +17,13 @@ Stripe sends the customer back to the shop. The webhook can come a few seconds a
 
 ## Constraints
 
-- Do not mark the order paid in the browser. Only the webhook does it.
+- Do not mark the order paid on this page. Only the payment confirmation from Stripe does it.
 
 ## Acceptance criteria
 
 - Show "Paid" for a paid order.
-- Ask again while the order is `pending`, at most 10 times.
-- Clear the cart when the order is paid.
+- Keep checking for a short time while the order waits for the payment. Then ask the customer to check their email.
+- Empty the cart when the order is paid.
 - Show "Cancel order" only for a paid order of the last 24 hours.
 - Ask the customer to confirm before the cancel.
 

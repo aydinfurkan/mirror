@@ -1,6 +1,6 @@
-# Rule: flow `rules.md`
+# Rule: flow `business-rules.md`
 
-Path: `.mirror/xsrc/<project>/<flow>/rules.md`.
+Path: `.mirror/xsrc/<project>/<flow>/business-rules.md`.
 
 ## Header
 
@@ -14,6 +14,10 @@ Three lines at the top. Write `none` when a line has no value.
 
 ## Sections
 
+Write in business words only, as the people who use the product talk. Do not write HTTP status
+codes, endpoints, event or topic names, APIs, databases, caches, storage, retries or field
+names. Put those in `boundary.md` or `steps.md`.
+
 In this order. Each section is a bullet list, except `## Context`.
 
 - `## Context`: one to three short sentences. Who uses the flow, and why.
@@ -26,4 +30,4 @@ In this order. Each section is a bullet list, except `## Context`.
 
 ## Example
 
-See `.mirror/rules/flow-rules/examples/rules.md`.
+See `.mirror/rules/flow-rules/examples/business-rules.md`.

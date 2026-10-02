@@ -49,12 +49,10 @@ Do not change code before the user approves the review.
 
 1. For each added or changed flow, write tests for its acceptance criteria. Run them. Make
    sure that the new tests fail.
-2. Write the code for the steps. Put each function at the path and name in its step.
+2. Write the code for the steps and the actions.
 3. Remove the code and the tests of each removed flow.
 4. Run the full test suite of each changed project and of each project with an affected flow.
    Make sure that all tests pass.
-5. For each changed `steps.md` and `actions.md`, make sure that each `path#function` exists in the code. Fix
-   the document or the code when they do not agree.
-6. Build `.mirror/visualize.html` with "Build the data" and "Write the page" in
+5. Build `.mirror/visualize.html` with "Build the data" and "Write the page" in
    `.mirror/rules/BUILD.md`.
-7. Report the changed documents, the changed code files, and the test result.
+6. Report the changed documents, the changed code files, and the test result.

@@ -8,7 +8,7 @@ An author removes a post that they do not want to show.
 
 ## Goal
 
-- Remove the post with the given id.
+- Remove the post.
 
 ## Non-goal
 
@@ -21,7 +21,7 @@ An author removes a post that they do not want to show.
 ## Acceptance criteria
 
 - Delete the post when the author asks.
-- Return HTTP 403 when another user asks.
+- Refuse when another user asks.
 
 ## Open Questions
 

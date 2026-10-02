@@ -72,8 +72,8 @@ Follow the rule of each document in `${CLAUDE_PLUGIN_ROOT}/templates/rules/`: `p
 1. Write `.mirror/xsrc/<project>/definition.md`. Use `project-rules/definition.md`.
 2. For each flow or page, trace the code from the entry point. Then write the four files in
    `.mirror/xsrc/<project>/<flow-or-page>/`. For a flow, use `definition.md`, `steps.md`,
-   `boundary.md` and `rules.md` in `flow-rules/`. For a page, use `definition.md`,
-   `actions.md`, `design.md` and `rules.md` in `page-rules/`.
+   `boundary.md` and `business-rules.md` in `flow-rules/`. For a page, use `definition.md`,
+   `actions.md`, `design.md` and `business-rules.md` in `page-rules/`.
 3. For a flow, read the request schemas and validators to fill the Input table of `boundary.md`.
    Read the error mapping to fill the Output table. For a page, read the components, the styles
    and the design links to write `design.md`.

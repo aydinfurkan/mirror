@@ -25,14 +25,12 @@
    - `definition`: the text of `definition.md` after the frontmatter.
    - `boundary`: for a flow, the full text of `boundary.md`. For a page, leave it out.
    - `design`: for a page, the full text of `design.md`. For a flow, leave it out.
-   - `rules`: the full text of `rules.md`.
+   - `rules`: the full text of `business-rules.md`.
    - `actions`: the full text of `actions.md`, for a page that has it. Else leave it out.
    - `status`: `null`.
    - `steps`: for a flow, one entry for each `## N. <step>` header in `steps.md`, in order. For
      a page with `actions.md`, see "Page actions".
      - `n`: the number `N`.
-     - `ref`: the backtick span of the `- Code:` bullet under the header, without the
-       backticks. Use `""` when there is none.
      - `title`: the header text after `N.`. End it with a period.
      - `details`: each other bullet under the header, in order, without the `- `. End each
        with a period. The step detail shows them as bullets. Use `[]` when there is none.
@@ -53,7 +51,7 @@ The shape:
     "flows": [{
       "id": "create-user", "kind": "flow", "trigger": "http", "entry": "POST /users", "group": "users",
       "definition": "…", "boundary": "…", "rules": "…", "status": null,
-      "steps": [{ "n": 1, "title": "Validate the body.", "text": "Validate the body.", "details": [], "ref": "src/users/route.ts#postUser", "status": null }]
+      "steps": [{ "n": 1, "title": "Validate the body.", "text": "Validate the body.", "details": [], "status": null }]
     }]
   }]
 }
@@ -64,8 +62,6 @@ The shape:
 For a page with `actions.md`, make one `steps` entry for each `## <action>` header, in order:
 
 - `n`: the position of the action, from 1.
-- `ref`: the backtick span of the `- Code:` bullet, without the backticks. Use `""` when there
-  is none.
 - `title`: the header text. End it with a period.
 - `details`: each other bullet, in order, without the `- `, with its label (`Call: …`,
   `Then: …`, `Fail: …`). End each with a period.
@@ -88,14 +84,14 @@ A page without `actions.md` builds its `steps` from `steps.md`.
    The old data is the last built page. When `.mirror/visualize.html` does not exist, use
    empty old data, so each item is `added`.
 2. Build the new data from `.mirror/xsrc/` with "Build the data".
-3. Compare project by `id`, flow by project `id` + flow `id`, and step by `ref` + `text`.
+3. Compare project by `id`, flow by project `id` + flow `id`, and step by `text`.
    - A project, flow or step only in the new data: set `status` to `added`.
    - A project, flow or step only in the old data: copy it into the new data at its old
      position and set `status` to `removed`. Set each descendant of a removed item (its flows and their steps) to `removed`.
    - A flow in both with a different `trigger`, `entry`, `group`, `definition`, `boundary`,
      `design`, `rules`, `actions` or step list: set `status` to `changed`.
-   - A project in both with a different `definition` or with a flow that is not `null`: set
-     `status` to `changed`.
+   - A project in both with a different `definition`: set `status` to `changed`. A project with
+     the same `definition` keeps `status` `null`, even when its flows changed.
    - For each `changed` project or flow, add `old`: an object with the old value of each of
      `trigger`, `entry`, `group`, `definition`, `boundary`, `design`, `rules` and `actions` that is
      different. The page shows the old lines crossed out and the new lines in yellow. When the
