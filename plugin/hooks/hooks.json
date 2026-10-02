@@ -3,7 +3,7 @@
     "SessionStart": [
       {
         "hooks": [
-          { "type": "command", "command": "cat \"${CLAUDE_PROJECT_DIR:-.}/.mirror/rules/AGENTS.md\" 2>/dev/null || true" }
+          { "type": "command", "command": "[ -d \"${CLAUDE_PROJECT_DIR:-.}/.mirror\" ] && cat \"${CLAUDE_PLUGIN_ROOT}/AGENTS.md\" || true" }
         ]
       }
     ]
