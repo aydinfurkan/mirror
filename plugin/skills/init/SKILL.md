@@ -82,10 +82,10 @@ Use the `mirror:formats` skill. Follow the rule of each document that you write.
 
 ## 4. Draw
 
-1. Use the `mirror:build` skill. Copy `visualize.md` from its base directory to
-   `.mirror/visualize.md` if it does not exist.
+1. Load the `mirror:build` skill to get its base directory. Copy `visualize.md` from that
+   directory to `.mirror/visualize.md` if it does not exist.
 2. Build `.mirror/visualize.html` with "Build the data" and "Write the page" in the
-   `mirror:build` skill.
+   `mirror:build` skill. Use `visualize.html` from the base directory of `mirror:build` as the template.
 3. Check the page with step 4 of "Write the page" in the `mirror:build` skill.
 
 ## 5. Report

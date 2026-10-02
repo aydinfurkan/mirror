@@ -47,5 +47,5 @@ the OK:
 | `worker/update-stock` | changed | It also consumes `order.cancelled` and puts the items back in the stock. |
 
 The worker is an affected flow: it consumes `order-events`, where the new flow publishes. The
-mirror in `.mirror/xsrc/` and `.mirror/visualize.html` show the state after the OK. See
-`.mirror/rules/WORKFLOW.md` for the steps of a change.
+mirror in `.mirror/xsrc/` and `.mirror/visualize.html` show the state after the OK. See the
+`mirror:change` skill for the steps of a change.
