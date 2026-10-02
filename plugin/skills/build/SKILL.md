@@ -1,13 +1,19 @@
+---
+name: build
+description: Build .mirror/visualize.html, or a review page in .mirror/features/, from the files in .mirror/xsrc/. Use when the user asks to build, rebuild or redraw the Mirror viewer.
+---
+
 # Build visualize.html
 
-`.mirror/rules/WORKFLOW.md` and the Mirror `init` skill use this procedure.
+The `mirror:init` and `mirror:change` skills use this procedure. The templates `visualize.html`
+and `visualize.md` of this skill are in the base directory of this skill.
 
 ## Inputs
 
 - `.mirror/visualize.md`
 - `.mirror/xsrc/**`
-- The template: `.mirror/visualize.html`. When it does not exist, use `templates/visualize.html`
-  of the Mirror plugin.
+- The template: `.mirror/visualize.html`. When it does not exist, use `visualize.html` of this
+  skill.
 
 ## Build the data
 
