@@ -1,3 +1,8 @@
+---
+name: change
+description: Use before any change to code in a repo with a .mirror/ folder. Change the mirror first, get a review, then change the code.
+---
+
 # Mirror — Change workflow
 
 Use this workflow for every change to the code.
@@ -27,7 +32,7 @@ Do not change code before the user approves the review.
    - A removed flow or page: delete its folder.
 3. When the change breaks a contract of a flow (it removes a field, adds a required field, or
    changes a status code or an event shape), edit the files of each affected flow too.
-4. Follow the rule in `.mirror/rules/` for each file that you write.
+4. Use the `mirror:formats` skill for each file that you write.
 5. If no file under `.mirror/xsrc/` changes, tell the user that the change does not touch the
    mirror. Ask for an OK to change the code without a review page.
 
@@ -35,7 +40,7 @@ Do not change code before the user approves the review.
 
 1. Find the next free number `NNNN` in `.mirror/features/`. Start at `0001`. Make a
    kebab-case `<slug>` from the change name.
-2. Build `.mirror/features/NNNN-<slug>.html` with "Review page" in `.mirror/rules/BUILD.md`.
+2. Build `.mirror/features/NNNN-<slug>.html` with "Review page" in the `mirror:build` skill.
 3. Open the page in VS Code with `code -r <file>`. If `code` is not found, tell the user to
    open the page. List the added, changed and removed flows and steps.
 4. Stop and wait for the answer.
@@ -53,6 +58,6 @@ Do not change code before the user approves the review.
 3. Remove the code and the tests of each removed flow.
 4. Run the full test suite of each changed project and of each project with an affected flow.
    Make sure that all tests pass.
-5. Build `.mirror/visualize.html` with "Build the data" and "Write the page" in
-   `.mirror/rules/BUILD.md`.
+5. Build `.mirror/visualize.html` with "Build the data" and "Write the page" in the
+   `mirror:build` skill.
 6. Report the changed documents, the changed code files, and the test result.
