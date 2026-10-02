@@ -5,9 +5,6 @@ description: Create the Mirror folder for a repository. Find each project, find 
 
 # Mirror init
 
-Write all documents in ASD-STE100 Simplified Technical English. Write one imperative
-instruction per sentence.
-
 ## 0. Check the state
 
 If `.mirror/xsrc/` exists, stop. Ask the user: overwrite it, or keep it and add only the

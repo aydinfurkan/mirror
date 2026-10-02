@@ -11,6 +11,10 @@ Read the rule and the example of a document before you write or change it. Read 
 for the documents that you write. A flow belongs to a `backend`, `worker` or `consumer` project.
 A page belongs to a `frontend` or `expo` project.
 
+Write each file under `.mirror/xsrc/` in ASD-STE100 Simplified Technical English. Write one
+instruction or one fact per sentence, in the active voice. This rule applies only to these
+files, not to the code or the other files of the repository.
+
 | Document                                  | Rule                        | Example                                                                  |
 | ----------------------------------------- | --------------------------- | ------------------------------------------------------------------------ |
 | `xsrc/<project>/definition.md`            | `project/definition.md`     | `project/examples/definition.md`                                         |
