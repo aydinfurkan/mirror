@@ -30,4 +30,4 @@ In this order. Each section is a bullet list, except `## Context`.
 
 ## Example
 
-See `.mirror/rules/page-rules/examples/business-rules.md`.
+See `examples/business-rules.md`.

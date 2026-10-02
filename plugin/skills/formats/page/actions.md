@@ -25,4 +25,4 @@ projects.
 
 ## Example
 
-See `.mirror/rules/page-rules/examples/actions.md`.
+See `examples/actions.md`.

@@ -58,5 +58,5 @@ Write each link as one bullet:
 
 ## Examples
 
-- REST endpoint: `.mirror/rules/flow-rules/examples/boundary-rest.md`
-- Consumer: `.mirror/rules/flow-rules/examples/boundary-consumer.md`
+- REST endpoint: `examples/boundary-rest.md`
+- Consumer: `examples/boundary-consumer.md`

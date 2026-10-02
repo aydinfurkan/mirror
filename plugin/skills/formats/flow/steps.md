@@ -11,4 +11,4 @@ flows.
 
 ## Example
 
-See `.mirror/rules/flow-rules/examples/steps.md`.
+See `examples/steps.md`.

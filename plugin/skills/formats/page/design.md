@@ -28,4 +28,4 @@ In this order. Each section is a bullet list.
 
 ## Example
 
-See `.mirror/rules/page-rules/examples/design.md`.
+See `examples/design.md`.

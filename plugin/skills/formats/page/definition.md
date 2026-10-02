@@ -15,4 +15,4 @@ Path: `.mirror/xsrc/<project>/<page>/definition.md`. Use it for the pages of `fr
 
 ## Example
 
-See `.mirror/rules/page-rules/examples/definition.md`.
+See `examples/definition.md`.
