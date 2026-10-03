@@ -11,4 +11,4 @@ flows.
 
 ## Example
 
-See `examples/steps.md`.
+See `examples/flow/steps.md`.

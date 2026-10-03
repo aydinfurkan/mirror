@@ -17,12 +17,10 @@ and `desktop` projects.
 
 ## Calls
 
-- The target is `<project>/<flow>`, `<project>` when the flow is not known, or the id of an
-  external system in `.mirror/xsrc/config.json`.
-- Each `Call:` is a `calls` link.
+- Each `Call:` is a `calls` link. Write the target and the note with "Links" in
+  `flow/boundary.md`.
 - Write local work (state, navigation, storage) in `Then:` or `Fail:`, not in `Call:`.
-- Put the target in backticks. Use only a target that exists.
 
 ## Example
 
-See `examples/actions.md`.
+See `examples/page/actions.md`.

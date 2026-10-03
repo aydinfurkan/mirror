@@ -30,4 +30,4 @@ In this order. Each section is a bullet list, except `## Context`.
 
 ## Example
 
-See `examples/business-rules.md`.
+See `examples/flow/business-rules.md`.

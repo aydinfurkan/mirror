@@ -5,14 +5,7 @@ change the mirror, get a review, then change the code.
 
 ## Layout
 
-- `.mirror/xsrc/config.json`: the projects, the root folder and the kind of each project, and the
-  external systems (databases, queues, APIs outside the repository).
-- `.mirror/xsrc/<project>/definition.md`: what the project is for, its stack, its technical decisions.
-- `.mirror/xsrc/<project>/<flow-or-page>/`: `definition.md`, `steps.md`, `boundary.md`,
-  `business-rules.md`. A page has `actions.md` in place of `steps.md` and `design.md` in place of
-  `boundary.md`.
-- `.mirror/visualize.html`: the current viewer page. Its colors and fonts are in its `MIRROR:TOKENS` block.
-- `.mirror/features/`: the review page of each past change.
+The `.mirror/` folder and its files are in `layout.md` of the `mirror:formats` skill.
 
 ## Rules
 

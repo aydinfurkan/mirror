@@ -28,4 +28,4 @@ In this order. Each section is a bullet list.
 
 ## Example
 
-See `examples/design.md`.
+See `examples/page/design.md`.

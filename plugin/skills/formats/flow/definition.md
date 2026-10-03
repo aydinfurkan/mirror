@@ -15,4 +15,4 @@ Path: `.mirror/xsrc/<project>/<flow>/definition.md`. Use it for `backend`, `work
 
 ## Example
 
-See `examples/definition.md`.
+See `examples/flow/definition.md`.

@@ -14,6 +14,9 @@ Path: `.mirror/xsrc/<project>/<flow>/boundary.md`. The contract of the flow.
 
 ## Links
 
+A link connects a flow or a page to another flow, a project or an external system. A flow
+writes its links in `## Dependencies`. A page writes them as `Call:` bullets in `actions.md`.
+
 Write each link as one bullet:
 
 ```md
@@ -24,21 +27,11 @@ Write each link as one bullet:
 
 - Start the bullet with one verb: `calls`, `publishes`, `consumes`, `reads` or `writes`.
 - Put the target in backticks: `<project>/<flow>`, `<project>` when the flow is not known, or the
-  id of an external system in `xsrc/config.json`.
+  id of an external system in `.mirror/xsrc/config.json`. Use only a target that exists.
 - Add `: <note>` to tell why. The note is optional.
 - Do not add text after the target without `: `. Do not write ``- reads `db` (in memory).``
-- Add each database, queue, cache, storage or API outside the repository to `external` in
-  `.mirror/xsrc/config.json` before you link to it:
-
-```json
-"external": {
-  "posts-db": { "kind": "database", "name": "Postgres" },
-  "post-events": { "kind": "queue", "name": "Kafka topic post.events" }
-}
-```
-
-- Use one of these kinds: `database`, `queue`, `cache`, `storage`, `api`, `service`.
-- Do not give an external system the id of a project.
+- Add each external system to `external` in `.mirror/xsrc/config.json` before you link to it.
+  See "config.json" in `layout.md`.
 - A bullet that does not start with a verb is a plain note. The viewer does not draw it.
 
 ## Example blocks
@@ -58,5 +51,5 @@ Write each link as one bullet:
 
 ## Examples
 
-- REST endpoint: `examples/boundary-rest.md`
-- Consumer: `examples/boundary-consumer.md`
+- REST endpoint: `examples/flow/boundary-rest.md`
+- Consumer: `examples/flow/boundary-consumer.md`

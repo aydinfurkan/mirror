@@ -11,4 +11,4 @@ Path: `.mirror/xsrc/<project>/definition.md`.
 
 ## Example
 
-See `examples/definition.md`.
+See `examples/project/definition.md`.

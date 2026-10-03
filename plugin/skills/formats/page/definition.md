@@ -15,4 +15,4 @@ and `desktop` projects.
 
 ## Example
 
-See `examples/definition.md`.
+See `examples/page/definition.md`.

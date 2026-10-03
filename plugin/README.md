@@ -31,7 +31,7 @@ From then on, Claude changes the mirror first, you review it, then the code foll
 - `mirror:init`: create the mirror for a repository.
 - `mirror:change`: the change workflow. Claude uses it before each code change.
 - `mirror:build`: build the viewer page or a review page.
-- `mirror:formats`: the rule and the example for each mirror document.
+- `mirror:formats`: the `.mirror/` layout, and the rule and the example for each mirror document.
 
 The rules live in the plugin. Your repo gets only the `.mirror/` data, so a plugin update
 reaches each repo at once.
