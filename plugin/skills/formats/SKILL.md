@@ -9,7 +9,7 @@ Each path in this skill is relative to the base directory of this skill.
 
 Read the rule and the example of a document before you write or change it. Read only the files
 for the documents that you write. A flow belongs to a `backend`, `worker` or `consumer` project.
-A page belongs to a `frontend` or `expo` project.
+A page belongs to a `frontend`, `mobile` or `desktop` project.
 
 Write each file under `.mirror/xsrc/` in ASD-STE100 Simplified Technical English. Write one
 instruction or one fact per sentence, in the active voice. This rule applies only to these

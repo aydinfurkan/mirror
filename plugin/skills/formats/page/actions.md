@@ -1,7 +1,7 @@
 # Rule: page `actions.md`
 
-Path: `.mirror/xsrc/<project>/<page>/actions.md`. Use it for the pages of `frontend` and `expo`
-projects.
+Path: `.mirror/xsrc/<project>/<page>/actions.md`. Use it for the pages of `frontend`, `mobile`
+and `desktop` projects.
 
 ## Sections
 

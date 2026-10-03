@@ -1,7 +1,7 @@
 # Rule: page `definition.md`
 
-Path: `.mirror/xsrc/<project>/<page>/definition.md`. Use it for the pages of `frontend` and
-`expo` projects.
+Path: `.mirror/xsrc/<project>/<page>/definition.md`. Use it for the pages of `frontend`, `mobile`
+and `desktop` projects.
 
 ## Sections
 

@@ -11,7 +11,7 @@ change the mirror, get a review, then change the code.
 - `.mirror/xsrc/<project>/<flow-or-page>/`: `definition.md`, `steps.md`, `boundary.md`,
   `business-rules.md`. A page has `actions.md` in place of `steps.md` and `design.md` in place of
   `boundary.md`.
-- `.mirror/visualize.html`: the current viewer page. `.mirror/visualize.md`: its colors and fonts.
+- `.mirror/visualize.html`: the current viewer page. Its colors and fonts are in its `MIRROR:TOKENS` block.
 - `.mirror/features/`: the review page of each past change.
 
 ## Rules

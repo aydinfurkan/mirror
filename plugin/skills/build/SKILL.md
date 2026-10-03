@@ -5,12 +5,10 @@ description: Build .mirror/visualize.html, or a review page in .mirror/features/
 
 # Build visualize.html
 
-The templates `visualize.html` and `visualize.md` of this skill are in the base directory of
-this skill.
+The template `visualize.html` of this skill is in the base directory of this skill.
 
 ## Inputs
 
-- `.mirror/visualize.md`
 - `.mirror/xsrc/**`
 - The template: `.mirror/visualize.html`. When it does not exist, use `visualize.html` of this
   skill.
@@ -78,7 +76,7 @@ For a page, make one `steps` entry for each `## <action>` header in `actions.md`
 
 1. Copy the template to the target path.
 2. Replace the text between `/* MIRROR:TOKENS:START */` and `/* MIRROR:TOKENS:END */` with
-   the full content of the `css` fence in `.mirror/visualize.md`.
+   the same block of `.mirror/visualize.html`, if it exists. This keeps the colors and fonts of the user.
 3. Replace the content of `<script type="application/json" id="mirror-data">` with the JSON.
 4. Make sure that the data block is valid JSON.
 
