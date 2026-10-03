@@ -31,7 +31,7 @@ plugin/skills/
 - "Affected flows": stays in `change` (`steps/1-understand.md`).
 - `.mirror/` layout, the files of a flow and a page, `config.json`: AGENTS.md, `change`, `init`,
   `formats` → `formats/layout.md`.
-- Open a page in VS Code: `init`, `change` → step 5 of `build/write-page.md`. Each build opens its page.
+- Open a page in VS Code: `init`, `change` → the last step of `build/write-page.md`. Each build opens its page.
 - `init/examples/config.json` → `formats/examples/config.json`.
 
 ## Outside the skills

@@ -1,8 +1,7 @@
 # Change the mirror
 
-1. Run `git status --porcelain .mirror/xsrc`. If it prints anything, stop. Ask the user to
-   commit or stash those changes first. If the repository does not use git, skip this
-   check, and undo your own mirror edits by hand on a cancel.
+1. Before you change or delete a file under `.mirror/xsrc/`, keep its old text. You need it
+   to undo your edits on a cancel. Do not touch the other changes of the user.
 2. Change only files under `.mirror/xsrc/`. Do not change code in this step.
    - A new flow or page: create its folder with its files. See "Flows and pages" in
      `layout.md` of `mirror:formats`.
