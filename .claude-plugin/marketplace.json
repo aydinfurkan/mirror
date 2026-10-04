@@ -1,11 +1,16 @@
 {
   "name": "mirror",
-  "owner": { "name": "Furkan Aydın" },
+  "owner": {
+    "name": "Furkan Aydın"
+  },
+  "metadata": {
+    "description": "Your code, mirrored. Intent first, code second."
+  },
   "plugins": [
     {
       "name": "mirror",
       "source": "./plugin",
-      "description": "Keep the intent of each flow and page next to the code, and draw it as a graph."
+      "description": "A mirror of your code: a living map of every flow and page. Claude updates the mirror first, you approve, then the code follows."
     }
   ]
 }

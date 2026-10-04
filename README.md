@@ -1,12 +1,9 @@
 # Mirror
 
-A Claude Code plugin. Mirror keeps the intent of each flow and page next to the code, and
-draws it as a graph in one HTML file.
+**Your code, mirrored. Intent first, code second.**
 
-- `.mirror/xsrc/<project>/` holds one folder per flow (backend, worker, consumer) or page
-  (frontend, Expo), with `definition.md`, `steps.md`, `boundary.md`, `rules.md`.
-- `.mirror/rules/` holds one format rule per document.
-- `.mirror/visualize.html` draws them. `.mirror/visualize.md` sets its colors and sizes.
+A Claude Code plugin. Mirror keeps the intent of each flow and page next to the code, and
+shows it in one HTML page.
 
 ## Install
 
@@ -17,27 +14,12 @@ draws it as a graph in one HTML file.
 
 ## How it works
 
-1. Run `mirror:init` once. It finds the projects and the flows, writes the documents,
-   draws the graph, and adds `.mirror/AGENTS.md`, `.mirror/WORKFLOW.md`, `.mirror/BUILD.md` and `.mirror/rules/`.
-2. After that, every change follows the workflow in `.mirror/WORKFLOW.md`: change the
-   mirror, review the change on `.mirror/features/NNNN-<slug>.html`, then change the code.
+Run `mirror:init`. That's all.
 
-A `SessionStart` hook loads `.mirror/AGENTS.md` into each Claude Code session of a
-project that has a mirror.
+From then on, Claude changes the mirror first, you review it, then the code follows.
 
-## This repository
+## More
 
-| Path | Holds |
-| --- | --- |
-| `.claude-plugin/marketplace.json` | The marketplace. It points to `plugin/`. |
-| `plugin/` | The plugin: `skills/`, `hooks/`, `templates/`, `.claude-plugin/plugin.json`. Only this folder is installed. |
-| `examples/posts/` | A demo API (`code/`), a web app (`web/`), and their mirror (`.mirror/`). Open `examples/posts/.mirror/visualize.html` to see the viewer. |
-
-Check the viewer or a built page:
-
-```sh
-node plugin/templates/visualize.check.mjs [page.html]
-```
-
-Try the workflow on the example: open Claude Code in `examples/posts/` and ask for a
-change, for example "add comments to posts".
+- [plugin/README.md](plugin/README.md): what the plugin does, and what it runs, reads and sends.
+- [examples/shop/](examples/shop/): a demo shop (web, api, worker) described by its mirror. Open
+  `examples/shop/.mirror/visualize.html` to see the viewer.

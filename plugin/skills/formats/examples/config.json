@@ -1,0 +1,13 @@
+{
+  "projects": {
+    "web-backend": { "root": "apps/web", "kind": "backend" },
+    "web-frontend": { "root": "apps/web", "kind": "frontend" },
+    "mobile": { "root": "apps/mobile", "kind": "mobile" },
+    "mailer": { "root": "services/mailer", "kind": "consumer" }
+  },
+  "external": {
+    "app-db": { "kind": "database", "name": "Postgres" },
+    "user-events": { "kind": "queue", "name": "Kafka topic user.events" },
+    "stripe": { "kind": "api", "name": "Stripe API" }
+  }
+}

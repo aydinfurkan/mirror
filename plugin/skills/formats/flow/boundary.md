@@ -1,0 +1,55 @@
+# Rule: flow `boundary.md`
+
+Path: `.mirror/xsrc/<project>/<flow>/boundary.md`. The contract of the flow.
+
+## Sections
+
+- `## Input`: the trigger line (endpoint, queue or script), then one table row per input
+  field: path, query, body or message field. Put the shape limits (type, required, length,
+  format) in the Validation column. Then one example of the input.
+- `## Output`: one table row per result: each status code, event or effect, with each error.
+  Then one example of the success result and one example of an error.
+- `## Dependencies`: one bullet per link to another flow, project or external system. Write
+  other needs (a helper, a repository in memory) as plain bullets. See "Links".
+
+## Links
+
+A link connects a flow or a page to another flow, a project or an external system. A flow
+writes its links in `## Dependencies`. A page writes them as `Call:` bullets in `actions.md`.
+
+Write each link as one bullet:
+
+```md
+- calls `api/create-post`: sends the form values.
+- writes `posts-db`: saves the post.
+- publishes `post-events`
+```
+
+- Start the bullet with one verb: `calls`, `publishes`, `consumes`, `reads` or `writes`.
+- Put the target in backticks: `<project>/<flow>`, `<project>` when the flow is not known, or the
+  id of an external system in `.mirror/xsrc/config.json`. Use only a target that exists.
+- Add `: <note>` to tell why. The note is optional.
+- Do not add text after the target without `: `. Do not write ``- reads `db` (in memory).``
+- Add each external system to `external` in `.mirror/xsrc/config.json` before you link to it.
+  See "config.json" in `layout.md`.
+- A bullet that does not start with a verb is a plain note. The viewer does not draw it.
+
+## Example blocks
+
+- Show real values, not types.
+- Use the fence language of the real format: `json`, `graphql`, `proto`, `sh` or `text`.
+- Put a label line before each fence: `Example:`, `Example (201):`, `Example (400):`.
+- Skip an example when there is no input or no output body.
+
+| Kind | Input example | Output example |
+| --- | --- | --- |
+| `backend` (REST) | The request body in `json`. | The response body in `json`: the success and one error. |
+| `backend` (GraphQL) | The query in `graphql`, then the variables in `json`. | The response in `json`, with `data` or `errors`. |
+| `backend` (RPC) | The request message in `json` or `proto`. | The response message and one error status. |
+| `consumer` | The message payload in `json`. Add the headers or the key when they matter. | The published event in `json`, or the written record. |
+| `worker` | The command line, the cron line, or the env vars in `sh`. | The written record or the published event, the log line, and the exit code. |
+
+## Examples
+
+- REST endpoint: `examples/flow/boundary-rest.md`
+- Consumer: `examples/flow/boundary-consumer.md`
