@@ -11,4 +11,4 @@
    changes a status code or an event shape), edit the files of each affected flow too.
 4. Use the `mirror:formats` skill for each file that you write.
 5. If no file under `.mirror/xsrc/` changes, tell the user that the change does not touch the
-   mirror. Ask for an OK to change the code without a review page.
+   mirror. Skip step 3 and go to `4-code.md`.

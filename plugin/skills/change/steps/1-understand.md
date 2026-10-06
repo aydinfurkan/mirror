@@ -8,3 +8,6 @@
    - for each external system that it `publishes` to or `writes`, each flow that `consumes` or
      `reads` that external system.
    Show them to the user as "Affected".
+5. If the change does not touch the mirror, skip steps 2 and 3. Tell the user why in one
+   line. Then go to `4-code.md`. Examples: a bug fix that makes the code do what the mirror
+   already says, a style fix, a refactor, or a change to tests or tooling only.

@@ -5,7 +5,8 @@ description: Use before any change to code in a repo with a .mirror/ folder. Cha
 
 # Mirror change
 
-Do not change code before the user approves the review.
+Do not change code before the user approves the review. The only exception: the change does
+not touch the mirror (see step 1).
 
 Each path in this skill is relative to the base directory of this skill.
 
