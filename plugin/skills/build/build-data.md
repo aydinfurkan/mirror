@@ -48,7 +48,7 @@ step for each `## <action>` header in `actions.md`. Keep the order of the file.
 
 ## Write the JSON
 
-Replace each `<` with `<`, so that the JSON is safe inside a `<script>` tag.
+Replace each `<` with `\u003c`, so that the JSON is safe inside a `<script>` tag.
 
 The shape:
 
