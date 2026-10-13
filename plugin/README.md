@@ -41,7 +41,7 @@ reaches each repo at once.
 - **Hook.** At session start, in a repo with a `.mirror/` folder, a shell command loads the
   Mirror instructions into Claude.
 - **Files.** Reads your code. Writes only to the `.mirror/` folder.
-- **Network.** No network calls. The HTML pages load fonts from Google Fonts.
+- **Network.** No network calls. The HTML pages use the system fonts.
 
 ## Requirements
 
