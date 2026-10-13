@@ -41,13 +41,11 @@ reaches each repo at once.
 - **Hook.** At session start, in a repo with a `.mirror/` folder, a shell command loads the
   Mirror instructions into Claude.
 - **Files.** Reads your code. Writes only to the `.mirror/` folder.
-- **Commands.** Runs `code` to open a page in VS Code.
 - **Network.** No network calls. The HTML pages load fonts from Google Fonts.
 
 ## Requirements
 
 - Claude Code.
-- VS Code with the `code` command, optional, to open the pages.
 
 ## License
 

@@ -2,6 +2,8 @@
 
 **Your code, mirrored. Intent first, code second.**
 
+![Mirror: ask for a change, review the mirror, then the code follows](docs/demo.gif)
+
 A Claude Code plugin. Mirror keeps the intent of each flow and page next to the code, and
 shows it in one HTML page.
 

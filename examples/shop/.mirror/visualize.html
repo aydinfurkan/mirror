@@ -138,8 +138,12 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 .list .st-added { background: color-mix(in srgb, var(--added) 14%, transparent); }
 .list .st-changed { background: color-mix(in srgb, var(--changed) 14%, transparent); }
 .list .st-removed { opacity: .6; text-decoration: line-through; background: color-mix(in srgb, var(--removed) 10%, transparent); }
-.diff { margin: 0; padding: 8px 0; font: 16px/1.55 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+.diff { margin: 0; padding: 8px 0; line-height: 1.55; overflow-wrap: anywhere; }
 .diff span, .diff del, .diff ins { display: block; padding: 0 6px; border-radius: 4px; }
+.diff .dh { margin-top: 10px; font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.diff .dl { position: relative; padding-left: calc(26px + var(--ind, 0) * 18px); }
+.diff .dl > i { position: absolute; left: calc(8px + var(--ind, 0) * 18px); font-style: normal; color: var(--muted); }
+.diff .dc { font: 16px var(--mono); white-space: pre-wrap; }
 .diff del { text-decoration: line-through; color: var(--removed); background: color-mix(in srgb, var(--removed) 10%, transparent); }
 .diff ins { text-decoration: none; background: color-mix(in srgb, var(--changed) 35%, transparent); }
 .empty { color: var(--muted); }
@@ -342,13 +346,30 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
       t[i] = [];
       for (j = m; j >= 0; j--) t[i][j] = i === n || j === m ? 0 : a[i] === b[j] ? t[i + 1][j + 1] + 1 : Math.max(t[i + 1][j], t[i][j + 1]);
     }
-    var out = [];
+    var out = [], fence = false;
+    function line(tag, s) {
+      var r = diffLine(s, fence);
+      if (/^\s*```/.test(s)) fence = !fence;
+      out.push('<' + tag + r.cls + '>' + (r.html || ' ') + '</' + tag + '>');
+    }
     for (i = 0, j = 0; i < n || j < m;) {
-      if (i < n && j < m && a[i] === b[j]) { out.push('<span>' + (esc(a[i]) || ' ') + '</span>'); i++; j++; }
-      else if (j < m && (i === n || t[i][j + 1] >= t[i + 1][j])) out.push('<ins>' + (esc(b[j++]) || ' ') + '</ins>');
-      else out.push('<del>' + (esc(a[i++]) || ' ') + '</del>');
+      if (i < n && j < m && a[i] === b[j]) { line('span', a[i]); i++; j++; }
+      else if (j < m && (i === n || t[i][j + 1] >= t[i + 1][j])) line('ins', b[j++]);
+      else line('del', a[i++]);
     }
     return '<div class="diff">' + out.join('') + '</div>';
+  }
+
+  // One markdown line of a diff as HTML: a heading, a list item, a code or table line, or text.
+  function diffLine(s, fence) {
+    var m;
+    if (fence || /^\s*(```|\|)/.test(s)) return { cls: ' class="dc"', html: esc(s) };
+    if ((m = /^#{1,6}\s+(.*)$/.exec(s))) return { cls: ' class="dh"', html: inline(m[1]) };
+    if ((m = /^(\s*)([-*]|\d+\.)\s+(.*)$/.exec(s))) {
+      return { cls: ' class="dl" style="--ind:' + Math.floor(m[1].length / 2) + '"',
+        html: '<i>' + (/\d/.test(m[2]) ? esc(m[2]) : '•') + '</i>' + inline(m[3]) };
+    }
+    return { cls: '', html: inline(s) };
   }
 
   // The text of a row tab, as the diff compares it. The definition tab also holds the frontmatter.

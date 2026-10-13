@@ -9,5 +9,5 @@ The input is the JSON data and a target path.
 3. If you saved a block in step 1, put it in the same block of the new page.
 4. Replace the content of `<script type="application/json" id="mirror-data">` with the JSON.
 5. Make sure that the data block is valid JSON.
-6. Open the page in VS Code with `code -r <target path>`. If `code` is not found, tell the user
-   to open the file.
+6. Do not open the page. In your response, give the user a link to the page, so that the user
+   can click it to open the page.

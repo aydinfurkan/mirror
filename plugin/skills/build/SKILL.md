@@ -10,7 +10,7 @@ that you need.
 
 - Input: the files in `.mirror/xsrc/`.
 - Template: `visualize.html` of this skill.
-- Each build opens the page for the user.
+- Each build gives the user a link to the page.
 
 | Task                                                    | Steps                                                       |
 | ------------------------------------------------------- | ----------------------------------------------------------- |
