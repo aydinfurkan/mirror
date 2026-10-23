@@ -30,6 +30,8 @@ From then on, Claude changes the mirror first, you review it, then the code foll
 
 - `mirror:init`: create the mirror for a repository.
 - `mirror:change`: the change workflow. Claude uses it before each code change.
+- `mirror:sync`: find drift between the code and the mirror since the last mirror update.
+  Propose mirror edits, and flag code that breaks a business rule.
 - `mirror:build`: build the viewer page or a review page.
 - `mirror:formats`: the `.mirror/` layout, and the rule and the example for each mirror document.
 
