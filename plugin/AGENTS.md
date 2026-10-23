@@ -17,5 +17,6 @@ link, and where their code starts. Open only the code that the mirror points to.
 1. Before any change to the code, use the `mirror:change` skill and follow it.
 2. Before you write or change a file under `.mirror/xsrc/`, use the `mirror:formats` skill.
 3. To build the viewer or a review page, use the `mirror:build` skill.
-4. To answer a question about how the system works, use the `mirror:ask` skill. Examples:
+4. To find the rules without a test, or to write tests from the rules, use the `mirror:test` skill.
+5. To answer a question about how the system works, use the `mirror:ask` skill. Examples:
    "what happens when an order is cancelled?", "where do we send the receipt?".
