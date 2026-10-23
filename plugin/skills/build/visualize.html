@@ -148,6 +148,22 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 #legend { position: absolute; right: 16px; bottom: 16px; display: none; gap: 14px; padding: 8px 12px; font-size: 16px; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 4px 16px rgb(0 0 0 / .08); }
 #legend.on { display: flex; }
 #legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; background: var(--c); }
+/* Review comments */
+#comments { display: none; }
+body.review #comments { display: inline-block; }
+#comments.has { color: var(--surface); background: var(--flow); }
+.cm { position: relative; padding-right: 34px; }
+.cbtn { position: absolute; top: 4px; right: 2px; width: 26px; height: 26px; padding: 0; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--muted); font-size: 15px; line-height: 1; text-decoration: none; cursor: pointer; opacity: 0; }
+.cm:hover > .cbtn, .cm > .cbtn:focus-visible, .cm.has > .cbtn { opacity: 1; }
+.cm.has > .cbtn { color: var(--surface); background: var(--flow); border-color: var(--flow); }
+.cbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.cnote { display: block; margin: 6px 0 4px; padding: 8px 10px; border-left: 3px solid var(--flow); border-radius: 6px; background: color-mix(in srgb, var(--flow) 8%, var(--surface)); color: var(--text); font: 16px/1.45 var(--font); text-decoration: none; white-space: pre-wrap; cursor: pointer; }
+.list > li.cnote { display: block; padding: 8px 10px; border-bottom: 0; margin-left: 36px; }
+.cnote textarea { display: block; width: 100%; min-height: 72px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); resize: vertical; font: inherit; color: inherit; }
+.cnote .cact { display: flex; gap: 6px; margin-top: 6px; font-size: 14px; }
+.cnote .cact .btn { height: 30px; }
+#toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); padding: 8px 14px; border-radius: 10px; background: var(--text); color: var(--bg); font-size: 15px; opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 5; }
+#toast.on { opacity: 1; }
 @media (max-width: 700px) {
   header { flex-wrap: wrap; }
   .search { order: 3; flex-basis: 100%; max-width: none; }
@@ -166,6 +182,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
   <div class="tools">
     <button class="btn" id="collapse-all" title="Close all rows">Collapse</button>
     <button class="btn" id="expand-all" title="Open all rows">Expand</button>
+    <button class="btn" id="comments" title="Copy all comments, to paste them to Claude">Copy comments</button>
     <button class="btn" id="theme" title="Toggle light / dark" aria-label="Toggle light or dark theme">&#9680;</button>
   </div>
 </header>
@@ -178,6 +195,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     <span style="--c: var(--removed)">removed</span>
   </div>
 </main>
+<div id="toast" role="status" aria-live="polite"></div>
 <script type="application/json" id="mirror-data">{"generated":"","title":"Mirror","projects":[]}</script>
 <script id="mirror-app">
 (function () {
@@ -439,13 +457,23 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
       '<div class="db">' + body(n, 'definition', folds) + '</div></section>';
   }
 
+  // All review comments as one markdown text, to paste to Claude. The mirror:change skill reads it.
+  // page: the file name of the review page. list: { where, quote, text }, in page order.
+  function commentsText(page, list) {
+    return ['# Mirror review comments', '', 'Page: ' + page, ''].concat(list.map(function (c, i) {
+      return '## ' + (i + 1) + '. ' + c.where + '\n\n' + String(c.quote).split('\n').map(function (q) { return '> ' + q; }).join('\n') +
+        '\n\n' + String(c.text).trim() + '\n';
+    })).join('\n');
+  }
+
   globalThis.MirrorViewer = { esc: esc, renderMd: renderMd, summary: summary, model: model, groups: groups, matches: matches, hasChanges: hasChanges,
-    diffHtml: diffHtml, tabFromHash: tabFromHash, firstTabWithMatch: firstTabWithMatch, actionDetails: actionDetails, rowHtml: rowHtml, projectHtml: projectHtml };
+    diffHtml: diffHtml, tabFromHash: tabFromHash, firstTabWithMatch: firstTabWithMatch, actionDetails: actionDetails, rowHtml: rowHtml, projectHtml: projectHtml,
+    commentsText: commentsText };
   if (typeof document === 'undefined') return;
 
   // ---- Browser only below ----
 
-  var state = { pi: 0, expanded: {}, rtab: {}, folds: {}, hits: [], hit: -1, q: '' };
+  var state = { pi: 0, expanded: {}, rtab: {}, folds: {}, hits: [], hit: -1, q: '', comments: {}, ckeys: [], editing: null, draft: '' };
 
   function $(id) { return document.getElementById(id); }
   function sel(attr, value) { return '[' + attr + '="' + String(value).replace(/["\\]/g, '\\$&') + '"]'; }
@@ -501,6 +529,159 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     });
     $('qcount').textContent = state.q.trim() ? (state.hits.length ? (state.hit + 1) + '/' + state.hits.length : '0') : '';
     $('legend').classList.toggle('on', m.all.some(function (n) { return STATUS[n.status]; }));
+    decorate();
+  }
+
+  // ---- Review comments ----
+
+  // Comments live in the browser, per page and per data: a rebuild with new data starts empty.
+  function commentsStore() {
+    var s = $('mirror-data').textContent, h = 5381, i;
+    for (i = 0; i < s.length; i++) h = (h * 33 + s.charCodeAt(i)) | 0;
+    return 'mirror-comments:' + location.pathname + ':' + (h >>> 0).toString(36);
+  }
+  function loadComments() {
+    try { state.comments = JSON.parse(localStorage.getItem(commentsStore()) || '{}') || {}; } catch (e) { state.comments = {}; }
+  }
+  function saveComments() {
+    try { localStorage.setItem(commentsStore(), JSON.stringify(state.comments)); } catch (e) { /* private mode: keep them in memory */ }
+  }
+
+  function commentList() {
+    return Object.keys(state.comments).map(function (k) { return state.comments[k]; })
+      .sort(function (a, b) { return a.pi - b.pi || a.fi - b.fi || a.seq - b.seq; });
+  }
+
+  function updateCommentsButton() {
+    var n = commentList().length;
+    $('comments').textContent = n ? 'Copy comments (' + n + ')' : 'Copy comments';
+    $('comments').classList.toggle('has', n > 0);
+  }
+
+  // The lines of the open rows that take a comment: each step or action, and each line of the
+  // other tabs (rules, definition, boundary, design), also in a diff.
+  function commentTargets(row, f, tab) {
+    var db = row.querySelector('.db');
+    if (!db) return [];
+    if (tab === 'steps' || tab === 'actions') {
+      return [].map.call(db.querySelectorAll('.list > li[data-key]'), function (el) {
+        var s = f.item.steps[Number(el.getAttribute('data-key').split('#').pop())];
+        return { el: el, quote: [s.title || s.text].concat(s.details || []).join('\n'),
+          where: tab === 'actions' ? 'action "' + String(s.title || s.text).replace(/\.$/, '') + '"' : 'step ' + s.n };
+      });
+    }
+    var sels = ':scope > p, :scope > ul > li, :scope > ol > li, :scope > table > tbody > tr, :scope > pre, .diff > span:not(.dh), .diff > ins, .diff > del';
+    return [].filter.call(db.querySelectorAll(sels), function (el) { return el.textContent.trim(); }).map(function (el) {
+      var t = el.tagName === 'TR' ? [].map.call(el.cells, function (c) { return c.textContent.trim(); }).join(' | ') : el.textContent.replace(/\s+/g, ' ').trim();
+      var sec = section(el);
+      return { el: el, quote: (el.tagName === 'INS' ? 'new: ' : el.tagName === 'DEL' ? 'old: ' : '') + t, where: tab + (sec ? ', ' + sec : '') };
+    });
+  }
+
+  // The heading above a line in a tab: a markdown heading, or a heading line of a diff.
+  function section(el) {
+    var e = /^(LI|TR)$/.test(el.tagName) ? el.closest('ul, ol, table') : el;
+    while ((e = e && e.previousElementSibling)) {
+      if (/^H[1-6]$/.test(e.tagName) || e.classList.contains('dh')) return e.textContent.trim();
+    }
+    return '';
+  }
+
+  // Add a comment button, and the comment or its editor, to each line of each open flow row.
+  function decorate() {
+    state.ckeys = [];
+    if (!document.body.classList.contains('review')) return;
+    [].forEach.call($('list').querySelectorAll('.op.open[data-row]'), function (row) {
+      var rk = row.getAttribute('data-row'), fi = -1, f = null, tb = row.querySelector('.tab.on');
+      state.m.flows.some(function (x, i) { if (x.key === rk) { fi = i; f = x; return true; } return false; });
+      if (!f || !tb) return;
+      var tab = tb.getAttribute('data-rtab');
+      commentTargets(row, f, tab).forEach(function (t) {
+        var key = rk + '|' + tab + '|' + t.quote, id = state.ckeys.push({ key: key, pi: state.pi, fi: fi, where: rk + ', ' + t.where, quote: t.quote }) - 1;
+        var c = state.comments[key], host = t.el.tagName === 'TR' ? t.el.lastElementChild : t.el;
+        host.classList.add('cm');
+        host.classList.toggle('has', !!c);
+        var b = document.createElement('button');
+        b.type = 'button'; b.className = 'cbtn'; b.textContent = '\u{1F4AC}';
+        b.title = c ? 'Edit the comment' : 'Comment'; b.setAttribute('aria-label', b.title);
+        b.setAttribute('data-cmt', id);
+        host.appendChild(b);
+        if (!c && state.editing !== key) return;
+        var step = t.el.parentNode.classList.contains('list'), note = document.createElement(step ? 'li' : 'div');
+        note.className = 'cnote';
+        note.setAttribute('data-cmt', id);
+        if (state.editing === key) {
+          note.innerHTML = '<textarea aria-label="Comment" placeholder="What should change here?"></textarea><div class="cact">' +
+            '<button type="button" class="btn" data-csave="' + id + '">Save</button><button type="button" class="btn" data-ccancel="1">Cancel</button>' +
+            (c ? '<button type="button" class="btn" data-cdel="' + id + '">Delete</button>' : '') + '</div>';
+          note.firstChild.value = state.draft;
+        } else {
+          note.textContent = c.text;
+          note.title = 'Edit the comment';
+        }
+        if (!step && (host.tagName === 'LI' || host.tagName === 'TD')) host.appendChild(note);
+        else t.el.parentNode.insertBefore(note, t.el.nextSibling);
+      });
+    });
+    var ta = $('list').querySelector('.cnote textarea');
+    if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+  }
+
+  function editComment(id) {
+    var k = state.ckeys[id];
+    if (!k) return;
+    state.editing = k.key;
+    state.draft = state.comments[k.key] ? state.comments[k.key].text : '';
+    draw();
+  }
+
+  function saveComment(id, text) {
+    var k = state.ckeys[id];
+    if (!k) return;
+    var old = state.comments[k.key];
+    if (String(text).trim()) {
+      state.comments[k.key] = { pi: k.pi, fi: k.fi, seq: old ? old.seq : Date.now(), where: k.where, quote: k.quote, text: String(text).trim() };
+    } else delete state.comments[k.key];
+    saveComments();
+    closeEditor();
+  }
+
+  function closeEditor() {
+    state.editing = null;
+    state.draft = '';
+    draw();
+    updateCommentsButton();
+  }
+
+  function toast(msg) {
+    var t = $('toast');
+    t.textContent = msg;
+    t.classList.add('on');
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(function () { t.classList.remove('on'); }, 2600);
+  }
+
+  function copyText(s, done) {
+    function fallback() {
+      var t = document.createElement('textarea'), ok = false;
+      t.value = s; t.setAttribute('readonly', ''); t.style.position = 'fixed'; t.style.opacity = '0';
+      document.body.appendChild(t);
+      t.select();
+      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      document.body.removeChild(t);
+      done(ok);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(s).then(function () { done(true); }, fallback);
+    else fallback();
+  }
+
+  function copyComments() {
+    var list = commentList();
+    if (!list.length) { toast('No comments yet. Open a flow and click \u{1F4AC} on a step or a rule.'); return; }
+    var page = decodeURIComponent(location.pathname.split('/').pop() || 'review page');
+    copyText(commentsText(page, list), function (ok) {
+      toast(ok ? 'Copied ' + list.length + ' comment' + (list.length > 1 ? 's' : '') + '. Paste them to Claude.' : 'Could not copy. Your browser blocked the clipboard.');
+    });
   }
 
   // Scroll an element into view and flash it.
@@ -585,13 +766,23 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     $('title').textContent = state.data.title || 'Mirror';
     $('meta').textContent = state.data.generated ? 'generated ' + state.data.generated : '';
     state.pi = tabFromHash(location.hash, state.data.projects);
+    loadComments();
+    updateCommentsButton();
     renderTabs();
     draw();
 
     $('list').addEventListener('click', function (e) {
       var b = e.target.closest('button');
-      if (!b) return;
-      if (b.hasAttribute('data-toggle')) toggleRow(b.getAttribute('data-toggle'));
+      if (!b) {
+        var note = e.target.closest('.cnote[data-cmt]');
+        if (note && !note.querySelector('textarea')) editComment(Number(note.getAttribute('data-cmt')));
+        return;
+      }
+      if (b.hasAttribute('data-cmt')) editComment(Number(b.getAttribute('data-cmt')));
+      else if (b.hasAttribute('data-csave')) saveComment(Number(b.getAttribute('data-csave')), b.closest('.cnote').querySelector('textarea').value);
+      else if (b.hasAttribute('data-cdel')) saveComment(Number(b.getAttribute('data-cdel')), '');
+      else if (b.hasAttribute('data-ccancel')) closeEditor();
+      else if (b.hasAttribute('data-toggle')) toggleRow(b.getAttribute('data-toggle'));
       else if (b.hasAttribute('data-rtab')) setRowTab(b.getAttribute('data-for'), b.getAttribute('data-rtab'));
     });
     $('list').addEventListener('toggle', function (e) {
@@ -600,6 +791,13 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
       var k = r.getAttribute('data-row');
       (state.folds[k] = state.folds[k] || {})[d.getAttribute('data-fold')] = d.open;
     }, true);
+    $('list').addEventListener('input', function (e) { if (e.target.closest('.cnote')) state.draft = e.target.value; });
+    $('list').addEventListener('keydown', function (e) {
+      var note = e.target.tagName === 'TEXTAREA' && e.target.closest('.cnote');
+      if (!note) return;
+      if (e.key === 'Escape') { e.preventDefault(); closeEditor(); }
+      else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); note.querySelector('[data-csave]').click(); }
+    });
     $('ptabs').addEventListener('click', function (e) {
       var b = e.target.closest('[data-pi]');
       if (b) switchProject(Number(b.getAttribute('data-pi')), false);
@@ -620,6 +818,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     $('collapse-all').addEventListener('click', function () { setAll(false); });
     $('expand-all').addEventListener('click', function () { setAll(true); });
     $('theme').addEventListener('click', toggleTheme);
+    $('comments').addEventListener('click', copyComments);
     document.addEventListener('keydown', function (e) {
       var typing = /^(INPUT|TEXTAREA)$/.test(document.activeElement && document.activeElement.tagName);
       if (e.key === '/' && !typing) { e.preventDefault(); $('q').focus(); }
