@@ -1,0 +1,52 @@
+name: Mirror intent diff
+description: Post the added, changed and removed flows, pages and rules of .mirror/ as a pull request comment.
+author: Furkan Aydın
+branding:
+  icon: git-pull-request
+  color: purple
+
+inputs:
+  github-token:
+    description: The token that posts the comment. It needs the pull-requests write permission.
+    default: ${{ github.token }}
+  mirror-dir:
+    description: The path of the .mirror/ folder, relative to the repository root.
+    default: .mirror
+  base:
+    description: The base revision. The default is the base commit of the pull request.
+    default: ${{ github.event.pull_request.base.sha }}
+  head:
+    description: The head revision. The default is the checked-out commit.
+    default: HEAD
+  comment:
+    description: Set to false to write only the job summary, with no comment.
+    default: 'true'
+
+outputs:
+  changed:
+    description: true when the pull request changes the intent in .mirror/xsrc/.
+    value: ${{ steps.diff.outputs.changed }}
+
+runs:
+  using: composite
+  steps:
+    - name: Fetch the base revision
+      shell: bash
+      env:
+        BASE: ${{ inputs.base }}
+      run: |
+        if [ -n "$BASE" ] && ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+          git fetch --no-tags --quiet --depth=1 origin "$BASE"
+        fi
+    - name: Diff the mirror
+      id: diff
+      shell: bash
+      env:
+        MIRROR_TOKEN: ${{ inputs.github-token }}
+        MIRROR_DIR: ${{ inputs.mirror-dir }}
+        MIRROR_BASE: ${{ inputs.base }}
+        MIRROR_HEAD: ${{ inputs.head }}
+        MIRROR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        MIRROR_PR: ${{ github.event.pull_request.number }}
+        MIRROR_COMMENT: ${{ inputs.comment }}
+      run: node "$GITHUB_ACTION_PATH/intent-diff.mjs"

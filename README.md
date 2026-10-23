@@ -23,5 +23,7 @@ From then on, Claude changes the mirror first, you review it, then the code foll
 ## More
 
 - [plugin/README.md](plugin/README.md): what the plugin does, and what it runs, reads and sends.
+- [action/](action/): a GitHub Action that posts the intent diff of each pull request as a
+  comment.
 - [examples/shop/](examples/shop/): a demo shop (web, api, worker) described by its mirror. Open
   `examples/shop/.mirror/visualize.html` to see the viewer.

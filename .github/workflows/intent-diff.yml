@@ -1,0 +1,31 @@
+name: Intent diff
+
+on:
+  pull_request:
+    paths:
+      - action/**
+      - examples/shop/.mirror/**
+      - .github/workflows/intent-diff.yml
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node --test action/intent-diff.test.mjs
+
+  # Run the action of this repo on the demo shop.
+  diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./action
+        with:
+          mirror-dir: examples/shop/.mirror
