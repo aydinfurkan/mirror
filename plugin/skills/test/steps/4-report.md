@@ -4,12 +4,14 @@
 
    | Flow or page | Rules | Covered | Without a test | Failing |
    | --- | --- | --- | --- | --- |
-   | `api/cancel-order` | 11 | 9 | 1 | 1 |
+   | `api/cancel-order` | 11 | 10 | 1 | 1 |
+
+   A rule with a failing test counts in "Covered" too.
 
 2. Under the table, list each rule without a test. Show its id and its text:
 
    ```text
-   api/cancel-order C2: Give the money back before the order is cancelled.
+   api/cancel-order C3: Put the items back in the stock only after the order is cancelled.
    ```
 
 3. List each failing rule with its id, its text and the error. For each one, tell the user
@@ -18,3 +20,5 @@
 4. List each stale tag with its file and line.
 5. List the tags that you added or fixed in step 2, and the test files that you wrote in
    step 3.
+
+Example: `examples/report.md`.

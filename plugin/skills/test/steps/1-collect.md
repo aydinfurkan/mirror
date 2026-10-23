@@ -11,3 +11,5 @@
    - Do not add the items of `## Goal`, `## Non-goal` or `## Open questions`.
 5. Keep the text of each rule. Keep the `Example` blocks of `boundary.md`. You use them as
    the test data in step 3.
+
+Example: `examples/rules.md`.

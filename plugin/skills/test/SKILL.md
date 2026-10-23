@@ -40,3 +40,11 @@ it("refuses an order that is older than 24 hours", async () => {
 - One test can have more than one tag. Write one tag per line.
 - Give the test a name that says the rule in words. The name lets you find the rule again when
   its number changes.
+
+## Examples
+
+The flow `api/cancel-order` of the shop example:
+
+- The rules from step 1: `examples/rules.md`.
+- The tests with their tags from step 3: `examples/cancel-order.test.ts`.
+- The report from step 4: `examples/report.md`.

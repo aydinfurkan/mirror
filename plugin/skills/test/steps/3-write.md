@@ -17,3 +17,5 @@
      mirror. Keep the test. Note the rule and the error for the report.
    - A test cannot run, for example it has a wrong import: fix the test. Run it again.
 6. Do not change the code or the files under `.mirror/xsrc/`.
+
+Example: `examples/cancel-order.test.ts`.
