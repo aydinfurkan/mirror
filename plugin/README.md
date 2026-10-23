@@ -23,6 +23,8 @@ From then on, Claude changes the mirror first, you review it, then the code foll
 
 - **Init.** Finds each flow and page in your code and writes down its intent.
 - **Viewer.** Lists all flows and pages in one HTML page you can search and open.
+- **Map.** Claude reads the mirror before the code. Ask "what happens when an order is
+  cancelled?" and Claude follows the flows and their links to answer.
 - **Review.** For each change, Claude updates the mirror and shows you a review page. The
   code changes only after your OK. Comment on a step or a rule in the page, click "Copy
   comments", and paste them to Claude.
@@ -33,6 +35,8 @@ From then on, Claude changes the mirror first, you review it, then the code foll
 
 - `mirror:init`: create the mirror for a repository.
 - `mirror:change`: the change workflow. Claude uses it before each code change.
+- `mirror:ask`: answer a question about the system from the mirror first, then from the code
+  it points to.
 - `mirror:sync`: find drift between the code and the mirror since the last mirror update.
   Propose mirror edits, and flag code that breaks a business rule.
 - `mirror:build`: build the viewer page or a review page.
