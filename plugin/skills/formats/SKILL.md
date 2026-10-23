@@ -12,9 +12,9 @@ The `.mirror/` folder, `config.json`, and the files of a flow and a page are in 
 Read the rule and the example of a document before you write or change it. Read only the files
 for the documents that you write.
 
-Write each file under `.mirror/xsrc/` in ASD-STE100 Simplified Technical English. Write one
-instruction or one fact per sentence, in the active voice. This rule applies only to these
-files, not to the code or the other files of the repository.
+Write each file under `.mirror/xsrc/` in short sentences, with one instruction or one fact per
+sentence, in the active voice. Use the names from the code. Do not use idioms or filler words.
+This rule applies only to these files, not to the code or the other files of the repository.
 
 | Document                                  | Rule                        | Example                                                                  |
 | ----------------------------------------- | --------------------------- | ------------------------------------------------------------------------ |
