@@ -24,7 +24,8 @@ From then on, Claude changes the mirror first, you review it, then the code foll
 - **Init.** Finds each flow and page in your code and writes down its intent.
 - **Viewer.** Lists all flows and pages in one HTML page you can search and open.
 - **Review.** For each change, Claude updates the mirror and shows you a review page. The
-  code changes only after your OK.
+  code changes only after your OK. Comment on a step or a rule in the page, click "Copy
+  comments", and paste them to Claude.
 - **Tests.** Turns each rule of a flow or page into a test, and lists the rules without a
   test.
 
@@ -46,7 +47,8 @@ reaches each repo at once.
   Mirror instructions into Claude.
 - **Files.** Reads your code. Writes only to the `.mirror/` folder, except for the tests
   that `mirror:test` writes.
-- **Network.** No network calls. The HTML pages use the system fonts.
+- **Network.** No network calls. The HTML pages use the system fonts. Review comments stay in
+  your browser until you copy them.
 
 ## Requirements
 
