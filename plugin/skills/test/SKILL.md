@@ -48,3 +48,7 @@ The flow `api/cancel-order` of the shop example:
 - The rules from step 1: `examples/rules.md`.
 - The tests with their tags from step 3: `examples/cancel-order.test.ts`.
 - The report from step 4: `examples/report.md`.
+
+The test example uses TypeScript and Vitest. Copy its shape: the tags, the test names and the
+use of the boundary examples. Do not copy its language. Write each test in the language and
+the framework of the project.

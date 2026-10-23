@@ -5,15 +5,14 @@ The report of step 4, after step 3 wrote the tests in `cancel-order.test.ts`.
 | Flow or page | Rules | Covered | Without a test | Failing |
 | --- | --- | --- | --- | --- |
 | `api/cancel-order` | 11 | 10 | 1 | 1 |
-| `api/create-order` | 9 | 9 | 0 | 0 |
-| `api/get-order` | 6 | 4 | 2 | 0 |
+| `api/create-order` | 10 | 10 | 0 | 0 |
+| `api/get-order` | 5 | 4 | 1 | 0 |
 
 ## Without a test
 
 ```text
 api/cancel-order C3: Put the items back in the stock only after the order is cancelled.
-api/get-order AC2: A customer sees only their own order.
-api/get-order O3: 403: the order belongs to another customer.
+api/get-order C1: Show only the domain of the customer email, not the full email.
 ```
 
 ## Failing
@@ -34,6 +33,6 @@ apps/api/test/orders.test.ts:88  mirror: api/refund-order AC1  (the flow does no
 
 ## Changed tests
 
-- Fixed the tag `api/create-order AC3` to `AC4` in `apps/api/test/create-order.test.ts:41`.
-- Added the tag `api/get-order AC1` in `apps/api/test/get-order.test.ts:12`.
+- Fixed the tag `api/create-order AC4` to `AC3` in `apps/api/test/create-order.test.ts:41`.
+- Added the tag `api/get-order AC2` in `apps/api/test/get-order.test.ts:12`.
 - Wrote `apps/api/test/cancel-order.test.ts`.
