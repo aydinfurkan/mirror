@@ -1,11 +1,10 @@
-name: Intent diff
+name: Review page
 
 on:
   pull_request:
     paths:
       - action/**
-      - examples/shop/.mirror/**
-      - .github/workflows/intent-diff.yml
+      - .github/workflows/review-page.yml
 
 permissions:
   contents: read
@@ -19,13 +18,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: node --test action/intent-diff.test.mjs
+      - run: node --test action/review-page.test.mjs
 
-  # Run the action of this repo on the demo shop.
-  diff:
+  # Run the action of this repo on the review page of the demo shop. The base is the empty
+  # tree, so that the page counts as new on each run.
+  demo:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: ./action
         with:
           mirror-dir: examples/shop/.mirror
+          publish: artifact
+          base: 4b825dc642cb6eb9a060e54bf8d69288fbee4904

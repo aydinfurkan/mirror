@@ -1,5 +1,5 @@
-name: Mirror intent diff
-description: Post the added, changed and removed flows, pages and rules of .mirror/ as a pull request comment.
+name: Mirror review page
+description: Link the Mirror review page of each pull request in a comment. It opens in the browser, from GitHub Pages or from the Actions run.
 author: Furkan Aydın
 branding:
   icon: git-pull-request
@@ -7,46 +7,75 @@ branding:
 
 inputs:
   github-token:
-    description: The token that posts the comment. It needs the pull-requests write permission.
+    description: The token that posts the comment and pushes the Pages branch. It needs pull-requests write, and for Pages contents write and pages read.
     default: ${{ github.token }}
   mirror-dir:
     description: The path of the .mirror/ folder, relative to the repository root.
     default: .mirror
+  publish:
+    description: Where the page goes. auto uses GitHub Pages when a Pages site serves pages-branch, else the Actions run. pages or artifact forces one.
+    default: auto
+  pages-branch:
+    description: The branch that GitHub Pages serves. Each pull request gets the folder pr-<number>/ in it.
+    default: gh-pages
+  pages-url:
+    description: The address of the GitHub Pages site. The default is the address in the Pages settings.
+    default: ''
   base:
     description: The base revision. The default is the base commit of the pull request.
     default: ${{ github.event.pull_request.base.sha }}
   head:
     description: The head revision. The default is the checked-out commit.
     default: HEAD
-  comment:
-    description: Set to false to write only the job summary, with no comment.
-    default: 'true'
 
 outputs:
-  changed:
-    description: true when the pull request changes the intent in .mirror/xsrc/.
-    value: ${{ steps.diff.outputs.changed }}
+  url:
+    description: The address of the first review page, or empty when the pull request has none.
+    value: ${{ steps.comment.outputs.url }}
 
 runs:
   using: composite
   steps:
     - name: Fetch the base revision
+      if: github.event.action != 'closed'
       shell: bash
       env:
         BASE: ${{ inputs.base }}
       run: |
-        if [ -n "$BASE" ] && ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+        if [ -n "$BASE" ] && ! git cat-file -e "$BASE^{tree}" 2>/dev/null; then
           git fetch --no-tags --quiet --depth=1 origin "$BASE"
         fi
-    - name: Diff the mirror
-      id: diff
+    - name: Find the review page
+      id: prepare
       shell: bash
       env:
         MIRROR_TOKEN: ${{ inputs.github-token }}
         MIRROR_DIR: ${{ inputs.mirror-dir }}
+        MIRROR_PUBLISH: ${{ inputs.publish }}
+        MIRROR_BRANCH: ${{ inputs.pages-branch }}
+        MIRROR_PAGES_URL: ${{ inputs.pages-url }}
         MIRROR_BASE: ${{ inputs.base }}
         MIRROR_HEAD: ${{ inputs.head }}
+        MIRROR_PR: ${{ github.event.pull_request.number }}
+        MIRROR_ACTION: ${{ github.event.action }}
+      run: node "$GITHUB_ACTION_PATH/review-page.mjs" prepare
+    - name: Attach the review page to the run
+      id: upload
+      if: steps.prepare.outputs.mode == 'artifact'
+      uses: actions/upload-artifact@v7
+      with:
+        path: ${{ steps.prepare.outputs.file }}
+        archive: false
+        if-no-files-found: ignore
+        overwrite: true
+    - name: Comment on the pull request
+      id: comment
+      shell: bash
+      env:
+        MIRROR_TOKEN: ${{ inputs.github-token }}
+        MIRROR_LINKS: ${{ steps.prepare.outputs.links }}
+        MIRROR_ARTIFACT_URL: ${{ steps.upload.outputs.artifact-url }}
         MIRROR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         MIRROR_PR: ${{ github.event.pull_request.number }}
-        MIRROR_COMMENT: ${{ inputs.comment }}
-      run: node "$GITHUB_ACTION_PATH/intent-diff.mjs"
+        MIRROR_ACTION: ${{ github.event.action }}
+      run: node "$GITHUB_ACTION_PATH/review-page.mjs" comment
