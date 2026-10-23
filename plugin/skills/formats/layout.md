@@ -8,8 +8,6 @@
 - `.mirror/visualize.html`: the current viewer page. Its colors and fonts are in its
   `MIRROR:TOKENS` block.
 - `.mirror/features/`: the review page of each past change.
-- `.mirror/exports/`: the OpenAPI and Mermaid files of the `mirror:export` skill. Generated:
-  do not edit them.
 
 ## Flows and pages
 

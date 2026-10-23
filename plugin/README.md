@@ -23,9 +23,8 @@ From then on, Claude changes the mirror first, you review it, then the code foll
 
 - **Init.** Finds each flow and page in your code and writes down its intent.
 - **Viewer.** Lists all flows and pages in one HTML page you can search and open. The Graph
-  view draws the links between flows, pages and external systems, and copies them as Mermaid.
-- **Export.** Writes an OpenAPI file for each backend project, and Mermaid diagrams of the links
-  and of each flow and page.
+  view shows how the projects and the external systems link. Click one to see only its flows
+  and their neighbors.
 - **Review.** For each change, Claude updates the mirror and shows you a review page. The
   code changes only after your OK.
 
@@ -35,7 +34,6 @@ From then on, Claude changes the mirror first, you review it, then the code foll
   a time: `mirror:init <project>`.
 - `mirror:change`: the change workflow. Claude uses it before each code change.
 - `mirror:build`: build the viewer page or a review page.
-- `mirror:export`: write OpenAPI and Mermaid files to `.mirror/exports/`.
 - `mirror:formats`: the `.mirror/` layout, and the rule and the example for each mirror document.
 
 The rules live in the plugin. Your repo gets only the `.mirror/` data, so a plugin update

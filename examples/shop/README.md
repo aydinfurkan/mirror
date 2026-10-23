@@ -4,11 +4,8 @@ A small online shop, described only by its mirror. **This example has no code.**
 three projects that share five external systems.
 
 Open `.mirror/visualize.html` in a browser. Each project has a tab. Click a flow to open it.
-Click **Graph** (or press `g`) to see the links between the flows, the pages and the external
-systems. Click a box to see its links.
-
-`.mirror/exports/` has the output of `mirror:export`: `api.openapi.yaml` for the `api` project,
-and `mermaid.md` with the links and one diagram per flow and page.
+Click **Graph** (or press `g`) to see how the projects and the external systems link. Click a
+project to see its flows and what they link to. Click a flow to see only its links.
 
 ## Projects
 

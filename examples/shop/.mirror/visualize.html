@@ -144,18 +144,16 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 .diff del { text-decoration: line-through; color: var(--removed); background: color-mix(in srgb, var(--removed) 10%, transparent); }
 .diff ins { text-decoration: none; background: color-mix(in srgb, var(--changed) 35%, transparent); }
 .empty { color: var(--muted); }
-/* Graph: each flow, page and external system as a box, each link as a line. */
+/* Graph: the projects and the external systems, or one of them with its neighbors. */
 #graph { position: absolute; inset: 0; display: flex; flex-direction: column; }
 #graph[hidden], #list[hidden] { display: none; }
 body.graph-on .ptabs, body.graph-on #collapse-all, body.graph-on #expand-all { display: none; }
 .tools .btn.on { border-color: var(--border); background: var(--surface); }
 .gbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin: 10px 12px 0; padding: 8px 12px; min-height: 52px; font-size: 15px; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; }
 .gbar .ginfo { flex: 1; min-width: 0; }
-.gsel { position: absolute; left: 16px; bottom: 16px; z-index: 1; max-width: min(480px, calc(100% - 32px)); max-height: 45%; overflow: auto; padding: 10px 14px; font-size: 15px; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 4px 16px rgb(0 0 0 / .12); }
-.gsel[hidden] { display: none; }
-.gsel .btn { height: 28px; margin-left: 6px; font-size: 14px; }
-.gsel code { font: 14px var(--mono); }
-.gsel ul { margin: 6px 0 0; padding-left: 18px; }
+.gbar .crumb { padding: 2px 6px; border: 0; border-radius: 6px; background: none; color: var(--flow); font-weight: 600; cursor: pointer; }
+.gbar .crumb:hover { background: color-mix(in srgb, var(--flow) 12%, transparent); }
+.gbar .btn { height: 28px; margin-left: 8px; font-size: 14px; }
 .gscroll { flex: 1; min-height: 0; overflow: auto; padding: 8px 12px 80px; }
 .gwrap { position: relative; margin: 0 auto; }
 .gwrap svg { position: absolute; inset: 0; overflow: visible; pointer-events: none; }
@@ -166,6 +164,7 @@ body.graph-on .ptabs, body.graph-on #collapse-all, body.graph-on #expand-all { d
 .gn small { font-size: 12px; color: var(--muted); }
 .gn.ext { --c: var(--muted); border-radius: 22px; }
 .gn.proj { --c: var(--project); border-style: dashed; border-left-style: solid; }
+.gn.project { --c: var(--project); }
 .gn.st-added { border-color: var(--added); }
 .gn.st-changed { border-color: var(--changed); }
 .gn.st-removed { border-color: var(--removed); opacity: .6; }
@@ -175,8 +174,8 @@ body.graph-on .ptabs, body.graph-on #collapse-all, body.graph-on #expand-all { d
 .ge { fill: none; stroke: color-mix(in srgb, var(--muted) 55%, transparent); stroke-width: 1.5; transition: opacity .15s; }
 .ge.v-publishes, .ge.v-consumes { stroke-dasharray: 6 4; }
 .ge.v-reads, .ge.v-writes { stroke-dasharray: 2 4; }
-.ge.hot { stroke: var(--accent); stroke-width: 2.25; }
-.gwrap.focus .gn:not(.near), .gwrap.focus .ge:not(.hot) { opacity: .25; }
+.ge.on { stroke: var(--accent); }
+.gwrap.hl .ge:not(.on), .gwrap.hl .gn:not(.on) { opacity: .3; }
 .gkey { display: flex; gap: 12px; color: var(--muted); font-size: 13px; }
 .gkey svg { vertical-align: middle; margin-right: 4px; }
 /* Legend */
@@ -216,10 +215,8 @@ body.graph-on .ptabs, body.graph-on #collapse-all, body.graph-on #expand-all { d
         <span><svg width="22" height="6"><line x1="0" y1="3" x2="22" y2="3" class="ge v-publishes"/></svg>publishes, consumes</span>
         <span><svg width="22" height="6"><line x1="0" y1="3" x2="22" y2="3" class="ge v-reads"/></svg>reads, writes</span>
       </div>
-      <button class="btn" id="copy-mermaid" title="Copy the graph as a Mermaid flowchart">Copy Mermaid</button>
     </div>
     <div class="gscroll"><div class="gwrap" id="gwrap"></div></div>
-    <div class="gsel" id="gsel" hidden></div>
   </div>
   <div id="legend">
     <span style="--c: var(--added)">added</span>
@@ -516,10 +513,10 @@ body.graph-on .ptabs, body.graph-on #collapse-all, body.graph-on #expand-all { d
     return out;
   }
 
-  // The nodes, the edges and the place of each node. A column holds one project. The projects that
-  // call or feed others come first. The external systems are in the last column.
+  // All the links of the data. Nodes: each flow and page (`<project>/<flow>`), each project that a link
+  // names without a flow (`<project>`), and each external system (`x:<id>`).
   // Each edge: { a: the flow or page, b: its target, verb, note, from, to: the data direction }.
-  function graph(data) {
+  function linkGraph(data) {
     var ps = data.projects || [], ext = {}, nodes = [], by = {}, edges = [], seen = {};
     (data.external || []).forEach(function (x) { ext[x.id] = x; });
     var pids = ps.map(function (p) { return p.id; });
@@ -527,7 +524,7 @@ body.graph-on .ptabs, body.graph-on #collapse-all, body.graph-on #expand-all { d
     ps.forEach(function (p) {
       (p.flows || []).forEach(function (f) {
         add({ key: p.id + '/' + f.id, type: f.kind === 'page' ? 'page' : 'flow', project: p.id, title: f.entry || f.id, sub: f.id,
-          status: f.status || null, item: f });
+          group: String(f.group || '').trim(), status: f.status || null });
       });
     });
     ps.forEach(function (p) {
@@ -549,61 +546,133 @@ body.graph-on .ptabs, body.graph-on #collapse-all, body.graph-on #expand-all { d
         });
       });
     });
+    return { nodes: nodes, by: by, edges: edges, pids: pids };
+  }
 
-    // Rank the projects: a project that calls another, or publishes or writes to what another consumes or
-    // reads, comes before it. A cycle stops at the number of projects.
-    var rank = {}, feeds = {}, eats = {};
-    pids.forEach(function (id) { rank[id] = 0; });
-    edges.forEach(function (e) {
-      var pa = by[e.a].project, b = by[e.b];
-      if (b.type === 'ext') ((INBOUND[e.verb] ? eats : feeds)[b.key] = (INBOUND[e.verb] ? eats : feeds)[b.key] || {})[pa] = 1;
-    });
-    var pairs = [];
-    edges.forEach(function (e) {
-      var pa = by[e.a].project, pb = by[e.b].project;
-      if (pb && pb !== pa) pairs.push([pa, pb]);
-    });
-    Object.keys(feeds).forEach(function (k) {
-      Object.keys(feeds[k]).forEach(function (pa) {
-        Object.keys(eats[k] || {}).forEach(function (pb) { if (pa !== pb) pairs.push([pa, pb]); });
-      });
-    });
-    for (var i = 0; i < pids.length; i++) {
-      pairs.forEach(function (q) { rank[q[1]] = Math.min(pids.length - 1, Math.max(rank[q[1]], rank[q[0]] + 1)); });
-    }
-    var order = pids.slice().sort(function (x, y) { return rank[x] - rank[y] || pids.indexOf(x) - pids.indexOf(y); });
-    var cols = order.map(function (id) {
-      var c = nodes.filter(function (n) { return n.project === id; });
-      return { title: id, nodes: c.filter(function (n) { return n.type === 'proj'; }).concat(c.filter(function (n) { return n.type !== 'proj'; })) };
-    }).filter(function (c) { return c.nodes.length; });
-    var xs = nodes.filter(function (n) { return n.type === 'ext'; });
-    if (xs.length) cols.push({ title: 'external', nodes: xs });
+  // The column of a project kind in the overview: the apps, then the services, then the workers.
+  var TIER = { frontend: 0, mobile: 0, desktop: 0, backend: 1, consumer: 2, worker: 2 };
 
-    // Order each column by the mean row of the nodes it links to on its left, so that fewer lines cross.
-    var adj = {};
-    edges.forEach(function (e) { (adj[e.a] = adj[e.a] || []).push(e.b); (adj[e.b] = adj[e.b] || []).push(e.a); });
+  var GW = 250, GH = 48, GX = 120, GY = 12, GTOP = 30, MAXSIDE = 12;
+
+  // Place the columns. Each column after the first is sorted by the mean row of its links in the
+  // columns before it, so that fewer lines cross. Nodes with `pin` keep their place at the top.
+  function place(cols, edges) {
+    var adj = {}, col = {}, row = {};
+    edges.forEach(function (e) { (adj[e.from] = adj[e.from] || []).push(e.to); (adj[e.to] = adj[e.to] || []).push(e.from); });
+    cols.forEach(function (c, ci) { c.nodes.forEach(function (n, r) { col[n.key] = ci; row[n.key] = r; }); });
     cols.forEach(function (c, ci) {
-      c.nodes.forEach(function (n, r) { n.col = ci; n.row = r; });
-    });
-    cols.forEach(function (c, ci) {
-      if (!ci) return;
+      if (c.keep) return;
       var key = c.nodes.map(function (n) {
-        var ys = (adj[n.key] || []).map(function (k) { return by[k]; }).filter(function (m) { return m.col < ci; })
-          .map(function (m) { return m.row; });
-        return { n: n, k: ys.length ? ys.reduce(function (s, y) { return s + y; }, 0) / ys.length : n.row, r: n.row };
+        var ys = (adj[n.key] || []).filter(function (k) { return col[k] !== ci; }).map(function (k) { return row[k]; });
+        return { n: n, k: ys.length ? ys.reduce(function (s, y) { return s + y; }, 0) / ys.length : row[n.key], r: row[n.key] };
       });
-      key.sort(function (x, y) { return (y.n.type === 'proj') - (x.n.type === 'proj') || x.k - y.k || x.r - y.r; });
+      key.sort(function (x, y) { return !!y.n.pin - !!x.n.pin || x.k - y.k || x.r - y.r; });
       c.nodes = key.map(function (x) { return x.n; });
-      c.nodes.forEach(function (n, r) { n.row = r; });
+      c.nodes.forEach(function (n, r) { row[n.key] = r; });
     });
-
-    var W = 240, H = 48, GX = 110, GY = 12, TOP = 30;
+    var nodes = [];
     cols.forEach(function (c, ci) {
-      c.x = ci * (W + GX);
-      c.nodes.forEach(function (n) { n.x = c.x; n.y = TOP + n.row * (H + GY); n.w = W; n.h = H; });
+      c.x = ci * (GW + GX);
+      c.nodes.forEach(function (n, r) { n.col = ci; n.x = c.x; n.y = GTOP + r * (GH + GY); n.w = GW; n.h = GH; nodes.push(n); });
     });
-    var height = TOP + Math.max.apply(null, [0].concat(cols.map(function (c) { return c.nodes.length * (H + GY); })));
-    return { nodes: nodes, by: by, edges: edges, cols: cols, width: cols.length ? cols.length * (W + GX) - GX : 0, height: height };
+    var by = {};
+    nodes.forEach(function (n) { by[n.key] = n; });
+    return { cols: cols, nodes: nodes, by: by, edges: edges, width: cols.length ? cols.length * (GW + GX) - GX : 0,
+      height: GTOP + Math.max.apply(null, [0].concat(cols.map(function (c) { return c.nodes.length * (GH + GY); }))) };
+  }
+
+  // The overview: one box per project and per external system. One line per pair, with the number of
+  // links. It stays short in a repo with many endpoints.
+  function overview(data) {
+    var lg = linkGraph(data), pairs = {}, list = [];
+    lg.edges.forEach(function (e) {
+      var pa = lg.by[e.a].project, b = lg.by[e.b], tb = b.type === 'ext' ? b.key : b.project;
+      if (tb === pa) return;
+      var k = pa + '>' + tb, p = pairs[k];
+      if (!p) { p = pairs[k] = { a: pa, b: tb, n: 0, verbs: {}, inb: 0 }; list.push(p); }
+      p.n++;
+      p.verbs[e.verb] = (p.verbs[e.verb] || 0) + 1;
+      if (INBOUND[e.verb]) p.inb++;
+    });
+    var edges = list.map(function (p) {
+      var verb = Object.keys(p.verbs).sort(function (x, y) { return p.verbs[y] - p.verbs[x]; })[0], inb = p.inb === p.n;
+      return { a: p.a, b: p.b, verb: verb, n: p.n, verbs: p.verbs, from: inb ? p.b : p.a, to: inb ? p.a : p.b };
+    });
+    var ps = data.projects || [], byRank = {};
+    ps.forEach(function (p) {
+      var r = p.kind in TIER ? TIER[p.kind] : 1;
+      (byRank[r] = byRank[r] || []).push({ key: p.id, type: 'project', project: p.id, title: p.id,
+        sub: (p.kind ? p.kind + ' · ' : '') + (p.flows || []).length + ' ' + (p.kind && /frontend|mobile|desktop/.test(p.kind) ? 'pages' : 'flows'),
+        status: hasChanges(p) ? 'changed' : null });
+    });
+    var cols = Object.keys(byRank).map(Number).sort(function (x, y) { return x - y; }).map(function (r) { return { title: '', nodes: byRank[r] }; });
+    var xs = lg.nodes.filter(function (n) { return n.type === 'ext'; });
+    if (xs.length) cols.push({ title: 'external', nodes: xs });
+    if (cols.length) cols[0].title = 'projects';
+    return place(cols, edges);
+  }
+
+  // One project, flow or external system in the middle. On the left: what links to it. On the right:
+  // what it links to. Only the neighbors are drawn, so the graph stays readable.
+  function focus(data, key) {
+    var lg = linkGraph(data), by = lg.by, ps = data.projects || [];
+    var proj = lg.pids.indexOf(key) >= 0, inC;
+    if (proj) inC = function (k) { return by[k] && by[k].project === key; };
+    else inC = function (k) { return k === key; };
+    var left = [], right = [], seen = {}, edges = [];
+    function side(arr, k, e) {
+      var n = by[k];
+      if (!seen[k]) { seen[k] = Object.assign({}, n, { via: [] }); arr.push(seen[k]); }
+      seen[k].via.push(e);
+    }
+    lg.edges.forEach(function (e) {
+      var ia = inC(e.a), ib = inC(e.b);
+      if (!ia && !ib) return;
+      if (ia && !ib) side(right, e.b, e);
+      else if (!ia && ib) side(left, e.a, e);
+      edges.push(e);
+    });
+    var center;
+    if (proj) {
+      var p = ps.filter(function (q) { return q.id === key; })[0] || { flows: [] };
+      var pn = by[key] ? [Object.assign({}, by[key], { pin: true })] : [];
+      center = pn.concat(groups(model(p).flows).reduce(function (out, g) {
+        return out.concat(g.flows.map(function (f) { return Object.assign({}, by[f.key]); }));
+      }, []));
+    } else center = by[key] ? [Object.assign({}, by[key])] : [];
+    // A side box of a single node names the link, so that the note is on the graph.
+    if (!proj) [left, right].forEach(function (arr) {
+      arr.forEach(function (n) {
+        n.sub = n.via.map(function (e) { return e.verb + (e.note ? ': ' + e.note : ''); }).join(' · ');
+      });
+    });
+    // A long side shows one box per project in place of its flows, so that the side stays short.
+    var alias = {};
+    [left, right].forEach(function (arr, i) {
+      if (arr.length <= MAXSIDE) return;
+      var boxes = {}, out = [];
+      arr.forEach(function (n) {
+        if (n.type !== 'flow' && n.type !== 'page' && n.type !== 'proj') { out.push(n); return; }
+        var b = boxes[n.project];
+        if (!b) { b = boxes[n.project] = { key: n.project, type: 'project', project: n.project, title: n.project, n: 0, status: null }; out.push(b); }
+        if (n.type !== 'proj') b.n++;
+        alias[(i ? 'r' : 'l') + n.key] = n.project;
+      });
+      Object.keys(boxes).forEach(function (k) { boxes[k].sub = boxes[k].n ? boxes[k].n + (boxes[k].n === 1 ? ' flow or page' : ' flows and pages') : 'project'; });
+      arr.splice.apply(arr, [0, arr.length].concat(out));
+    });
+    if (Object.keys(alias).length) {
+      var once = {};
+      edges = edges.map(function (e) {
+        var a = inC(e.a) ? e.a : alias['l' + e.a] || e.a, b = inC(e.b) ? e.b : alias['r' + e.b] || e.b, inb = INBOUND[e.verb];
+        return { a: a, b: b, verb: e.verb, note: a === e.a && b === e.b ? e.note : '', from: inb ? b : a, to: inb ? a : b };
+      }).filter(function (e) { var k = e.from + ' ' + e.verb + ' ' + e.to; return once[k] ? false : (once[k] = 1); });
+    }
+    var cols = [];
+    if (left.length) cols.push({ title: 'links to it', nodes: left });
+    cols.push({ title: proj ? key : by[key] ? (by[key].type === 'ext' ? by[key].title : key) : key, nodes: center, keep: true });
+    if (right.length) cols.push({ title: 'it links to', nodes: right });
+    return place(cols, edges);
   }
 
   // The SVG path of an edge, from a side of one node to a side of the other.
@@ -618,35 +687,14 @@ body.graph-on .ptabs, body.graph-on #collapse-all, body.graph-on #expand-all { d
     return 'M' + x1 + ' ' + y1 + 'C' + c1 + ' ' + y1 + ' ' + c2 + ' ' + y2 + ' ' + x2 + ' ' + y2;
   }
 
-  // The graph as a Mermaid flowchart: a subgraph per project, then the external systems, then the links.
-  function mermaid(data) {
-    var g = graph(data), ids = {}, out = ['flowchart LR'];
-    function q(s) { return String(s).replace(/"/g, '#quot;').replace(/</g, '#lt;').replace(/>/g, '#gt;'); }
-    g.nodes.forEach(function (n, i) { ids[n.key] = 'n' + i; });
-    function box(n) {
-      var id = ids[n.key], t = '"' + q(n.title) + (n.type === 'flow' || n.type === 'page' ? '<br/>' + q(n.sub) : '') + '"';
-      return n.type === 'ext' ? (n.kind === 'database' ? id + '[(' + t + ')]' : id + '([' + t + '])') : id + '[' + t + ']';
-    }
-    g.cols.forEach(function (c) {
-      var ext = c.title === 'external' && c.nodes[0].type === 'ext';
-      if (!ext) out.push('  subgraph ' + ids[c.nodes[0].key] + 'p' + ' ["' + q(c.title) + '"]');
-      c.nodes.forEach(function (n) { out.push((ext ? '  ' : '    ') + box(n)); });
-      if (!ext) out.push('  end');
-    });
-    g.edges.forEach(function (e) {
-      out.push('  ' + ids[e.from] + (e.verb === 'calls' ? ' -->|' : ' -.->|') + e.verb + '| ' + ids[e.to]);
-    });
-    return out.join('\n') + '\n';
-  }
-
   globalThis.MirrorViewer = { esc: esc, renderMd: renderMd, summary: summary, model: model, groups: groups, matches: matches, hasChanges: hasChanges,
     diffHtml: diffHtml, tabFromHash: tabFromHash, firstTabWithMatch: firstTabWithMatch, actionDetails: actionDetails, rowHtml: rowHtml, projectHtml: projectHtml,
-    links: links, graph: graph, edgePath: edgePath, mermaid: mermaid };
+    links: links, linkGraph: linkGraph, overview: overview, focus: focus, edgePath: edgePath };
   if (typeof document === 'undefined') return;
 
   // ---- Browser only below ----
 
-  var state = { pi: 0, expanded: {}, rtab: {}, folds: {}, hits: [], hit: -1, q: '', view: 'list', gsel: null };
+  var state = { pi: 0, expanded: {}, rtab: {}, folds: {}, hits: [], hit: -1, q: '', view: 'list', gfocus: null };
 
   function $(id) { return document.getElementById(id); }
   function sel(attr, value) { return '[' + attr + '="' + String(value).replace(/["\\]/g, '\\$&') + '"]'; }
@@ -796,53 +844,57 @@ body.graph-on .ptabs, body.graph-on #collapse-all, body.graph-on #expand-all { d
     if (g) drawGraph(); else draw();
   }
 
-  function linkLine(e, g, out) {
-    var o = g.by[out ? e.b : e.a];
-    var code = '<code>' + esc(o.type === 'ext' ? o.id : o.key) + '</code>';
-    return '<li>' + (out ? '<span class="meta">' + e.verb + '</span> ' + code + (e.note ? ': ' + inline(e.note) : '')
-      : code + ' <span class="meta">' + e.verb + ' this</span>' + (e.note ? ': ' + inline(e.note) : '')) + '</li>';
+  // The focus one level up: a flow goes to its project, a project or an external system to the overview.
+  function upFrom(key) {
+    var i = key ? key.indexOf('/') : -1;
+    return i > 0 ? key.slice(0, i) : null;
+  }
+
+  function crumbs(key) {
+    var out = ['<button class="crumb" type="button" data-gfocus="">All projects</button>'];
+    var up = upFrom(key);
+    if (up) out.push('<button class="crumb" type="button" data-gfocus="' + esc(up) + '">' + esc(up) + '</button>');
+    if (key) out.push('<strong>' + esc(up ? key.slice(up.length + 1) : key.replace(/^x:/, '')) + '</strong>');
+    return out.join('<span class="meta"> \u203a </span>');
   }
 
   function drawGraph() {
-    var g = state.g = graph(state.data), sel = g.by[state.gsel] ? state.gsel : null, near = {}, q = state.q.trim();
-    if (sel) {
-      near[sel] = 1;
-      g.edges.forEach(function (e) { if (e.a === sel || e.b === sel) { near[e.a] = 1; near[e.b] = 1; } });
-    }
-    var flows = g.nodes.filter(function (n) { return n.type === 'flow' || n.type === 'page'; }).length;
-    $('ginfo').innerHTML = '<span class="meta">' + flows + ' flows and pages, ' + g.edges.length + ' links. Click a box to see its links. Double-click a flow or a page to open it.</span>';
-    var info = '';
-    if (sel) {
-      var n = g.by[sel], outs = g.edges.filter(function (e) { return e.a === sel; }), ins = g.edges.filter(function (e) { return e.b === sel; });
-      info = '<strong>' + esc(n.title) + '</strong> <span class="meta">' + esc(n.type === 'ext' ? n.sub : n.key) + '</span>' +
-        ((n.type === 'flow' || n.type === 'page') ? ' <button class="btn" id="gopen" type="button">Open in list</button>' : '') +
-        (outs.length + ins.length ? '<ul>' + outs.map(function (e) { return linkLine(e, g, true); }).join('') +
-          ins.map(function (e) { return linkLine(e, g, false); }).join('') + '</ul>' : '<p class="empty" style="margin:4px 0 0">No links.</p>');
-    }
-    $('gsel').innerHTML = info;
-    $('gsel').hidden = !sel;
+    var key = state.gfocus, d = state.data;
+    var g = key ? focus(d, key) : overview(d), q = state.q.trim().toLowerCase();
+    var hint = key ? (/\//.test(key) ? ' <button class="btn" id="gopen" type="button">Open in list</button>' : '') +
+      '<span class="meta"> Click a box to move to it.</span>' : '<span class="meta"> Click a project or a system to see its links.</span>';
+    $('ginfo').innerHTML = crumbs(key) + hint;
     var svg = '<svg width="' + g.width + '" height="' + g.height + '" aria-hidden="true"><defs>' +
-      '<marker id="gm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" style="fill: color-mix(in srgb, var(--muted) 70%, transparent)"/></marker>' +
-      '<marker id="gmh" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" style="fill: var(--accent)"/></marker></defs>' +
+      '<marker id="gm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto"><path d="M0 0L10 5L0 10z" style="fill: color-mix(in srgb, var(--muted) 80%, transparent)"/></marker></defs>' +
       g.edges.map(function (e) {
-        var hot = sel && (e.a === sel || e.b === sel);
-        return '<path class="ge v-' + e.verb + (hot ? ' hot' : '') + '" d="' + edgePath(g.by[e.from], g.by[e.to]) + '" marker-end="url(#' + (hot ? 'gmh' : 'gm') + ')"><title>' +
-          esc(e.a + ' ' + e.verb + ' ' + (g.by[e.b].id || e.b)) + '</title></path>';
+        var f = g.by[e.from], t = g.by[e.to];
+        if (!f || !t) return '';
+        var tip = e.n ? Object.keys(e.verbs).map(function (v) { return e.verbs[v] + ' ' + v; }).join(', ') : e.verb + (e.note ? ': ' + e.note : '');
+        // An overview line is thicker for more links. Its title has the count of each verb.
+        return '<path class="ge v-' + e.verb + '" data-f="' + esc(e.from) + '" data-t="' + esc(e.to) + '" d="' + edgePath(f, t) + '" marker-end="url(#gm)" style="stroke-width:' +
+          (e.n ? Math.min(1.5 + Math.log2(e.n) / 1.5, 4) : 1.5) + 'px"><title>' + esc(e.a + ' \u2192 ' + e.b + ': ' + tip) + '</title></path>';
       }).join('') + '</svg>';
     var html = g.cols.map(function (c) {
-      return '<div class="gcol" style="left:' + c.x + 'px;width:240px">' + esc(c.title) + '</div>';
+      return '<div class="gcol" style="left:' + c.x + 'px;width:' + GW + 'px">' + esc(c.title) + '</div>';
     }).join('') + g.nodes.map(function (n) {
-      var cls = 'gn ' + n.type + (STATUS[n.status] ? ' st-' + n.status : '') + (near[n.key] ? ' near' : '') + (n.key === sel ? ' sel' : '') +
-        (q && (n.title + '\n' + n.sub).toLowerCase().indexOf(q.toLowerCase()) >= 0 ? ' match' : '');
+      var cls = 'gn ' + n.type + (STATUS[n.status] ? ' st-' + n.status : '') +
+        (q && (n.title + '\n' + n.sub + '\n' + n.key).toLowerCase().indexOf(q) >= 0 ? ' match' : '') + (n.key === key ? ' sel' : '');
       return '<button type="button" class="' + cls + '" data-gkey="' + esc(n.key) + '" style="left:' + n.x + 'px;top:' + n.y + 'px;width:' + n.w + 'px;height:' + n.h + 'px" title="' +
-        esc(n.title + ' — ' + n.sub) + '"><b>' + esc(n.title) + '</b><small>' + esc(n.type === 'ext' ? n.sub : n.type === 'proj' ? 'project · any flow' : n.sub) + '</small></button>';
+        esc(n.title + ' \u2014 ' + n.sub) + '"><b>' + esc(n.title) + '</b><small>' + esc(n.type === 'proj' ? 'project \u00b7 any flow' : n.sub) + '</small></button>';
     }).join('');
     var w = $('gwrap');
-    w.className = 'gwrap' + (sel ? ' focus' : '');
-    w.style.width = g.width + 'px';
+    w.className = 'gwrap';
+    w.style.width = g.nodes.length ? g.width + 'px' : 'auto';
     w.style.height = g.height + 'px';
-    w.innerHTML = svg + (g.nodes.length ? html : '<p class="empty-state">No flows or pages yet.</p>');
-    if (!g.nodes.length) w.style.width = 'auto';
+    w.innerHTML = g.nodes.length ? svg + html : '<p class="empty-state">' + (key ? 'No links.' : 'No projects yet. Run mirror:init.') + '</p>';
+  }
+
+  // Move the graph to a project, a flow or an external system. A flow in the middle opens in the list.
+  function graphTo(k) {
+    if (k === state.gfocus && /\//.test(k)) { openInList(k); return; }
+    state.gfocus = k || null;
+    drawGraph();
+    $('graph').querySelector('.gscroll').scrollTop = 0;
   }
 
   // Open a flow or a page in the list view.
@@ -854,27 +906,6 @@ body.graph-on .ptabs, body.graph-on #collapse-all, body.graph-on #expand-all { d
     state.expanded[key] = true;
     draw();
     reveal($('list').querySelector(sel('data-row', key)));
-  }
-
-  function copyText(s, btn) {
-    function done(ok) {
-      var t = btn.textContent;
-      btn.textContent = ok ? 'Copied' : 'Copy failed';
-      setTimeout(function () { btn.textContent = t; }, 1200);
-    }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(s).then(function () { done(true); }, function () { done(fallback()); });
-    } else done(fallback());
-    function fallback() {
-      var a = document.createElement('textarea');
-      a.value = s;
-      document.body.appendChild(a);
-      a.select();
-      var ok = false;
-      try { ok = document.execCommand('copy'); } catch (e) { /* no clipboard */ }
-      a.remove();
-      return ok;
-    }
   }
 
   // ---- Wiring ----
@@ -924,26 +955,31 @@ body.graph-on .ptabs, body.graph-on #collapse-all, body.graph-on #expand-all { d
     $('expand-all').addEventListener('click', function () { setAll(true); });
     $('theme').addEventListener('click', toggleTheme);
     $('view').addEventListener('click', function () { setView(state.view === 'graph' ? 'list' : 'graph'); });
+    // Hover a box: show only its lines and its neighbors.
+    function hover(k) {
+      var w = $('gwrap'), near = {};
+      w.classList.toggle('hl', !!k);
+      w.querySelectorAll('.ge').forEach(function (l) {
+        var on = !!k && (l.getAttribute('data-f') === k || l.getAttribute('data-t') === k);
+        l.classList.toggle('on', on);
+        if (on) { near[l.getAttribute('data-f')] = 1; near[l.getAttribute('data-t')] = 1; }
+      });
+      w.querySelectorAll('.gn').forEach(function (n) { n.classList.toggle('on', !!near[n.getAttribute('data-gkey')] || n.getAttribute('data-gkey') === k); });
+    }
+    $('gwrap').addEventListener('mouseover', function (e) { var b = e.target.closest('[data-gkey]'); hover(b && b.getAttribute('data-gkey')); });
+    $('gwrap').addEventListener('mouseleave', function () { hover(null); });
     $('graph').addEventListener('click', function (e) {
       var b = e.target.closest('button');
-      if (!b) { if (e.target.closest('.gscroll') && state.gsel) { state.gsel = null; drawGraph(); } return; }
-      if (b.id === 'copy-mermaid') copyText(mermaid(state.data), b);
-      else if (b.id === 'gopen') openInList(state.gsel);
-      else if (b.hasAttribute('data-gkey')) {
-        var k = b.getAttribute('data-gkey');
-        // A double click opens a flow or a page in the list. The first click of it selected the box.
-        if (e.detail === 2 && /\//.test(k)) { openInList(k); return; }
-        state.gsel = state.gsel === k ? null : k;
-        drawGraph();
-        var nb = $('gwrap').querySelector(sel('data-gkey', k));
-        if (nb) nb.focus();
-      }
+      if (!b) return;
+      if (b.id === 'gopen') openInList(state.gfocus);
+      else if (b.hasAttribute('data-gfocus')) graphTo(b.getAttribute('data-gfocus'));
+      else if (b.hasAttribute('data-gkey')) graphTo(b.getAttribute('data-gkey'));
     });
     document.addEventListener('keydown', function (e) {
       var typing = /^(INPUT|TEXTAREA)$/.test(document.activeElement && document.activeElement.tagName);
       if (e.key === '/' && !typing) { e.preventDefault(); $('q').focus(); }
       else if (e.key === 'g' && !typing && !e.metaKey && !e.ctrlKey && !e.altKey) setView(state.view === 'graph' ? 'list' : 'graph');
-      else if (e.key === 'Escape' && !typing && state.view === 'graph' && state.gsel) { state.gsel = null; drawGraph(); }
+      else if (e.key === 'Escape' && !typing && state.view === 'graph' && state.gfocus) graphTo(upFrom(state.gfocus));
     });
   }
 

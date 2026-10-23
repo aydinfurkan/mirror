@@ -11,6 +11,5 @@ for a fix, and `verification-before-completion` for steps 4 and 6. Do not use
 3. Remove the code and the tests of each removed flow.
 4. Run the full test suite of each changed project and of each project with an affected flow.
    Make sure that all tests pass.
-5. If the mirror changed, build `.mirror/visualize.html` with the `mirror:build` skill. If
-   `.mirror/exports/` exists, export again with the `mirror:export` skill.
+5. If the mirror changed, build `.mirror/visualize.html` with the `mirror:build` skill.
 6. Report the changed documents, the changed code files, and the test result.
