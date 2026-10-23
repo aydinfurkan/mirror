@@ -7,15 +7,20 @@ Read `.mirror/xsrc/` and make one JSON object. Each path in this file is relativ
 
 - `generated`: today, in the form `YYYY-MM-DD`.
 - `title`: the name of the repository folder.
+- `external`: one entry for each key in `external` of `config.json`, in the key order:
+  `{ "id": <key>, "kind": <kind>, "name": <name> }`. The graph view of the viewer shows these
+  names.
 - `projects`: one entry for each key in `projects` of `config.json`, in the key order.
 
 ## Project
 
 - `id`: the key in `config.json`.
 - `kind`: the `kind` value in `config.json`.
-- `definition`: the full text of `<project>/definition.md`.
+- `definition`: the full text of `<project>/definition.md`. Use `""` when the project has no
+  folder: it is not mirrored yet.
 - `status`: `null`.
-- `flows`: one entry for each sub-folder of `<project>/`, sorted by folder name.
+- `flows`: one entry for each sub-folder of `<project>/`, sorted by folder name. Use `[]` when
+  the project has no folder.
 
 ## Flow or page
 
@@ -56,6 +61,7 @@ The shape:
 {
   "generated": "2026-09-25",
   "title": "my-repo",
+  "external": [{ "id": "app-db", "kind": "database", "name": "Postgres" }],
   "projects": [{
     "id": "api", "kind": "backend", "definition": "…", "status": null,
     "flows": [{

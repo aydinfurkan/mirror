@@ -1,5 +1,9 @@
 # Find the projects
 
+If the user named projects and `.mirror/xsrc/config.json` exists, read it. For each named
+project in it, skip this step. For each named project not in it, do items 1 to 3 for its
+folder only, then add it to `config.json`. Keep the other entries. Then go to step 3.
+
 1. Read each manifest in the repository: each package, build, workspace or container file of
    any language.
 
@@ -41,4 +45,14 @@
    - Wait for an OK.
    - Apply the changes that the user asks for.
 
-6. Write `.mirror/xsrc/config.json` with "config.json" in `layout.md` of `mirror:formats`.
+6. Select the projects of this run.
+   - The user named projects: use these.
+   - Else, when there are more than 5 projects, ask the user to select one option:
+     - All: mirror all the projects now.
+     - Some: the user selects the projects. Each other project stays in `config.json` and is
+       not mirrored yet. The user adds it later with `mirror:init <project>`.
+   - Else: all the projects.
+
+7. Write `.mirror/xsrc/config.json` with "config.json" in `layout.md` of `mirror:formats`.
+   Write each project that you found, also the projects that are not in this run. A link can
+   then use their ids.

@@ -8,6 +8,8 @@
 - `.mirror/visualize.html`: the current viewer page. Its colors and fonts are in its
   `MIRROR:TOKENS` block.
 - `.mirror/features/`: the review page of each past change.
+- `.mirror/exports/`: the OpenAPI and Mermaid files of the `mirror:export` skill. Generated:
+  do not edit them.
 
 ## Flows and pages
 
@@ -24,5 +26,7 @@
   system is a database, a queue or a topic, a cache, a file storage, or an API outside the
   repository. The kinds are `database`, `queue`, `cache`, `storage`, `api` and `service`.
 - Each id is kebab-case. Do not give an external system the id of a project.
+- A project without a folder under `.mirror/xsrc/` is not mirrored yet. `mirror:init <project>`
+  adds it. Link to it by its project id, not by a flow.
 
 Example: `examples/config.json`.

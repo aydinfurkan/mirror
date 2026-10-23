@@ -1,6 +1,6 @@
 # Find the entry points
 
-For each project, find where each flow or page starts:
+For each project of this run, find where each flow or page starts:
 
 | Kind                            | One flow per                   | `trigger`            | `entry`             |
 | ------------------------------- | ------------------------------ | -------------------- | ------------------- |
