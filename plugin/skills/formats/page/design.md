@@ -5,7 +5,9 @@ Path: `.mirror/xsrc/<project>/<page>/design.md`. The visual design of the page.
 ## Header
 
 One line at the top: `**Design file:**` and a link to the design (Figma, a screenshot), or
-`none`.
+`none`. For an image in the repo, write a Markdown link with the path from the repo root:
+`**Design file:** [checkout.png](docs/screens/checkout.png)`. The viewer shows an image file
+(`.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`, `.webp`) at the top of the Design tab.
 
 ## Sections
 

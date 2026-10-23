@@ -123,6 +123,8 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 .db pre { padding: 10px; overflow: auto; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); }
 .db pre code { padding: 0; border: 0; }
 .db ul, .db ol { padding-left: 20px; }
+.shot { display: block; margin: 12px 0 4px; }
+.shot img { display: block; max-width: 100%; max-height: 70vh; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); }
 .db table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 17px; }
 .db th, .db td { padding: 6px 8px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
 .db th { font-size: 15px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
@@ -208,7 +210,11 @@ body.review #comments { display: inline-block; }
   function inline(s) {
     return esc(s)
       .replace(/`([^`]+)`/g, '<code>$1</code>')
-      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      // A link: an https link opens in a new tab. Other links show only their text.
+      .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, function (m, text, url) {
+        return /^https:\/\//.test(url) ? '<a href="' + url + '" target="_blank" rel="noopener">' + text + '</a>' : text;
+      });
   }
 
   // Headings, bullet and numbered lists, tables, code fences, paragraphs. Input is escaped first.
@@ -414,13 +420,21 @@ body.review #comments { display: inline-block; }
           inline(s.title || s.text) + '</strong>' + (act ? actionDetails(s.details) : detailsHtml(s)) + '</div></li>';
       }).join('') + '</' + tag + '>' : '<p class="empty">' + (act ? 'No actions.' : 'No steps.') + '</p>';
     }
+    // The Design tab of a page shows its design image first.
+    var shot = tab === 'design' ? designImageHtml(it.designImage) : '';
     // A changed item keeps its old values in `old`: show the changed lines of this tab.
     if (it.old) {
       var before = tabText(Object.assign({}, it, it.old), tab), after = tabText(it, tab);
-      if (before !== after) return diffHtml(before, after);
+      if (before !== after) return shot + diffHtml(before, after);
     }
     // A project definition shows each section closed, so the page opens short.
-    return it[tab] ? renderMd(it[tab], n.type === 'project' ? folds || {} : null) : '<p class="empty">Nothing here yet.</p>';
+    return shot + (it[tab] ? renderMd(it[tab], n.type === 'project' ? folds || {} : null) : '<p class="empty">Nothing here yet.</p>');
+  }
+
+  // A relative path or an https URL. A click opens the full image.
+  function designImageHtml(src) {
+    if (!src || /^(?!https:)[a-z][a-z0-9+.-]*:/i.test(src) || /^\/\//.test(src)) return '';
+    return '<a class="shot" href="' + esc(src) + '" target="_blank" rel="noopener"><img src="' + esc(src) + '" alt="Design" loading="lazy"></a>';
   }
 
   // One row: a header line like an API operation. An open row shows its tabs below the header.
