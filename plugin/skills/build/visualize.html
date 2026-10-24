@@ -637,8 +637,8 @@ body.review #comments { display: inline-flex; }
     return !q || matches(f, q) || f.steps.some(function (s) { return matches(s, q); });
   }
 
-  // A closed group or section stays closed for this viewer. It opens while a search runs, and when it holds
-  // the open flow.
+  // A closed group or section stays closed for this viewer. A group opens while a search runs, and
+  // when you open a flow in it. You can still close the group of the open flow.
   function loadShut() {
     try { state.shut = JSON.parse(localStorage.getItem('mirror-groups:' + location.pathname) || '{}') || {}; } catch (e) { state.shut = {}; }
   }
@@ -659,8 +659,16 @@ body.review #comments { display: inline-flex; }
     var b = $('side').querySelector(sel('data-group', key));
     if (b) b.focus();
   }
-  function shut(key, g) {
-    return !!state.shut[key] && !state.q.trim() && !g.flows.some(function (f) { return f.key === state.sel; });
+  function shut(key) {
+    return !!state.shut[key] && !state.q.trim();
+  }
+  // Open the group that holds a flow, so the flow shows in the sidebar.
+  function showGroup(key) {
+    state.models.forEach(function (m) {
+      groups(m.flows).forEach(function (g) {
+        if (g.name && g.flows.some(function (f) { return f.key === key; })) setShut(m.project.key + '/' + g.name, false);
+      });
+    });
   }
 
   function drawSide() {
@@ -717,6 +725,7 @@ body.review #comments { display: inline-flex; }
       else history.replaceState(null, '', '#' + key);
     } catch (e) { /* file:// in some browsers */ }
     var same = key === state.sel;
+    if (!same) showGroup(key);
     state.sel = key;
     state.editing = null;
     document.body.classList.remove('nav');
