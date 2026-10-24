@@ -1,0 +1,17 @@
+name: Mirror
+
+on:
+  pull_request:
+    paths:
+      - .mirror/**
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review-page:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aydinfurkan/mirror/action@main

@@ -1,0 +1,64 @@
+name: Mirror review page
+description: Link the Mirror review page of each pull request in a comment. The page is a file of the Actions run that opens in the browser.
+author: Furkan Aydın
+branding:
+  icon: git-pull-request
+  color: purple
+
+inputs:
+  github-token:
+    description: The token that posts the comment. It needs the pull-requests write permission.
+    default: ${{ github.token }}
+  mirror-dir:
+    description: The path of the .mirror/ folder, relative to the repository root.
+    default: .mirror
+  base:
+    description: The base revision. The default is the base commit of the pull request.
+    default: ${{ github.event.pull_request.base.sha }}
+  head:
+    description: The head revision. The default is the checked-out commit.
+    default: HEAD
+
+outputs:
+  url:
+    description: The address of the review page, or empty when the pull request has none.
+    value: ${{ steps.comment.outputs.url }}
+
+runs:
+  using: composite
+  steps:
+    - name: Fetch the base revision
+      shell: bash
+      env:
+        BASE: ${{ inputs.base }}
+      run: |
+        if [ -n "$BASE" ] && ! git cat-file -e "$BASE^{tree}" 2>/dev/null; then
+          git fetch --no-tags --quiet --depth=1 origin "$BASE"
+        fi
+    - name: Find the review page
+      id: prepare
+      shell: bash
+      env:
+        MIRROR_DIR: ${{ inputs.mirror-dir }}
+        MIRROR_BASE: ${{ inputs.base }}
+        MIRROR_HEAD: ${{ inputs.head }}
+      run: node "$GITHUB_ACTION_PATH/review-page.mjs" prepare
+    # Unzipped, so that the link opens the page in the browser.
+    - name: Attach the review page to the run
+      id: upload
+      if: steps.prepare.outputs.file != ''
+      uses: actions/upload-artifact@v7
+      with:
+        path: ${{ steps.prepare.outputs.file }}
+        archive: false
+        overwrite: true
+    - name: Comment on the pull request
+      id: comment
+      shell: bash
+      env:
+        MIRROR_TOKEN: ${{ inputs.github-token }}
+        MIRROR_NAME: ${{ steps.prepare.outputs.name }}
+        MIRROR_URL: ${{ steps.upload.outputs.artifact-url }}
+        MIRROR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        MIRROR_PR: ${{ github.event.pull_request.number }}
+      run: node "$GITHUB_ACTION_PATH/review-page.mjs" comment
