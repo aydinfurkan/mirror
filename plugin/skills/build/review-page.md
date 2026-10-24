@@ -17,7 +17,7 @@ Match a project by `id`, a flow by project `id` and flow `id`, and a step by `te
 - An item only in the new data: set `status` to `added`.
 - An item only in the old data: copy it into the new data at its old position. Set its
   `status` to `removed`. Set the `status` of each item in it (its flows and their steps) to
-  `removed` too.
+  `removed` too. Make its `designImage` again for the target page, as in `build-data.md`.
 - A flow in both: set `status` to `changed` when its `trigger`, `entry`, `group`,
   `definition`, `boundary`, `design`, `rules`, `actions` or step list is different.
 - A project in both: set `status` to `changed` when its `definition` is different. Else keep
