@@ -46,6 +46,9 @@ Read the link on the `**Design file:**` line of `design.md`.
 - An `https://` URL that ends in one of these extensions: the URL.
 - Else, for example `none` or a Figma link: `""`.
 
+For a `.svg` file in the repo, also set `designSvg`: the full text of the file. The viewer then
+shows the page as a demo. Else leave `designSvg` out.
+
 ## Steps
 
 For a flow, make one step for each `## N. <step>` header in `steps.md`. For a page, make one

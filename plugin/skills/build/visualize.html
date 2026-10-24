@@ -124,6 +124,12 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 .db pre code { padding: 0; border: 0; }
 .db ul, .db ol { padding-left: 20px; }
 .shot { display: block; margin: 12px 0 4px; }
+.demo svg { display: block; width: 100%; max-width: 960px; height: auto; border: 1px solid var(--border); border-radius: 8px; }
+.demo [data-action] { cursor: pointer; outline: none; filter: drop-shadow(0 0 3px color-mix(in srgb, var(--flow) 45%, transparent)); }
+.demo [data-action]:hover, .demo [data-action]:focus-visible { filter: drop-shadow(0 0 6px var(--flow)); }
+.hint { margin: 4px 0 12px; color: var(--muted); font-size: 15px; }
+.call { padding: 0 6px; border: 1px solid color-mix(in srgb, var(--flow) 40%, transparent); border-radius: 6px; background: color-mix(in srgb, var(--flow) 10%, transparent); color: var(--flow); font: 15px var(--mono); cursor: pointer; }
+.call:hover { background: color-mix(in srgb, var(--flow) 20%, transparent); }
 .shot img { display: block; max-width: 100%; max-height: 70vh; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); }
 .db table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 17px; }
 .db th, .db td { padding: 6px 8px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
@@ -330,7 +336,7 @@ body.review #comments { display: inline-block; }
   // The tab of a URL hash: the index of the project it names, else the first project.
   function tabFromHash(hash, projects) {
     var id;
-    try { id = decodeURIComponent(String(hash || '').slice(1)); } catch (e) { return 0; }
+    try { id = decodeURIComponent(String(hash || '').slice(1)).split('/')[0]; } catch (e) { return 0; }
     return Math.max(0, (projects || []).map(function (p) { return p.id; }).indexOf(id));
   }
 
@@ -341,7 +347,10 @@ body.review #comments { display: inline-block; }
     var d = details || [];
     return d.length ? '<ul class="details">' + d.map(function (x) {
       var m = /^(Call|Then|Fail):\s*(.*)$/.exec(x);
-      return '<li>' + (m ? '<span class="meta">' + m[1] + '</span> ' + inline(m[2]) : inline(x)) + '</li>';
+      var h = m ? inline(m[2]) : inline(x);
+      // A call to a flow of the mirror (`project/flow`) links to that flow.
+      if (m && m[1] === 'Call') h = h.replace(/^<code>([a-z0-9_-]+\/[a-z0-9_.-]+)<\/code>/i, '<button type="button" class="call" data-goto="$1" title="Open $1">$1 \u2197</button>');
+      return '<li>' + (m ? '<span class="meta">' + m[1] + '</span> ' + h : h) + '</li>';
     }).join('') + '</ul>' : '';
   }
 
@@ -421,7 +430,8 @@ body.review #comments { display: inline-block; }
       }).join('') + '</' + tag + '>' : '<p class="empty">' + (act ? 'No actions.' : 'No steps.') + '</p>';
     }
     // The Design tab of a page shows its design image first.
-    var shot = tab === 'design' ? designImageHtml(it.designImage) : '';
+    var shot = tab !== 'design' ? '' : it.designSvg ? '<div class="shot demo" data-demo="' + esc(n.key) + '"></div>' +
+      '<p class="hint">Click a glowing part of the page to follow its action. A call opens the backend flow.</p>' : designImageHtml(it.designImage);
     // A changed item keeps its old values in `old`: show the changed lines of this tab.
     if (it.old) {
       var before = tabText(Object.assign({}, it, it.old), tab), after = tabText(it, tab);
@@ -543,7 +553,103 @@ body.review #comments { display: inline-block; }
     });
     $('qcount').textContent = state.q.trim() ? (state.hits.length ? (state.hit + 1) + '/' + state.hits.length : '0') : '';
     $('legend').classList.toggle('on', m.all.some(function (n) { return STATUS[n.status]; }));
+    fillDemos();
     decorate();
+  }
+
+  // ---- Page demos ----
+
+  // An SVG design without scripts, event handlers or links, or null.
+  function cleanSvg(text) {
+    var doc = new DOMParser().parseFromString(String(text || ''), 'image/svg+xml'), svg = doc.documentElement;
+    if (!svg || svg.nodeName !== 'svg' || doc.getElementsByTagName('parsererror').length) return null;
+    [].slice.call(svg.querySelectorAll('script, foreignObject, iframe, object, embed, style')).forEach(function (e) { e.remove(); });
+    [svg].concat([].slice.call(svg.querySelectorAll('*'))).forEach(function (el) {
+      [].slice.call(el.attributes).forEach(function (a) { if (/^on|href$/i.test(a.name)) el.removeAttribute(a.name); });
+    });
+    svg.removeAttribute('width'); svg.removeAttribute('height');
+    return document.importNode(svg, true);
+  }
+
+  // Put the SVG of each open Design tab in its place. Each part with data-action is a control.
+  function fillDemos() {
+    [].forEach.call($('list').querySelectorAll('[data-demo]'), function (box) {
+      var f = flowByKey(box.getAttribute('data-demo')), svg = f && cleanSvg(f.item.designSvg);
+      if (!svg) return;
+      [].forEach.call(svg.querySelectorAll('[data-action]'), function (el) {
+        var t = demoTarget(f, el.getAttribute('data-action'));
+        el.setAttribute('tabindex', '0');
+        el.setAttribute('role', 'button');
+        el.setAttribute('aria-label', el.getAttribute('data-action') + (t.key ? ': opens ' + t.key : ''));
+        var tip = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+        tip.textContent = el.getAttribute('data-action') + (t.key ? ' \u2192 ' + t.key : '');
+        el.insertBefore(tip, el.firstChild);
+      });
+      box.appendChild(svg);
+    });
+  }
+
+  function flowByKey(key) {
+    var pid = String(key).split('/')[0], p = (state.data.projects || []).filter(function (x) { return x.id === pid; })[0];
+    return p ? model(p).flows.filter(function (f) { return f.key === key; })[0] || null : null;
+  }
+
+  // Where a control of a page demo goes: the flow of the first call of its action, else the page
+  // that the action opens, else the action itself.
+  function demoTarget(f, name) {
+    var norm = function (x) { return String(x || '').replace(/\.$/, '').trim().toLowerCase(); };
+    var i = -1, s = null;
+    (f.item.steps || []).some(function (x, j) { if (norm(x.title || x.text) === norm(name)) { i = j; s = x; return true; } return false; });
+    if (!s) return {};
+    var d = s.details || [], m, k;
+    for (k = 0; k < d.length; k++) {
+      if ((m = /^Call:\s*`([a-z0-9_-]+\/[a-z0-9_.-]+)`/i.exec(d[k])) && flowByKey(m[1])) return { key: m[1] };
+    }
+    for (k = 0; k < d.length; k++) {
+      if (!(m = /^Then:.*?\bopens?\s+`(\/[^`]*)`/i.exec(d[k]))) continue;
+      var route = m[1].replace(/<[^>]+>|:[^/]+/g, '*'), pid = f.key.split('/')[0];
+      var page = model((state.data.projects || []).filter(function (x) { return x.id === pid; })[0]).flows.filter(function (g) {
+        return g.type === 'page' && String(g.item.entry || '').replace(/<[^>]+>|:[^/]+/g, '*') === route;
+      })[0];
+      if (page) return { key: page.key, tab: 'design' };
+    }
+    return { action: i };
+  }
+
+  function followDemo(el) {
+    var row = el.closest('[data-row]'), from = row && row.getAttribute('data-row'), f = flowByKey(from);
+    if (!f) return;
+    var t = demoTarget(f, el.getAttribute('data-action'));
+    if (t.key) { goTo(t.key, t.tab, from); return; }
+    if (t.action === undefined) { toast('No action "' + el.getAttribute('data-action') + '" in actions.md.'); return; }
+    state.rtab[from] = 'actions';
+    draw();
+    reveal($('list').querySelector('.db ' + sel('data-key', from + '#' + t.action)));
+  }
+
+  // Open a flow or page row, in its project tab. tab: the row tab to show, if given.
+  function openRow(key, tab) {
+    var f = flowByKey(key);
+    if (!f) { toast(key + ' is not in this mirror.'); return false; }
+    var i = (state.data.projects || []).map(function (p) { return p.id; }).indexOf(key.split('/')[0]);
+    if (i !== state.pi) {
+      switchProject(i, false);
+      try { history.replaceState(null, '', '#' + key); } catch (e) { /* file:// in some browsers */ }
+    }
+    state.expanded[key] = true;
+    if (tab) state.rtab[key] = tab;
+    draw();
+    reveal($('list').querySelector(sel('data-row', key)));
+    return true;
+  }
+
+  // Follow a link to a row. The back button returns to the row it came from.
+  function goTo(key, tab, from) {
+    try {
+      if (from) history.replaceState(null, '', '#' + from);
+      history.pushState(null, '', '#' + key);
+    } catch (e) { /* file:// in some browsers */ }
+    openRow(key, tab);
   }
 
   // ---- Review comments ----
@@ -784,9 +890,20 @@ body.review #comments { display: inline-block; }
     updateCommentsButton();
     renderTabs();
     draw();
+    if (location.hash.indexOf('/') > 0) {
+      var start = '';
+      try { start = decodeURIComponent(location.hash.slice(1)); } catch (e) { /* bad hash */ }
+      if (flowByKey(start)) openRow(start);
+    }
 
     $('list').addEventListener('click', function (e) {
-      var b = e.target.closest('button');
+      var b = e.target.closest('button'), demo = e.target.closest('.demo [data-action]');
+      if (demo) { followDemo(demo); return; }
+      if (b && b.hasAttribute('data-goto')) {
+        var r = b.closest('[data-row]');
+        goTo(b.getAttribute('data-goto'), null, r && r.getAttribute('data-row'));
+        return;
+      }
       if (!b) {
         var note = e.target.closest('.cnote[data-cmt]');
         if (note && !note.querySelector('textarea')) editComment(Number(note.getAttribute('data-cmt')));
@@ -820,10 +937,20 @@ body.review #comments { display: inline-block; }
       if (e.key === 'ArrowRight') switchProject(state.pi + 1, true);
       else if (e.key === 'ArrowLeft') switchProject(state.pi - 1, true);
     });
-    window.addEventListener('hashchange', function () {
+    $('list').addEventListener('keydown', function (e) {
+      var demo = (e.key === 'Enter' || e.key === ' ') && e.target.closest && e.target.closest('.demo [data-action]');
+      if (demo) { e.preventDefault(); followDemo(demo); }
+    });
+    // A hash like #api/create-order opens that row. pushState does not fire hashchange; back does.
+    function fromHash() {
+      var id = '';
+      try { id = decodeURIComponent(location.hash.slice(1)); } catch (e) { /* bad hash */ }
+      if (id.indexOf('/') > 0 && flowByKey(id)) { openRow(id); return; }
       var i = tabFromHash(location.hash, state.data.projects);
       if (i !== state.pi) switchProject(i, false);
-    });
+    }
+    window.addEventListener('hashchange', fromHash);
+    window.addEventListener('popstate', fromHash);
     $('q').addEventListener('input', function (e) { search(e.target.value); });
     $('q').addEventListener('keydown', function (e) {
       if (e.key === 'Enter') { e.preventDefault(); next(e.shiftKey ? -1 : 1); }
