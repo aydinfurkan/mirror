@@ -60,7 +60,9 @@ reaches each repo at once.
 
 ## Requirements
 
-- Claude Code.
+- Claude Code v2.1.218 or later. `mirror:build` runs in its own context on Sonnet and waits
+  for the page, so it costs less and keeps the main conversation short. The other skills use
+  the model that you chose.
 
 ## License
 
