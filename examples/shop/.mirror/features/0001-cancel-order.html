@@ -68,7 +68,12 @@ button:focus-visible, a:focus-visible, .demo [data-action]:focus-visible { outli
 .tproj .pdot { flex: none; width: 10px; height: 10px; border-radius: 3px; background: var(--c); }
 .tproj small { color: var(--muted); font-size: 12px; font-weight: 500; }
 .tproj .mark, .titem .mark { margin-left: auto; }
-.tgroup { margin: 10px 10px 2px 26px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.tgroup { display: flex; align-items: center; gap: 6px; width: calc(100% - 12px); margin: 8px 0 2px 12px; padding: 3px 8px 3px 2px; border: 0; border-radius: 6px; background: none; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); text-align: left; cursor: pointer; }
+.tgroup:hover { color: var(--text); background: color-mix(in srgb, var(--text) 5%, transparent); }
+.tgroup::before { content: "\25be"; width: 12px; font-size: 11px; text-align: center; transition: transform .15s; }
+.tgroup[aria-expanded="false"]::before { transform: rotate(-90deg); }
+.tgroup small { font-weight: 500; letter-spacing: 0; }
+.tgroup .mark { margin-left: auto; }
 .titem { padding: 5px 8px 5px 26px; color: var(--text); }
 .tproj:hover, .titem:hover { background: color-mix(in srgb, var(--text) 6%, transparent); }
 .tproj.on, .titem.on { background: color-mix(in srgb, var(--flow) 13%, transparent); color: var(--flow); }
@@ -112,7 +117,7 @@ button:focus-visible, a:focus-visible, .demo [data-action]:focus-visible { outli
 .gname { margin: 22px 0 8px; font-size: 13px; font-weight: 650; color: var(--muted); }
 .flash { animation: flash 1.2s ease-out; }
 @keyframes flash { from { box-shadow: 0 0 0 4px color-mix(in srgb, var(--flow) 55%, transparent); } }
-@media (prefers-reduced-motion: reduce) { .flash { animation: none; } .card, #side { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .flash { animation: none; } .card, #side, .tgroup::before { transition: none; } }
 /* Text of a part */
 .db { font-size: 16px; line-height: 1.6; }
 .db > :first-child { margin-top: 0; }
@@ -523,8 +528,9 @@ body.review #comments { display: inline-flex; }
   }
 
   // The sidebar: each project, then its flows by group. keep(f): true for each flow to show.
-  // sel: the key of the open project or flow.
-  function treeHtml(models, sel, keep) {
+  // sel: the key of the open project or flow. shut(key): true for each closed group. A closed
+  // group shows only its header, with a mark when a flow in it changed.
+  function treeHtml(models, sel, keep, shut) {
     return models.map(function (m, i) {
       var p = m.project, flows = m.flows.filter(keep);
       if (!flows.length && !keep(null, p)) return '';
@@ -532,11 +538,14 @@ body.review #comments { display: inline-flex; }
         '<span class="pdot"></span><span>' + esc(p.label) + '</span>' + (p.sub ? '<small>' + esc(p.sub) + '</small>' : '') +
         markHtml(hasChanges(p.item) ? 'changed' : null, 'Has changes') + '</button>' +
         groups(flows).map(function (g) {
-          return (g.name ? '<div class="tgroup">' + esc(g.name) + '</div>' : '') + g.flows.map(function (f) {
+          var gk = p.key + '/' + g.name, closed = !!g.name && !!shut && shut(gk, g);
+          var head = g.name ? '<button type="button" class="tgroup" data-group="' + esc(gk) + '" aria-expanded="' + !closed + '">' + esc(g.name) +
+            (closed ? ' <small>' + g.flows.length + '</small>' + markHtml(g.flows.some(flowChanged) ? 'changed' : null, 'Has changes') : '') + '</button>' : '';
+          return head + (closed ? '' : g.flows.map(function (f) {
             var b = badgeOf(f), st = STATUS[f.status] ? f.status : flowChanged(f) ? 'changed' : null;
             return '<button type="button" class="titem' + statusClass(f) + (sel === f.key ? ' on' : '') + '" data-go="' + esc(f.key) + '" title="' + esc(f.sub || f.label) + ' (' + esc(f.label) + ')">' +
               '<span class="tb">' + esc(b.badge) + '</span><span class="te">' + pathHtml(f, m.flows) + '</span>' + markHtml(st) + '</button>';
-          }).join('');
+          }).join(''));
         }).join('') + '</div>';
     }).join('');
   }
@@ -558,7 +567,7 @@ body.review #comments { display: inline-flex; }
   // ---- Browser only below ----
 
   // sel: the key of the open project or flow. hits: the search matches in all projects.
-  var state = { sel: '', models: [], q: '', hits: [], hit: -1, changedOnly: false, folds: {}, comments: {}, ckeys: [], editing: null, draft: '' };
+  var state = { sel: '', models: [], q: '', hits: [], hit: -1, changedOnly: false, folds: {}, shut: {}, comments: {}, ckeys: [], editing: null, draft: '' };
 
   function $(id) { return document.getElementById(id); }
   function sel(attr, value) { return '[' + attr + '="' + String(value).replace(/["\\]/g, '\\$&') + '"]'; }
@@ -605,6 +614,22 @@ body.review #comments { display: inline-flex; }
     return !q || matches(f, q) || f.steps.some(function (s) { return matches(s, q); });
   }
 
+  // A closed group stays closed for this viewer. It opens while a search runs, and when it holds
+  // the open flow.
+  function loadShut() {
+    try { state.shut = JSON.parse(localStorage.getItem('mirror-groups:' + location.pathname) || '{}') || {}; } catch (e) { state.shut = {}; }
+  }
+  function toggleGroup(key) {
+    if (state.shut[key]) delete state.shut[key]; else state.shut[key] = 1;
+    try { localStorage.setItem('mirror-groups:' + location.pathname, JSON.stringify(state.shut)); } catch (e) { /* private mode */ }
+    drawSide();
+    var b = $('side').querySelector(sel('data-group', key));
+    if (b) b.focus();
+  }
+  function shut(key, g) {
+    return !!state.shut[key] && !state.q.trim() && !g.flows.some(function (f) { return f.key === state.sel; });
+  }
+
   function drawSide() {
     var review = document.body.classList.contains('review'), html = '';
     if (review) {
@@ -618,7 +643,7 @@ body.review #comments { display: inline-flex; }
         '<div class="legend">' + Object.keys(n).map(function (k) { return '<span>' + markHtml(k) + ' ' + n[k] + ' ' + k + '</span>'; }).join('') + '</div>' +
         '<button type="button" class="btn" id="changed-only" aria-pressed="' + state.changedOnly + '">Show changes only</button></div>';
     }
-    var tree = treeHtml(state.models, state.sel, keep);
+    var tree = treeHtml(state.models, state.sel, keep, shut);
     $('side').innerHTML = html + (tree || '<p class="tnone">' + (state.q.trim() ? 'No match.' : 'Nothing here.') + '</p>');
     var on = $('side').querySelector('.on');
     if (on && on.scrollIntoView) on.scrollIntoView({ block: 'nearest' });
@@ -938,6 +963,7 @@ body.review #comments { display: inline-flex; }
     $('title').textContent = state.data.title || 'Mirror';
     $('meta').textContent = state.data.generated ? 'generated ' + state.data.generated : '';
     loadComments();
+    loadShut();
     updateCommentsButton();
     fromHash();
 
@@ -945,6 +971,7 @@ body.review #comments { display: inline-flex; }
       var b = e.target.closest('button');
       if (!b) return;
       if (b.id === 'changed-only') { state.changedOnly = !state.changedOnly; drawSide(); return; }
+      if (b.hasAttribute('data-group')) { toggleGroup(b.getAttribute('data-group')); return; }
       if (b.hasAttribute('data-go')) open(b.getAttribute('data-go'), { push: true });
     });
     $('view').addEventListener('click', function (e) {
