@@ -15,7 +15,8 @@ has more than one review page, the link goes to the newest one.
 
 ## Use
 
-Add `.github/workflows/mirror.yml` to your repository:
+Ask Claude to run `mirror:github`, or say yes when `mirror:init` offers it. Or add
+`.github/workflows/mirror.yml` to your repository yourself:
 
 ```yaml
 name: Mirror

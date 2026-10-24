@@ -40,6 +40,8 @@ From then on, Claude changes the mirror first, you review it, then the code foll
 - `mirror:sync`: find drift between the code and the mirror since the last mirror update.
   Propose mirror edits, and flag code that breaks a business rule.
 - `mirror:build`: build the viewer page or a review page.
+- `mirror:github`: add a GitHub workflow, so that each pull request gets a link to its review
+  page. `mirror:init` offers it.
 - `mirror:test`: match each rule to a test, write the missing tests, and report the rules
   without a test.
 - `mirror:formats`: the `.mirror/` layout, and the rule and the example for each mirror document.
@@ -52,7 +54,7 @@ reaches each repo at once.
 - **Hook.** At session start, in a repo with a `.mirror/` folder, a shell command loads the
   Mirror instructions into Claude.
 - **Files.** Reads your code. Writes only to the `.mirror/` folder, except for the tests
-  that `mirror:test` writes.
+  that `mirror:test` writes and the workflow that `mirror:github` writes.
 - **Network.** No network calls. The HTML pages use the system fonts. Review comments stay in
   your browser until you copy them.
 
