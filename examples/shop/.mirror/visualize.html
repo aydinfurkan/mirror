@@ -103,6 +103,11 @@ button:focus-visible, a:focus-visible, .demo [data-action]:focus-visible { outli
 .part { margin-top: 30px; scroll-margin-top: 64px; }
 .part > h3 { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .part > h3::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+.fhead { display: inline-flex; align-items: center; gap: 6px; margin-left: -18px; padding: 2px 6px 2px 0; border: 0; border-radius: 6px; background: none; font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; cursor: pointer; }
+.fhead::before { content: "\25be"; width: 12px; font-size: 11px; text-align: center; transition: transform .15s; }
+.fhead[aria-expanded="false"]::before { transform: rotate(-90deg); }
+.fhead:hover { color: var(--text); }
+.part.shut > h3 { margin-bottom: 0; }
 .part.lead { margin-top: 14px; }
 .part.lead .db { font-size: 17px; color: color-mix(in srgb, var(--text) 85%, var(--muted)); }
 .doc.proj .part.lead .db > p { max-width: 72ch; font-size: 18px; color: var(--text); }
@@ -115,9 +120,10 @@ button:focus-visible, a:focus-visible, .demo [data-action]:focus-visible { outli
 .card.st-added, .card.st-changed, .card.st-removed { border-left: 4px solid var(--c); }
 .card.st-removed .te { text-decoration: line-through; }
 .gname { margin: 22px 0 8px; font-size: 13px; font-weight: 650; color: var(--muted); }
+.gname.shut { margin-bottom: 0; }
 .flash { animation: flash 1.2s ease-out; }
 @keyframes flash { from { box-shadow: 0 0 0 4px color-mix(in srgb, var(--flow) 55%, transparent); } }
-@media (prefers-reduced-motion: reduce) { .flash { animation: none; } .card, #side, .tgroup::before { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .flash { animation: none; } .card, #side, .tgroup::before, .fhead::before { transition: none; } }
 /* Text of a part */
 .db { font-size: 16px; line-height: 1.6; }
 .db > :first-child { margin-top: 0; }
@@ -188,6 +194,7 @@ body.review #comments { display: inline-flex; }
 #toast.on { opacity: 1; }
 /* Narrow screens: the sidebar slides in from the left. */
 @media (max-width: 860px) {
+  .fhead { margin-left: 0; }
   #menu { display: inline-flex; }
   .top { gap: 8px; padding: 0 8px; }
   .top .meta { display: none; }
@@ -476,19 +483,27 @@ body.review #comments { display: inline-flex; }
     return !!STATUS[f.status] || f.steps.some(function (s) { return !!STATUS[s.status]; });
   }
 
+  // The header of a section that folds. key: its key in shut. open: false for a closed section.
+  function foldHead(key, open, label) {
+    return '<button type="button" class="fhead" data-fold-sec="' + esc(key) + '" aria-expanded="' + open + '">' + label + '</button>';
+  }
+
   function partLabel(tab) { return tab.charAt(0).toUpperCase() + tab.slice(1); }
 
   // One part of a flow or page: a heading and its text. The definition is the lead, with no heading.
-  function partHtml(n, tab, folds) {
+  // shut(key): true for each closed part. A part's key is the key of its flow, `#`, and the part.
+  function partHtml(n, tab, folds, shut) {
     var text = body(n, tab, folds), lead = tab === 'definition' && text.indexOf('class="diff"') < 0, count = (tab === 'steps' || tab === 'actions') ? (n.item.steps || []).length : 0;
-    return '<section class="part' + (lead ? ' lead' : '') + '" data-part="' + tab + '">' +
-      (lead ? '' : '<h3>' + partLabel(tab) + (count ? ' <small>' + count + '</small>' : '') + '</h3>') +
-      '<div class="db">' + text + '</div></section>';
+    var key = n.key + '#' + tab, closed = !lead && !!shut && shut(key);
+    return '<section class="part' + (lead ? ' lead' : '') + (closed ? ' shut' : '') + '" data-part="' + tab + '">' +
+      (lead ? '' : '<h3>' + foldHead(key, !closed, partLabel(tab) + (count ? ' <small>' + count + '</small>' : '')) + '</h3>') +
+      (closed ? '' : '<div class="db">' + text + '</div>') + '</section>';
   }
 
   // A flow or page as a document: its title, a bar of its parts, then each part.
   // group: the group name of the flow, shown in the path above the title.
-  function flowHtml(n, group) {
+  // shut(key): true for each closed part.
+  function flowHtml(n, group, shut) {
     var b = badgeOf(n), parts = rowTabs(n), pid = n.key.split('/')[0];
     var kind = n.type === 'page' ? 'page' : (n.item.trigger || 'flow') + ' flow';
     return '<article class="doc' + statusClass(n) + '" data-row="' + esc(n.key) + '">' +
@@ -500,7 +515,7 @@ body.review #comments { display: inline-flex; }
       '<nav class="toc" aria-label="Parts">' + parts.slice(1).map(function (t) {
         return '<button type="button" data-part="' + t + '">' + partLabel(t) + '</button>';
       }).join('') + '</nav>' +
-      parts.slice(1).map(function (t) { return partHtml(n, t); }).join('') + '</article>';
+      parts.slice(1).map(function (t) { return partHtml(n, t, null, shut); }).join('') + '</article>';
   }
 
   // A flow or page as a card in a project overview. A click opens it. flows: all flows of the project.
@@ -514,17 +529,25 @@ body.review #comments { display: inline-flex; }
 
   // A project as a document: its definition, its changes on a review page, then all its flows.
   // m: the model of the project. folds: the open sections of its definition. pi: its index, for its color.
-  function projectHtml(m, folds, pi) {
+  // shut(key): true for each closed section or group. Keys: `<project>#changes`, `<project>#flows`, `<project>>group`.
+  function projectHtml(m, folds, pi, shut) {
     var n = m.project, changed = m.flows.filter(flowChanged);
     function card(f) { return cardHtml(f, m.flows); }
+    function closed(key) { return !!shut && shut(key); }
+    function sec(key, label, inner) {
+      var c = closed(key);
+      return '<section class="part' + (c ? ' shut' : '') + '"><h3>' + foldHead(key, !c, label) + '</h3>' + (c ? '' : inner) + '</section>';
+    }
     return '<article class="doc proj' + statusClass(n) + '" data-row="' + esc(n.key) + '" style="--c: var(--tab-' + ((pi || 0) % 5 + 1) + ')">' +
       '<div class="dtitle"><h2>' + esc(n.label) + '</h2>' + (n.sub ? '<span class="kind">' + esc(n.sub) + '</span>' : '') + chipHtml(n) + '</div>' +
       partHtml(n, 'definition', folds) +
-      (changed.length ? '<section class="part"><h3>Changes <small>' + changed.length + '</small></h3><div class="cards">' + changed.map(card).join('') + '</div></section>' : '') +
-      '<section class="part"><h3>' + (m.flows.some(function (f) { return f.type === 'page'; }) ? 'Pages and flows' : 'Flows') + ' <small>' + m.flows.length + '</small></h3>' +
-      (m.flows.length ? m.groups.map(function (g) {
-        return (g.name ? '<h4 class="gname">' + esc(g.name) + '</h4>' : '') + '<div class="cards">' + g.flows.map(card).join('') + '</div>';
-      }).join('') : '<p class="empty">No flows yet.</p>') + '</section></article>';
+      (changed.length ? sec(n.key + '#changes', 'Changes <small>' + changed.length + '</small>', '<div class="cards">' + changed.map(card).join('') + '</div>') : '') +
+      sec(n.key + '#flows', (m.flows.some(function (f) { return f.type === 'page'; }) ? 'Pages and flows' : 'Flows') + ' <small>' + m.flows.length + '</small>',
+        m.flows.length ? m.groups.map(function (g) {
+          var gk = n.key + '>' + g.name, c = !!g.name && closed(gk);
+          return (g.name ? '<h4 class="gname' + (c ? ' shut' : '') + '">' + foldHead(gk, !c, esc(g.name) + (c ? ' <small>' + g.flows.length + '</small>' : '')) + '</h4>' : '') +
+            (c ? '' : '<div class="cards">' + g.flows.map(card).join('') + '</div>');
+        }).join('') : '<p class="empty">No flows yet.</p>') + '</article>';
   }
 
   // The sidebar: each project, then its flows by group. keep(f): true for each flow to show.
@@ -614,14 +637,24 @@ body.review #comments { display: inline-flex; }
     return !q || matches(f, q) || f.steps.some(function (s) { return matches(s, q); });
   }
 
-  // A closed group stays closed for this viewer. It opens while a search runs, and when it holds
+  // A closed group or section stays closed for this viewer. It opens while a search runs, and when it holds
   // the open flow.
   function loadShut() {
     try { state.shut = JSON.parse(localStorage.getItem('mirror-groups:' + location.pathname) || '{}') || {}; } catch (e) { state.shut = {}; }
   }
-  function toggleGroup(key) {
-    if (state.shut[key]) delete state.shut[key]; else state.shut[key] = 1;
+  function setShut(key, on) {
+    if (on) state.shut[key] = 1; else delete state.shut[key];
     try { localStorage.setItem('mirror-groups:' + location.pathname, JSON.stringify(state.shut)); } catch (e) { /* private mode */ }
+  }
+  // Open or close a section of the pane.
+  function toggleSection(key) {
+    setShut(key, !state.shut[key]);
+    drawView();
+    var b = $('view').querySelector(sel('data-fold-sec', key));
+    if (b) b.focus({ preventScroll: true });
+  }
+  function toggleGroup(key) {
+    setShut(key, !state.shut[key]);
     drawSide();
     var b = $('side').querySelector(sel('data-group', key));
     if (b) b.focus();
@@ -656,7 +689,8 @@ body.review #comments { display: inline-flex; }
       return;
     }
     var f = flowByKey(state.sel), group = f ? String(f.item.group || '').trim() : '';
-    $('view').innerHTML = f ? flowHtml(f, group) : projectHtml(m, state.folds[m.project.key], state.models.indexOf(m));
+    var closed = function (k) { return !!state.shut[k]; };
+    $('view').innerHTML = f ? flowHtml(f, group, closed) : projectHtml(m, state.folds[m.project.key], state.models.indexOf(m), closed);
     // Mark the matching steps of this flow.
     state.hits.forEach(function (h, i) {
       if (h.type !== 'step' || h.parentKey !== state.sel) return;
@@ -689,11 +723,22 @@ body.review #comments { display: inline-flex; }
     $('menu').setAttribute('aria-expanded', 'false');
     draw();
     if (!same) $('view').scrollTop = 0;
-    if (o.step) reveal($('view').querySelector('.db ' + sel('data-key', o.step)));
+    if (o.step) revealStep(o.step);
     else if (o.part) showPart(o.part);
   }
 
+  // Scroll to a step or action of the open flow. Its part opens first when it is closed.
+  function revealStep(key) {
+    var fk = key.split('#')[0];
+    if (state.shut[fk + '#steps'] || state.shut[fk + '#actions']) {
+      setShut(fk + '#steps', false); setShut(fk + '#actions', false);
+      drawView();
+    }
+    reveal($('view').querySelector('.db ' + sel('data-key', key)));
+  }
+
   function showPart(tab) {
+    if (state.shut[state.sel + '#' + tab]) { setShut(state.sel + '#' + tab, false); drawView(); }
     var e = $('view').querySelector('.part' + sel('data-part', tab));
     if (e) e.scrollIntoView({ block: 'start', behavior: 'smooth' });
   }
@@ -758,7 +803,7 @@ body.review #comments { display: inline-flex; }
     var t = demoTarget(f, el.getAttribute('data-action'));
     if (t.key) { open(t.key, { push: true, part: t.tab }); return; }
     if (t.action === undefined) { toast('No action "' + el.getAttribute('data-action') + '" in actions.md.'); return; }
-    reveal($('view').querySelector('.db ' + sel('data-key', f.key + '#' + t.action)));
+    revealStep(f.key + '#' + t.action);
   }
 
   // ---- Review comments ----
@@ -941,7 +986,7 @@ body.review #comments { display: inline-flex; }
     if (key !== state.sel) open(key, { step: h.type === 'step' ? h.key : null });
     else {
       draw();
-      reveal(h.type === 'step' ? $('view').querySelector('.db ' + sel('data-key', h.key)) : $('view').querySelector('.dtitle'));
+      if (h.type === 'step') revealStep(h.key); else reveal($('view').querySelector('.dtitle'));
     }
   }
 
@@ -986,6 +1031,7 @@ body.review #comments { display: inline-flex; }
       if (b.hasAttribute('data-go')) open(b.getAttribute('data-go'), { push: true });
       else if (b.hasAttribute('data-goto')) open(b.getAttribute('data-goto'), { push: true });
       else if (b.closest('.toc')) showPart(b.getAttribute('data-part'));
+      else if (b.hasAttribute('data-fold-sec')) toggleSection(b.getAttribute('data-fold-sec'));
       else if (b.hasAttribute('data-cmt')) editComment(Number(b.getAttribute('data-cmt')));
       else if (b.hasAttribute('data-csave')) saveComment(Number(b.getAttribute('data-csave')), b.closest('.cnote').querySelector('textarea').value);
       else if (b.hasAttribute('data-cdel')) saveComment(Number(b.getAttribute('data-cdel')), '');
