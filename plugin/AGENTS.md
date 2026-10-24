@@ -20,3 +20,4 @@ link, and where their code starts. Open only the code that the mirror points to.
 4. To find the rules without a test, or to write tests from the rules, use the `mirror:test` skill.
 5. To answer a question about how the system works, use the `mirror:ask` skill. Examples:
    "what happens when an order is cancelled?", "where do we send the receipt?".
+6. To link the review page of each pull request on GitHub, use the `mirror:github` skill.
