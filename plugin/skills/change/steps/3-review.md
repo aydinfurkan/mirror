@@ -1,6 +1,7 @@
 # Review
 
-1. Build the review page of the change with the `mirror:build` skill.
+1. Build the review page of the change with the `mirror:build` skill. Pass the name of the
+   change, or the path of its review page if it has one.
 2. List the added, changed and removed flows and steps. Tell the user that they can click 💬
    on a step or a rule in the page to comment on it, then click "Copy comments" and paste the
    comments here.
