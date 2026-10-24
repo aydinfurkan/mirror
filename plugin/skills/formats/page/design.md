@@ -7,7 +7,8 @@ Path: `.mirror/xsrc/<project>/<page>/design.md`. The visual design of the page.
 One line at the top: `**Design file:**` and a link to the design (Figma, a screenshot), or
 `none`. For an image in the repo, write a Markdown link with the path from the repo root:
 `**Design file:** [checkout.png](docs/screens/checkout.png)`. The viewer shows an image file
-(`.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`, `.webp`) at the top of the Design tab.
+(`.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`, `.webp`) in its own UI part, at the top of the page, before
+the actions.
 
 An `.svg` design is a clickable demo. Put `data-action="<action>"` on the element of each control,
 with the header of its action in `actions.md`: `<g data-action="Click &quot;Pay&quot;">`. A click
