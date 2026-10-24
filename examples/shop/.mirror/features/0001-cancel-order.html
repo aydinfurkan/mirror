@@ -68,6 +68,12 @@ button:focus-visible, a:focus-visible, .demo [data-action]:focus-visible { outli
 .tproj .pdot { flex: none; width: 10px; height: 10px; border-radius: 3px; background: var(--c); }
 .tproj small { color: var(--muted); font-size: 12px; font-weight: 500; }
 .tproj .mark, .titem .mark { margin-left: auto; }
+.tprow { display: flex; align-items: center; }
+.tprow .tproj { min-width: 0; }
+.tfold { flex: none; width: 18px; height: 30px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--muted); cursor: pointer; }
+.tfold:hover { color: var(--text); background: color-mix(in srgb, var(--text) 5%, transparent); }
+.tfold::before { content: "\25be"; display: inline-block; font-size: 11px; transition: transform .15s; }
+.tfold[aria-expanded="false"]::before { transform: rotate(-90deg); }
 .tgroup { display: flex; align-items: center; gap: 6px; width: calc(100% - 12px); margin: 8px 0 2px 12px; padding: 3px 8px 3px 2px; border: 0; border-radius: 6px; background: none; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); text-align: left; cursor: pointer; }
 .tgroup:hover { color: var(--text); background: color-mix(in srgb, var(--text) 5%, transparent); }
 .tgroup::before { content: "\25be"; width: 12px; font-size: 11px; text-align: center; transition: transform .15s; }
@@ -123,7 +129,7 @@ button:focus-visible, a:focus-visible, .demo [data-action]:focus-visible { outli
 .gname.shut { margin-bottom: 0; }
 .flash { animation: flash 1.2s ease-out; }
 @keyframes flash { from { box-shadow: 0 0 0 4px color-mix(in srgb, var(--flow) 55%, transparent); } }
-@media (prefers-reduced-motion: reduce) { .flash { animation: none; } .card, #side, .tgroup::before, .fhead::before { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .flash { animation: none; } .card, #side, .tgroup::before, .tfold::before, .fhead::before { transition: none; } }
 /* Text of a part */
 .db { font-size: 16px; line-height: 1.6; }
 .db > :first-child { margin-top: 0; }
@@ -145,7 +151,18 @@ button:focus-visible, a:focus-visible, .demo [data-action]:focus-visible { outli
 .shot { display: block; margin: 4px 0; }
 .demo svg { display: block; width: 100%; height: auto; border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 6px 24px rgb(0 0 0 / .06); }
 .demo [data-action] { cursor: pointer; outline: none; filter: drop-shadow(0 0 3px color-mix(in srgb, var(--flow) 45%, transparent)); }
-.demo [data-action]:hover, .demo [data-action]:focus-visible { filter: drop-shadow(0 0 6px var(--flow)); }
+.demo [data-action]:hover, .demo [data-action]:focus-visible, .demo [data-action].hot { filter: drop-shadow(0 0 6px var(--flow)); }
+/* A page design with its actions beside it, and a line from each control to its action */
+.dlink { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 220px; gap: 0 56px; align-items: start; }
+.dacts { display: grid; gap: 8px; margin: 4px 0; padding: 0; list-style: none; }
+.dact { display: block; width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-size: 14px; font-weight: 600; text-align: left; cursor: pointer; }
+.dact small { display: block; margin-top: 2px; color: var(--muted); font: 12px var(--mono); overflow-wrap: anywhere; }
+.dact.free { font-weight: 500; color: var(--muted); }
+.dact:hover, .dact.hot { border-color: var(--flow); box-shadow: 0 0 0 3px color-mix(in srgb, var(--flow) 18%, transparent); }
+.dwires { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.dwires path { fill: none; stroke: var(--flow); stroke-width: 1.5; opacity: .45; }
+.dwires circle { fill: var(--flow); opacity: .7; }
+.dwires .hot { opacity: 1; stroke-width: 2.5; }
 .hint { margin: 8px 0 16px; color: var(--muted); font-size: 13.5px; }
 .call { padding: 0 6px; border: 1px solid color-mix(in srgb, var(--flow) 40%, transparent); border-radius: 6px; background: color-mix(in srgb, var(--flow) 10%, transparent); color: var(--flow); font: 14px var(--mono); cursor: pointer; }
 .call:hover { background: color-mix(in srgb, var(--flow) 20%, transparent); }
@@ -194,6 +211,8 @@ body.review #comments { display: inline-flex; }
 #toast.on { opacity: 1; }
 /* Narrow screens: the sidebar slides in from the left. */
 @media (max-width: 860px) {
+  .dlink { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .dwires { display: none; }
   .fhead { margin-left: 0; }
   #menu { display: inline-flex; }
   .top { gap: 8px; padding: 0 8px; }
@@ -419,7 +438,9 @@ body.review #comments { display: inline-flex; }
   }
 
   function rowTabs(n) {
-    return n.type === 'project' ? ['definition'] : n.type === 'page' ? ['definition', n.unit === 'action' ? 'actions' : 'steps', 'design', 'rules']
+    // A page with a design picture shows it first, as its UI.
+    var ui = n.item && (n.item.designSvg || n.item.designImage) ? ['ui'] : [];
+    return n.type === 'project' ? ['definition'] : n.type === 'page' ? ['definition'].concat(ui, [n.unit === 'action' ? 'actions' : 'steps', 'design', 'rules'])
       : ['definition', 'steps', 'boundary', 'rules'];
   }
 
@@ -439,9 +460,11 @@ body.review #comments { display: inline-flex; }
           inline(s.title || s.text) + '</strong>' + (act ? actionDetails(s.details) : detailsHtml(s)) + '</div></li>';
       }).join('') + '</' + tag + '>' : '<p class="empty">' + (act ? 'No actions.' : 'No steps.') + '</p>';
     }
-    // The Design tab of a page shows its design image first.
-    var shot = tab !== 'design' ? '' : it.designSvg ? '<div class="shot demo" data-demo="' + esc(n.key) + '"></div>' +
-      '<p class="hint">Click a glowing part of the page to follow its action. A call opens the backend flow.</p>' : designImageHtml(it.designImage);
+    // The UI part shows the design picture. An SVG shows its actions beside it, with a line from
+    // each control to its action.
+    var shot = tab !== 'ui' ? '' : it.designSvg ? '<div class="dlink"><div class="shot demo" data-demo="' + esc(n.key) + '"></div>' +
+      '<ul class="dacts" aria-label="Actions"></ul><svg class="dwires" aria-hidden="true"></svg></div>' +
+      '<p class="hint">Each line links a part of the page to its action. Click either one to follow it. A call opens the backend flow.</p>' : designImageHtml(it.designImage);
     // A changed item keeps its old values in `old`: show the changed lines of this tab.
     if (it.old) {
       var before = tabText(Object.assign({}, it, it.old), tab), after = tabText(it, tab);
@@ -488,7 +511,7 @@ body.review #comments { display: inline-flex; }
     return '<button type="button" class="fhead" data-fold-sec="' + esc(key) + '" aria-expanded="' + open + '">' + label + '</button>';
   }
 
-  function partLabel(tab) { return tab.charAt(0).toUpperCase() + tab.slice(1); }
+  function partLabel(tab) { return tab === 'ui' ? 'UI' : tab.charAt(0).toUpperCase() + tab.slice(1); }
 
   // One part of a flow or page: a heading and its text. The definition is the lead, with no heading.
   // shut(key): true for each closed part. A part's key is the key of its flow, `#`, and the part.
@@ -557,10 +580,13 @@ body.review #comments { display: inline-flex; }
     return models.map(function (m, i) {
       var p = m.project, flows = m.flows.filter(keep);
       if (!flows.length && !keep(null, p)) return '';
-      return '<div class="tp"><button type="button" class="tproj' + (sel === p.key ? ' on' : '') + '" data-go="' + esc(p.key) + '" style="--c: var(--tab-' + (i % 5 + 1) + ')">' +
+      // A closed project shows only its own row. Its key: `side:<project>`.
+      var pk = 'side:' + p.key, pclosed = !!shut && shut(pk);
+      return '<div class="tp"><div class="tprow"><button type="button" class="tfold" data-group="' + esc(pk) + '" aria-expanded="' + !pclosed + '" aria-label="' +
+        (pclosed ? 'Open ' : 'Close ') + esc(p.label) + '"></button><button type="button" class="tproj' + (sel === p.key ? ' on' : '') + '" data-go="' + esc(p.key) + '" style="--c: var(--tab-' + (i % 5 + 1) + ')">' +
         '<span class="pdot"></span><span>' + esc(p.label) + '</span>' + (p.sub ? '<small>' + esc(p.sub) + '</small>' : '') +
-        markHtml(hasChanges(p.item) ? 'changed' : null, 'Has changes') + '</button>' +
-        groups(flows).map(function (g) {
+        markHtml(hasChanges(p.item) || (pclosed && flows.some(flowChanged)) ? 'changed' : null, 'Has changes') + '</button></div>' +
+        (pclosed ? '' : groups(flows).map(function (g) {
           var gk = p.key + '/' + g.name, closed = !!g.name && !!shut && shut(gk, g);
           var head = g.name ? '<button type="button" class="tgroup" data-group="' + esc(gk) + '" aria-expanded="' + !closed + '">' + esc(g.name) +
             (closed ? ' <small>' + g.flows.length + '</small>' + markHtml(g.flows.some(flowChanged) ? 'changed' : null, 'Has changes') : '') + '</button>' : '';
@@ -569,7 +595,7 @@ body.review #comments { display: inline-flex; }
             return '<button type="button" class="titem' + statusClass(f) + (sel === f.key ? ' on' : '') + '" data-go="' + esc(f.key) + '" title="' + esc(f.sub || f.label) + ' (' + esc(f.label) + ')">' +
               '<span class="tb">' + esc(b.badge) + '</span><span class="te">' + pathHtml(f, m.flows) + '</span>' + markHtml(st) + '</button>';
           }).join(''));
-        }).join('') + '</div>';
+        }).join('')) + '</div>';
     }).join('');
   }
 
@@ -662,9 +688,10 @@ body.review #comments { display: inline-flex; }
   function shut(key) {
     return !!state.shut[key] && !state.q.trim();
   }
-  // Open the group that holds a flow, so the flow shows in the sidebar.
+  // Open the project and the group that hold a flow, so the flow shows in the sidebar.
   function showGroup(key) {
     state.models.forEach(function (m) {
+      if (m.flows.some(function (f) { return f.key === key; })) setShut('side:' + m.project.key, false);
       groups(m.flows).forEach(function (g) {
         if (g.name && g.flows.some(function (f) { return f.key === key; })) setShut(m.project.key + '/' + g.name, false);
       });
@@ -781,6 +808,50 @@ body.review #comments { display: inline-flex; }
         el.insertBefore(tip, el.firstChild);
       });
       box.appendChild(svg);
+      var link = box.closest('.dlink');
+      if (link) fillActions(link, f);
+    });
+  }
+
+  function actionName(x) { return String(x || '').replace(/\.$/, '').trim().toLowerCase(); }
+
+  // The actions beside a design, each with where it goes. A grey action has no control in the design.
+  function fillActions(link, f) {
+    var used = {};
+    [].forEach.call(link.querySelectorAll('.demo [data-action]'), function (el) { used[actionName(el.getAttribute('data-action'))] = 1; });
+    link.querySelector('.dacts').innerHTML = (f.item.steps || []).map(function (s) {
+      var name = String(s.title || s.text || '').replace(/\.$/, ''), t = demoTarget(f, name);
+      return '<li><button type="button" class="dact' + (used[actionName(name)] ? '' : ' free') + '" data-act="' + esc(name) + '">' + esc(name) +
+        (t.key ? '<small>\u2192 ' + esc(t.key) + '</small>' : '') + '</button></li>';
+    }).join('');
+    drawWires(link);
+    if (window.ResizeObserver) new ResizeObserver(function () { drawWires(link); }).observe(link);
+  }
+
+  // A line from the right side of each control to the edge of the design, then a curve to its action.
+  function drawWires(link) {
+    var base = link.getBoundingClientRect(), edge = link.querySelector('.demo').getBoundingClientRect().right - base.left, out = '';
+    if (!base.width) return;
+    [].forEach.call(link.querySelectorAll('.demo [data-action]'), function (el) {
+      var name = actionName(el.getAttribute('data-action'));
+      var item = [].filter.call(link.querySelectorAll('.dact'), function (b) { return actionName(b.getAttribute('data-act')) === name; })[0];
+      if (!item) return;
+      var r = el.getBoundingClientRect(), q = item.getBoundingClientRect();
+      var x1 = r.right - base.left, y1 = r.top + r.height / 2 - base.top, x2 = q.left - base.left, y2 = q.top + q.height / 2 - base.top;
+      var xe = Math.max(x1, edge), c = (x2 - xe) / 2, a = ' data-wire="' + esc(name) + '"';
+      out += '<path' + a + ' d="M' + x1 + ' ' + y1 + ' H' + xe + ' C' + (xe + c) + ' ' + y1 + ' ' + (x2 - c) + ' ' + y2 + ' ' + x2 + ' ' + y2 + '"/>' +
+        '<circle' + a + ' cx="' + x1 + '" cy="' + y1 + '" r="3"/><circle' + a + ' cx="' + x2 + '" cy="' + y2 + '" r="3"/>';
+    });
+    link.querySelector('.dwires').innerHTML = out;
+  }
+
+  // Light up a control, its action and the line between them.
+  function lightWire(e, on) {
+    var t = e.target.closest && e.target.closest('.dlink [data-action], .dlink .dact'), link = t && t.closest('.dlink');
+    if (!link) return;
+    var name = actionName(t.getAttribute('data-action') || t.getAttribute('data-act'));
+    [].forEach.call(link.querySelectorAll('[data-action], .dact, [data-wire]'), function (x) {
+      x.classList.toggle('hot', on && actionName(x.getAttribute('data-action') || x.getAttribute('data-act') || x.getAttribute('data-wire')) === name);
     });
   }
 
@@ -801,17 +872,17 @@ body.review #comments { display: inline-flex; }
       var page = modelOf(f.key).flows.filter(function (g) {
         return g.type === 'page' && String(g.item.entry || '').replace(/<[^>]+>|:[^/]+/g, '*') === route;
       })[0];
-      if (page) return { key: page.key, tab: 'design' };
+      if (page) return { key: page.key, tab: 'ui' };
     }
     return { action: i };
   }
 
-  function followDemo(el) {
+  function followDemo(name) {
     var f = flowByKey(state.sel);
     if (!f) return;
-    var t = demoTarget(f, el.getAttribute('data-action'));
+    var t = demoTarget(f, name);
     if (t.key) { open(t.key, { push: true, part: t.tab }); return; }
-    if (t.action === undefined) { toast('No action "' + el.getAttribute('data-action') + '" in actions.md.'); return; }
+    if (t.action === undefined) { toast('No action "' + name + '" in actions.md.'); return; }
     revealStep(f.key + '#' + t.action);
   }
 
@@ -1031,13 +1102,14 @@ body.review #comments { display: inline-flex; }
     $('view').addEventListener('click', function (e) {
       if (document.body.classList.contains('nav')) { document.body.classList.remove('nav'); $('menu').setAttribute('aria-expanded', 'false'); return; }
       var b = e.target.closest('button'), demo = e.target.closest('.demo [data-action]');
-      if (demo) { followDemo(demo); return; }
+      if (demo) { followDemo(demo.getAttribute('data-action')); return; }
       if (!b) {
         var note = e.target.closest('.cnote[data-cmt]');
         if (note && !note.querySelector('textarea')) editComment(Number(note.getAttribute('data-cmt')));
         return;
       }
-      if (b.hasAttribute('data-go')) open(b.getAttribute('data-go'), { push: true });
+      if (b.hasAttribute('data-act')) followDemo(b.getAttribute('data-act'));
+      else if (b.hasAttribute('data-go')) open(b.getAttribute('data-go'), { push: true });
       else if (b.hasAttribute('data-goto')) open(b.getAttribute('data-goto'), { push: true });
       else if (b.closest('.toc')) showPart(b.getAttribute('data-part'));
       else if (b.hasAttribute('data-fold-sec')) toggleSection(b.getAttribute('data-fold-sec'));
@@ -1052,11 +1124,15 @@ body.review #comments { display: inline-flex; }
       var k = r.getAttribute('data-row');
       (state.folds[k] = state.folds[k] || {})[d.getAttribute('data-fold')] = d.open;
     }, true);
+    $('view').addEventListener('mouseover', function (e) { lightWire(e, true); });
+    $('view').addEventListener('mouseout', function (e) { lightWire(e, false); });
+    $('view').addEventListener('focusin', function (e) { lightWire(e, true); });
+    $('view').addEventListener('focusout', function (e) { lightWire(e, false); });
     $('view').addEventListener('input', function (e) { if (e.target.closest('.cnote')) state.draft = e.target.value; });
     $('view').addEventListener('keydown', function (e) {
       var note = e.target.tagName === 'TEXTAREA' && e.target.closest('.cnote');
       var demo = (e.key === 'Enter' || e.key === ' ') && e.target.closest && e.target.closest('.demo [data-action]');
-      if (demo) { e.preventDefault(); followDemo(demo); return; }
+      if (demo) { e.preventDefault(); followDemo(demo.getAttribute('data-action')); return; }
       if (!note) return;
       if (e.key === 'Escape') { e.preventDefault(); closeEditor(); }
       else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); note.querySelector('[data-csave]').click(); }
