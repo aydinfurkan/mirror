@@ -1,11 +1,13 @@
 ## Layout
 
-- Header: the shop name and the title "Checkout".
-- Form: the cart total and the email field.
+- Header: the shop name, the title "Checkout" and a "Back to cart" link.
+- Summary: one row per item of the cart, then the total.
+- Form: the email field.
 - Footer: the "Pay" button.
 
 ## Components
 
+- `SummaryRow`: the product name, the quantity and the line price.
 - `TextField`: a label, an input and an error line below the input in the danger color.
 - `Button`: primary for "Pay".
 

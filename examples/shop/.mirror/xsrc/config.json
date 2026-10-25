@@ -4,6 +4,10 @@
       "root": "web",
       "kind": "frontend"
     },
+    "app": {
+      "root": "app",
+      "kind": "mobile"
+    },
     "api": {
       "root": "api",
       "kind": "backend"

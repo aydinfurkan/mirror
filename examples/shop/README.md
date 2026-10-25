@@ -1,15 +1,18 @@
 # Shop example
 
 A small online shop, described only by its mirror. **This example has no code.** Use it to see what Mirror shows for
-three projects that share five external systems.
+four projects that share five external systems.
 
-Open `.mirror/visualize.html` in a browser. Each project has a tab. Click a flow to open it.
+Open `.mirror/visualize.html` in a browser. Click a flow or a page in the sidebar to open it. A page
+opens on its wireframe: click a button in it to follow its action to the next page or to the
+backend flow it calls.
 
 ## Projects
 
 | Project | Kind | What it does |
 | --- | --- | --- |
-| `web` | frontend | The shop pages. Each page has `actions.md`, `design.md` and a `design.svg` wireframe. |
+| `web` | frontend | The shop pages. Each page has `actions.md`, `design.md` and a `design.svg` wireframe of a web page. |
+| `app` | mobile | The shop app for phones. Each page has a `design.svg` wireframe of a phone screen. |
 | `api` | backend | The HTTP API. |
 | `worker` | consumer | Handles the events of the Kafka topic `order.events`. |
 
@@ -34,11 +37,14 @@ Open `.mirror/visualize.html` in a browser. Each project has a tab. Click a flow
    it and writes the stock to `shop-db`.
 5. `web/order-status` calls `api/get-order` until the order is paid.
 
-## A review example
+## Review examples
 
-`.mirror/features/0001-cancel-order.html` is the review page of one change: "Let a customer
-cancel a paid order for 24 hours." Open it in a browser. It shows the change as it was before
-the OK:
+Each file in `.mirror/features/` is the review page of one change. Open it in a browser. It shows
+the change as it was before the OK.
+
+### 0001: cancel an order
+
+`0001-cancel-order.html`: "Let a customer cancel a paid order for 24 hours."
 
 | Item | Status | What changes |
 | --- | --- | --- |
@@ -46,6 +52,19 @@ the OK:
 | `web/order-status` | changed | A new action "Cancel the order" calls `api/cancel-order`. |
 | `worker/update-stock` | changed | It also consumes `order.cancelled` and puts the items back in the stock. |
 
-The worker is an affected flow: it consumes `order-events`, where the new flow publishes. The
-mirror in `.mirror/xsrc/` and `.mirror/visualize.html` show the state after the OK. See the
-`mirror:change` skill for the steps of a change.
+The worker is an affected flow: it consumes `order-events`, where the new flow publishes.
+
+### 0002: a design change
+
+`0002-checkout-order-summary.html`: "Show the items of the cart on the checkout page, with a link
+back to the cart."
+
+| Item | Status | What changes |
+| --- | --- | --- |
+| `web/checkout` | changed | The wireframe gets an order summary and a "Back to cart" link. A new action "Click "Back to cart"" opens `/cart`. A new acceptance criterion. |
+
+Open its UI part and switch between **After** and **Before** to see the old and the new
+wireframe. The Actions, Design and Rules parts show the changed lines.
+
+The mirror in `.mirror/xsrc/` and `.mirror/visualize.html` show the state after the last OK. See
+the `mirror:change` skill for the steps of a change.

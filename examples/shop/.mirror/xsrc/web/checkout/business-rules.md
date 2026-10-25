@@ -20,6 +20,7 @@ A customer is ready to pay. The shop hands the payment to Stripe.
 
 ## Acceptance criteria
 
+- Show each item of the cart and its line price before the customer pays.
 - Send the customer to the Stripe payment page after the order is created.
 - Tell the customer when the stock is too low for the cart.
 - Keep the cart when the payment fails.
