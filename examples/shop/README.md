@@ -9,7 +9,7 @@ Open `.mirror/visualize.html` in a browser. Each project has a tab. Click a flow
 
 | Project | Kind | What it does |
 | --- | --- | --- |
-| `web` | frontend | The shop pages. Each page has `actions.md` and `design.md`. |
+| `web` | frontend | The shop pages. Each page has `actions.md`, `design.md` and a `design.svg` wireframe. |
 | `api` | backend | The HTTP API. |
 | `worker` | consumer | Handles the events of the Kafka topic `order.events`. |
 

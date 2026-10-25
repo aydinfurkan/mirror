@@ -19,9 +19,9 @@ Match a project by `id`, a flow by project `id` and flow `id`, and a step by `te
   `status` to `removed`. Set the `status` of each item in it (its flows and their steps) to
   `removed` too. Make its `designImage` again for the target page, as in `build-data.md`.
 - A flow in both: set `status` to `changed` when its `trigger`, `entry`, `group`,
-  `definition`, `boundary`, `design`, `rules`, `actions` or step list is different.
+  `definition`, `boundary`, `design`, `designSvg`, `rules`, `actions` or step list is different.
 - A project in both: set `status` to `changed` when its `definition` is different. Else keep
   `status` `null`, also when its flows changed.
 - For each `changed` project or flow, add `old`: an object with the old value of each of
   these fields that is different: `trigger`, `entry`, `group`, `definition`, `boundary`,
-  `design`, `rules` and `actions`.
+  `design`, `designSvg`, `rules` and `actions`.

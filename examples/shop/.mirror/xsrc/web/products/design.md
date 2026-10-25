@@ -1,4 +1,4 @@
-**Design file:** [products.svg](design/products.svg)
+**Design file:** none
 
 ## Layout
 

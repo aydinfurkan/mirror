@@ -44,10 +44,13 @@ Read the link on the `**Design file:**` line of `design.md`.
   `../docs/screens/checkout.png`. For a review page in `.mirror/features/`, it is
   `../../docs/screens/checkout.png`.
 - An `https://` URL that ends in one of these extensions: the URL.
-- Else, for example `none` or a Figma link: `""`.
+- Else, when the folder of the page has `design.svg`: the path from the folder of the target page
+  to that file. For `.mirror/visualize.html`, this is `xsrc/<project>/<page>/design.svg`. For a
+  review page, it is `../xsrc/<project>/<page>/design.svg`.
+- Else, for example `none` or a Figma link and no `design.svg`: `""`.
 
-For a `.svg` file in the repo, also set `designSvg`: the full text of the file. The viewer then
-shows the page as a demo. Else leave `designSvg` out.
+When `designImage` is a `.svg` file in the repo, also set `designSvg`: the full text of the
+file. The viewer then shows the page as a demo. Else leave `designSvg` out.
 
 ## Steps
 

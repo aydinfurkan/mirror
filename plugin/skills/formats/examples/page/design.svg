@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 420" font-family="ui-sans-serif, system-ui, sans-serif">
+<title>Edit user</title>
+<rect width="960" height="420" fill="#f4f4f5"/>
+<rect width="960" height="64" fill="#ffffff"/>
+<line x1="0" y1="64" x2="960" y2="64" stroke="#e4e4e7"/>
+<text x="32" y="40" font-size="15" font-weight="500" fill="#2563eb" text-anchor="start">← Back</text>
+<text x="120" y="40" font-size="20" font-weight="700" fill="#09090b" text-anchor="start">Edit user</text>
+<rect x="230" y="96" width="500" height="296" rx="10" fill="#ffffff" stroke="#e4e4e7"/>
+<text x="258" y="136" font-size="14" font-weight="600" fill="#09090b" text-anchor="start">Name</text><rect x="258" y="148" width="444" height="44" rx="8" fill="#ffffff" stroke="#d4d4d8"/><text x="274" y="176" font-size="15" font-weight="400" fill="#09090b" text-anchor="start">Ada Lovelace</text>
+<text x="258" y="226" font-size="14" font-weight="600" fill="#09090b" text-anchor="start">Email</text><rect x="258" y="238" width="444" height="44" rx="8" fill="#ffffff" stroke="#d4d4d8"/><text x="274" y="266" font-size="15" font-weight="400" fill="#09090b" text-anchor="start">ada@example.com</text>
+<g data-action="Click &quot;Cancel&quot;"><rect x="438" y="320" width="124" height="44" rx="8" fill="#ffffff" stroke="#a1a1aa"/><text x="500.0" y="347.0" font-size="15" font-weight="600" fill="#09090b" text-anchor="middle">Cancel</text></g>
+<g data-action="Click &quot;Save&quot;"><rect x="578" y="320" width="124" height="44" rx="8" fill="#2563eb" stroke="#2563eb"/><text x="640.0" y="347.0" font-size="15" font-weight="600" fill="#ffffff" text-anchor="middle">Save</text></g>
+</svg>

@@ -1,4 +1,4 @@
-**Design file:** [order-status.svg](design/order-status.svg)
+**Design file:** none
 
 ## Layout
 

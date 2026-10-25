@@ -10,6 +10,9 @@ One line at the top: `**Design file:**` and a link to the design (Figma, a scree
 (`.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`, `.webp`) in its own UI part, at the top of the page, before
 the actions.
 
+When the line links no image file in the repo, draw the page in `design.svg` next to this file.
+See `design-svg.md`.
+
 An `.svg` design is a clickable demo. Put `data-action="<action>"` on the element of each control,
 with the header of its action in `actions.md`: `<g data-action="Click &quot;Pay&quot;">`. A click
 on the control opens the flow of the first `Call:` of the action, for example `api/create-order`.

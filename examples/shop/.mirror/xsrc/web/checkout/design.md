@@ -1,4 +1,4 @@
-**Design file:** [checkout.svg](design/checkout.svg)
+**Design file:** none
 
 ## Layout
 
