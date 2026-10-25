@@ -1,5 +1,3 @@
-**Design file:** [cart.svg](design/cart.svg)
-
 ## Layout
 
 - Header: the shop name and the title "Cart".

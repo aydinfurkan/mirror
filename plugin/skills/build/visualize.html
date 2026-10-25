@@ -166,6 +166,11 @@ button:focus-visible, a:focus-visible, .demo [data-action]:focus-visible { outli
 .dwires path { fill: none; stroke: var(--flow); stroke-width: 1.5; opacity: .45; }
 .dwires circle { fill: var(--flow); opacity: .7; }
 .dwires .hot { opacity: 1; stroke-width: 2.5; }
+.dver { display: flex; align-items: center; gap: 4px; margin: 4px 0 12px; }
+.dver button { padding: 4px 12px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--muted); font: inherit; font-size: 13.5px; cursor: pointer; }
+.dver button.on { border-color: var(--changed); color: var(--text); background: color-mix(in srgb, var(--changed) 16%, transparent); }
+.dver span { margin-left: 8px; color: var(--muted); font-size: 13.5px; }
+.dwas:not([hidden]) { display: grid; grid-template-columns: minmax(0, 1fr) 220px; gap: 0 56px; }
 .hint { margin: 8px 0 16px; color: var(--muted); font-size: 13.5px; }
 .call { padding: 0 6px; border: 0; border-radius: 8px; background: color-mix(in srgb, var(--flow) 10%, transparent); color: var(--flow); font: 14px var(--mono); cursor: pointer; }
 .call:hover { background: color-mix(in srgb, var(--flow) 20%, transparent); }
@@ -214,7 +219,7 @@ body.review #comments { display: inline-flex; }
 #toast.on { opacity: 1; }
 /* Narrow screens: the sidebar slides in from the left. */
 @media (max-width: 860px) {
-  .dlink { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .dlink, .dwas:not([hidden]) { grid-template-columns: minmax(0, 1fr); gap: 12px; }
   .dwires { display: none; }
   .fhead { margin-left: 0; }
   #menu { display: inline-flex; }
@@ -468,6 +473,12 @@ body.review #comments { display: inline-flex; }
     var shot = tab !== 'ui' ? '' : it.designSvg ? '<div class="dlink"><div class="shot demo" data-demo="' + esc(n.key) + '"></div>' +
       '<ul class="dacts" aria-label="Actions"></ul><svg class="dwires" aria-hidden="true"></svg></div>' +
       '<p class="hint">Each line links a part of the page to its action. Click either one to follow it. A call opens the backend flow.</p>' : designImageHtml(it.designImage);
+    // A changed design on a review page: a switch between the new design and the old one.
+    if (shot && it.designSvg && it.old && it.old.designSvg !== undefined && it.old.designSvg !== it.designSvg) {
+      shot = '<div class="dver" role="group" aria-label="Design version"><button type="button" class="on" data-dver="after" aria-pressed="true">After</button>' +
+        '<button type="button" data-dver="before" aria-pressed="false">Before</button><span>The design changed.</span></div>' +
+        '<div class="dwas" hidden><div class="shot demo was" data-demo-old="' + esc(n.key) + '"></div></div><div class="dnow">' + shot + '</div>';
+    }
     // A changed item keeps its old values in `old`: show the changed lines of this tab.
     if (it.old) {
       var before = tabText(Object.assign({}, it, it.old), tab), after = tabText(it, tab);
@@ -793,11 +804,22 @@ body.review #comments { display: inline-flex; }
       [].slice.call(el.attributes).forEach(function (a) { if (/^on|href$/i.test(a.name)) el.removeAttribute(a.name); });
     });
     svg.removeAttribute('width'); svg.removeAttribute('height');
-    return document.importNode(svg, true);
+    svg = document.importNode(svg, true);
+    // A phone or a window design keeps its own width: it is not stretched to the pane.
+    var vb = String(svg.getAttribute('viewBox') || '').trim().split(/[\s,]+/).map(Number);
+    if (vb.length === 4 && vb[2] > 0) svg.style.maxWidth = vb[2] + 'px';
+    return svg;
   }
 
   // Put the SVG of the open page in its Design part. Each part with data-action is a control.
   function fillDemos() {
+    [].forEach.call($('view').querySelectorAll('[data-demo-old]'), function (box) {
+      var f = flowByKey(box.getAttribute('data-demo-old')), svg = f && f.item.old && cleanSvg(f.item.old.designSvg);
+      if (!svg) return;
+      [].forEach.call(svg.querySelectorAll('[data-action]'), function (el) { el.removeAttribute('data-action'); });
+      box.appendChild(svg);
+      box.style.maxWidth = svg.style.maxWidth;
+    });
     [].forEach.call($('view').querySelectorAll('[data-demo]'), function (box) {
       var f = flowByKey(box.getAttribute('data-demo')), svg = f && cleanSvg(f.item.designSvg);
       if (!svg) return;
@@ -811,9 +833,23 @@ body.review #comments { display: inline-flex; }
         el.insertBefore(tip, el.firstChild);
       });
       box.appendChild(svg);
+      box.style.maxWidth = svg.style.maxWidth;
       var link = box.closest('.dlink');
       if (link) fillActions(link, f);
     });
+  }
+
+  // Show the new or the old design of a changed page.
+  function showVersion(b) {
+    var part = b.closest('.db'), old = b.getAttribute('data-dver') === 'before';
+    [].forEach.call(part.querySelectorAll('[data-dver]'), function (x) {
+      var on = x === b;
+      x.classList.toggle('on', on);
+      x.setAttribute('aria-pressed', String(on));
+    });
+    part.querySelector('.dwas').hidden = !old;
+    part.querySelector('.dnow').hidden = old;
+    if (!old) [].forEach.call(part.querySelectorAll('.dlink'), drawWires);
   }
 
   function actionName(x) { return String(x || '').replace(/\.$/, '').trim().toLowerCase(); }
@@ -822,7 +858,8 @@ body.review #comments { display: inline-flex; }
   function fillActions(link, f) {
     var used = {};
     [].forEach.call(link.querySelectorAll('.demo [data-action]'), function (el) { used[actionName(el.getAttribute('data-action'))] = 1; });
-    link.querySelector('.dacts').innerHTML = (f.item.steps || []).map(function (s) {
+    // A removed action has no control: it is not beside the design.
+    link.querySelector('.dacts').innerHTML = (f.item.steps || []).filter(function (s) { return s.status !== 'removed'; }).map(function (s) {
       var name = String(s.title || s.text || '').replace(/\.$/, ''), t = demoTarget(f, name);
       return '<li><button type="button" class="dact' + (used[actionName(name)] ? '' : ' free') + '" data-act="' + esc(name) + '">' + esc(name) +
         (t.key ? '<small>\u2192 ' + esc(t.key) + '</small>' : '') + '</button></li>';
@@ -1111,7 +1148,8 @@ body.review #comments { display: inline-flex; }
         if (note && !note.querySelector('textarea')) editComment(Number(note.getAttribute('data-cmt')));
         return;
       }
-      if (b.hasAttribute('data-act')) followDemo(b.getAttribute('data-act'));
+      if (b.hasAttribute('data-dver')) showVersion(b);
+      else if (b.hasAttribute('data-act')) followDemo(b.getAttribute('data-act'));
       else if (b.hasAttribute('data-go')) open(b.getAttribute('data-go'), { push: true });
       else if (b.hasAttribute('data-goto')) open(b.getAttribute('data-goto'), { push: true });
       else if (b.closest('.toc')) showPart(b.getAttribute('data-part'));

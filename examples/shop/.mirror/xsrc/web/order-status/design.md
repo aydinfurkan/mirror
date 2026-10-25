@@ -1,5 +1,3 @@
-**Design file:** [order-status.svg](design/order-status.svg)
-
 ## Layout
 
 - Header: the shop name and the title "Your order".

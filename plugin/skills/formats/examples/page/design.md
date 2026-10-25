@@ -1,5 +1,3 @@
-**Design file:** none
-
 ## Layout
 
 - Header: the title "Edit user" and a back link to `/users/<id>`.

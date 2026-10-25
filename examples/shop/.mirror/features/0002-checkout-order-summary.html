@@ -1,0 +1,1205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mirror</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&family=JetBrains+Mono:wght@400..700&display=swap">
+<style>
+/* MIRROR:TOKENS:START */
+/* Colors and fonts. Edit a value here. A rebuild keeps this block. Keep the variable names.
+   :root holds the light theme and the fonts. :root[data-theme="dark"] holds the dark colors.
+   --bg: page background. --surface, --panel, --border: open row fill, header and tab bar fill, borders.
+   --text, --muted: main text, secondary text. --accent: focus and search matches.
+   --project, --flow: badge, border and tint of each row type. Pages use --flow.
+   --tab-1 ... --tab-5: color of each project tab, in order. The 6th tab uses --tab-1 again.
+   --added, --changed, --removed: row and step colors on a feature review page.
+   --font, --mono: text font, code font. */
+:root {
+  --bg: #fafafa;  --surface: #ffffff;  --panel: #ffffff;  --border: #e4e4e7;
+  --text: #09090b;  --muted: #52525b;  --accent: #09090b;
+  --project: #09090b;  --flow: #2563eb;
+  --tab-1: #2563eb;  --tab-2: #7c3aed;  --tab-3: #059669;  --tab-4: #db2777;  --tab-5: #ea580c;
+  --added: #16a34a;  --changed: #eab308;  --removed: #dc2626;
+  --font: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
+}
+:root[data-theme="dark"] {
+  --bg: #09090b;  --surface: #18181b;  --panel: #111113;  --border: #27272a;
+  --text: #fafafa;  --muted: #a1a1aa;  --accent: #fafafa;
+  --project: #fafafa;  --flow: #60a5fa;
+  --tab-1: #60a5fa;  --tab-2: #a78bfa;  --tab-3: #34d399;  --tab-4: #f472b6;  --tab-5: #fb923c;
+  --added: #22c55e;  --changed: #facc15;  --removed: #f87171;
+}
+/* MIRROR:TOKENS:END */
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--bg); color: var(--text); font: 15px/1.5 var(--font); display: flex; flex-direction: column; overflow: hidden; -webkit-font-smoothing: antialiased; }
+button, input { font: inherit; color: inherit; }
+/* Top bar */
+.top { flex: none; display: flex; align-items: center; gap: 14px; height: 56px; padding: 0 12px 0 16px; background: var(--panel); border-bottom: 1px solid var(--border); z-index: 3; }
+.brand { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+.brand h1 { margin: 0; font-size: 16px; font-weight: 650; white-space: nowrap; }
+.brand h1::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 4px; margin-right: 9px; vertical-align: -1px; background: linear-gradient(135deg, var(--project), var(--flow)); }
+.meta { color: var(--muted); font-size: 13px; white-space: nowrap; }
+.search { position: relative; flex: 1; max-width: 480px; margin: 0 auto; }
+.search input { width: 100%; height: 36px; font-size: 14px; padding: 0 56px 0 36px; border: 1px solid var(--border); border-radius: 10px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='7' cy='7' r='5'/%3E%3Cpath d='m11 11 3.5 3.5'/%3E%3C/svg%3E") no-repeat 12px 50%, var(--bg); outline: none; }
+.search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+.search .count { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; }
+.tools { display: flex; align-items: center; gap: 6px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 34px; min-width: 34px; padding: 0 12px; border: 1px solid transparent; border-radius: 10px; background: color-mix(in srgb, var(--text) 6%, var(--surface)); font-size: 14px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+.btn:hover { background: color-mix(in srgb, var(--text) 11%, var(--surface)); }
+.btn.icon { padding: 0; width: 34px; }
+.btn svg { width: 16px; height: 16px; }
+#menu { display: none; }
+button:focus-visible, a:focus-visible, .demo [data-action]:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* Sidebar and reading pane */
+.shell { flex: 1; min-height: 0; display: grid; grid-template-columns: 290px minmax(0, 1fr); }
+#side { overflow: auto; padding: 12px 10px 60px; background: color-mix(in srgb, var(--text) 3%, var(--panel)); border-right: 1px solid var(--border); }
+#view { position: relative; overflow: auto; padding: 28px 40px 120px; }
+.rbar { margin: 2px 4px 12px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); font-size: 13px; }
+.rbar strong { font-size: 14px; }
+.rbar .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 6px 0 8px; color: var(--muted); }
+.rbar .btn { width: 100%; height: 30px; font-size: 13px; }
+.rbar .btn[aria-pressed="true"] { color: var(--flow); background: color-mix(in srgb, var(--flow) 14%, var(--surface)); }
+.mark { flex: none; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+.tp + .tp { margin-top: 14px; }
+.tproj, .titem { display: flex; align-items: center; gap: 8px; width: 100%; border: 0; border-radius: 8px; background: none; text-align: left; cursor: pointer; }
+.tproj { --c: var(--tab-1); padding: 7px 8px; font-weight: 650; }
+.tproj .pdot { flex: none; width: 10px; height: 10px; border-radius: 3px; background: var(--c); }
+.tproj small { color: var(--muted); font-size: 12px; font-weight: 500; }
+.tproj .mark, .titem .mark { margin-left: auto; }
+.tprow { display: flex; align-items: center; }
+.tprow .tproj { min-width: 0; }
+.tfold { flex: none; width: 18px; height: 30px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--muted); cursor: pointer; }
+.tfold:hover { color: var(--text); background: color-mix(in srgb, var(--text) 5%, transparent); }
+.tfold::before { content: "\25be"; display: inline-block; font-size: 11px; transition: transform .15s; }
+.tfold[aria-expanded="false"]::before { transform: rotate(-90deg); }
+.tgroup { display: flex; align-items: center; gap: 6px; width: calc(100% - 12px); margin: 12px 0 2px 12px; padding: 3px 8px 3px 2px; border: 0; border-radius: 6px; background: none; font-size: 12.5px; font-weight: 600; color: var(--muted); text-align: left; cursor: pointer; }
+.tgroup:hover { color: var(--text); background: color-mix(in srgb, var(--text) 5%, transparent); }
+.tgroup::before { content: "\25be"; width: 12px; font-size: 11px; text-align: center; transition: transform .15s; }
+.tgroup[aria-expanded="false"]::before { transform: rotate(-90deg); }
+.tgroup small { font-weight: 500; }
+.tgroup .mark { margin-left: auto; }
+.titem { padding: 6px 8px 6px 26px; border-radius: 10px; color: var(--text); }
+.tproj:hover, .titem:hover { background: color-mix(in srgb, var(--text) 6%, transparent); }
+.tproj.on, .titem.on { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgb(0 0 0 / .08), 0 0 0 1px color-mix(in srgb, var(--text) 6%, transparent); }
+.tb { flex: none; min-width: 40px; margin-right: 2px; padding: 2px 4px; border-radius: 6px; text-align: center; font: 650 10px var(--mono); letter-spacing: .02em; color: var(--muted); background: color-mix(in srgb, var(--text) 7%, transparent); }
+.titem.on .tb { color: var(--flow); background: color-mix(in srgb, var(--flow) 14%, transparent); }
+.te { flex: 1; min-width: 0; font: 13px var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.te small { margin-left: 6px; font: 12px var(--font); color: var(--muted); }
+.titem.st-removed .te { text-decoration: line-through; opacity: .65; }
+.tnone { margin: 16px 12px; color: var(--muted); font-size: 14px; }
+/* A flow, a page or a project in the pane */
+.doc { max-width: 920px; margin: 0 auto; }
+.crumb { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+.crumb button { padding: 0; border: 0; background: none; color: inherit; cursor: pointer; }
+.crumb button:hover { color: var(--text); text-decoration: underline; }
+.dtitle { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 12px; margin: 8px 0 2px; }
+.dtitle h2 { margin: 0; font: 650 24px/1.3 var(--mono); letter-spacing: -.01em; overflow-wrap: anywhere; }
+.doc.proj .dtitle h2 { font: 700 30px/1.2 var(--font); letter-spacing: -.02em; }
+.doc.st-removed .dtitle h2 { text-decoration: line-through; }
+.badge { flex: none; padding: 3px 8px; border-radius: 6px; font: 700 12px var(--mono); letter-spacing: .03em; color: var(--flow); background: color-mix(in srgb, var(--flow) 13%, transparent); }
+.kind { padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--surface); background: var(--c); }
+.dname { color: var(--muted); font-size: 14px; }
+.chip { display: inline-block; padding: 1px 9px; border-radius: 999px; font-size: 13px; font-weight: 700; letter-spacing: .03em; color: color-mix(in srgb, var(--c) 75%, var(--text)); background: color-mix(in srgb, var(--c) 16%, transparent); }
+.toc { position: sticky; top: -28px; z-index: 1; display: flex; flex-wrap: wrap; gap: 2px; margin: 18px 0 0; padding: 8px 0; background: var(--bg); }
+.toc button { padding: 6px 14px; border: 0; border-radius: 10px; background: color-mix(in srgb, var(--text) 5%, transparent); color: var(--muted); font-weight: 500; cursor: pointer; }
+.toc button:hover { color: var(--flow); background: color-mix(in srgb, var(--flow) 12%, transparent); }
+.toc small { margin-left: 4px; font-size: 12px; }
+.part { margin-top: 30px; scroll-margin-top: 64px; }
+.part > h3 { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.part > h3::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+.fhead { display: inline-flex; align-items: center; gap: 6px; margin-left: -18px; padding: 2px 6px 2px 0; border: 0; border-radius: 6px; background: none; font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; cursor: pointer; }
+.fhead::before { content: "\25be"; width: 12px; font-size: 11px; text-align: center; transition: transform .15s; }
+.fhead[aria-expanded="false"]::before { transform: rotate(-90deg); }
+.fhead:hover { color: var(--text); }
+.part.shut > h3 { margin-bottom: 0; }
+.part.lead { margin-top: 14px; }
+.part.lead .db { font-size: 17px; color: color-mix(in srgb, var(--text) 85%, var(--muted)); }
+.doc.proj .part.lead .db > p { max-width: 72ch; font-size: 18px; color: var(--text); }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 10px; }
+.card { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); text-align: left; cursor: pointer; transition: border-color .15s, box-shadow .15s; }
+.card:hover { border-color: color-mix(in srgb, var(--flow) 60%, var(--border)); box-shadow: 0 4px 14px rgb(0 0 0 / .06); }
+.card .ch { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.card .ch .te { font-size: 14px; font-weight: 600; }
+.card .cs { color: var(--muted); font-size: 13.5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.card.st-added, .card.st-changed, .card.st-removed { border-left: 4px solid var(--c); }
+.card.st-removed .te { text-decoration: line-through; }
+.gname { margin: 22px 0 8px; font-size: 13px; font-weight: 650; color: var(--muted); }
+.gname.shut { margin-bottom: 0; }
+.flash { animation: flash 1.2s ease-out; }
+@keyframes flash { from { box-shadow: 0 0 0 4px color-mix(in srgb, var(--flow) 55%, transparent); } }
+@media (prefers-reduced-motion: reduce) { .flash { animation: none; } .card, #side, .tgroup::before, .tfold::before, .fhead::before { transition: none; } }
+/* Text of a part */
+.db { font-size: 16px; line-height: 1.6; }
+.db > :first-child { margin-top: 0; }
+.db h4, .db h5, .db h6, .fold > summary { margin: 18px 0 6px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.fold { border-top: 1px solid var(--border); }
+.fold:last-of-type { border-bottom: 1px solid var(--border); }
+.fold > summary { margin: 0; padding: 11px 0; list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+.fold > summary::-webkit-details-marker { display: none; }
+.fold > summary::before { content: "\25b8"; font-size: 12px; transition: transform .15s; }
+.fold[open] > summary::before { transform: rotate(90deg); }
+.fold > summary:hover { color: var(--text); }
+.fold > div { padding-bottom: 10px; }
+.db code { font: .9em var(--mono); padding: 1px 5px; border: 1px solid var(--border); border-radius: 5px; background: var(--surface); }
+.db pre { padding: 12px; overflow: auto; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+.db pre code { padding: 0; border: 0; }
+.db ul, .db ol { padding-left: 20px; }
+.db .list { padding: 0; }
+.db a { color: var(--flow); }
+.shot { display: block; margin: 4px 0; }
+.demo svg { display: block; width: 100%; height: auto; border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 6px 24px rgb(0 0 0 / .06); }
+.demo [data-action] { cursor: pointer; outline: none; filter: drop-shadow(0 0 3px color-mix(in srgb, var(--flow) 45%, transparent)); }
+.demo [data-action]:hover, .demo [data-action]:focus-visible, .demo [data-action].hot { filter: drop-shadow(0 0 6px var(--flow)); }
+/* A page design with its actions beside it, and a line from each control to its action */
+.dlink { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 220px; gap: 0 56px; align-items: start; }
+.dacts { display: grid; gap: 8px; margin: 4px 0; padding: 0; list-style: none; }
+.dact { display: block; width: 100%; padding: 10px 12px; border: 0; border-radius: 12px; background: color-mix(in srgb, var(--text) 5%, var(--surface)); color: var(--text); font: inherit; font-size: 14px; font-weight: 600; text-align: left; cursor: pointer; }
+.dact small { display: block; margin-top: 2px; color: var(--muted); font: 12px var(--mono); overflow-wrap: anywhere; }
+.dact.free { font-weight: 500; color: var(--muted); }
+.dact:hover, .dact.hot { color: var(--flow); background: color-mix(in srgb, var(--flow) 12%, var(--surface)); }
+.dwires { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.dwires path { fill: none; stroke: var(--flow); stroke-width: 1.5; opacity: .45; }
+.dwires circle { fill: var(--flow); opacity: .7; }
+.dwires .hot { opacity: 1; stroke-width: 2.5; }
+.dver { display: flex; align-items: center; gap: 4px; margin: 4px 0 12px; }
+.dver button { padding: 4px 12px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--muted); font: inherit; font-size: 13.5px; cursor: pointer; }
+.dver button.on { border-color: var(--changed); color: var(--text); background: color-mix(in srgb, var(--changed) 16%, transparent); }
+.dver span { margin-left: 8px; color: var(--muted); font-size: 13.5px; }
+.dwas:not([hidden]) { display: grid; grid-template-columns: minmax(0, 1fr) 220px; gap: 0 56px; }
+.hint { margin: 8px 0 16px; color: var(--muted); font-size: 13.5px; }
+.call { padding: 0 6px; border: 0; border-radius: 8px; background: color-mix(in srgb, var(--flow) 10%, transparent); color: var(--flow); font: 14px var(--mono); cursor: pointer; }
+.call:hover { background: color-mix(in srgb, var(--flow) 20%, transparent); }
+.shot img { display: block; max-width: 100%; max-height: 70vh; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
+.db table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 15px; }
+.db th, .db td { padding: 7px 10px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+.db th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.list li { display: flex; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--border); scroll-margin: 80px; }
+.list > li:last-child { border-bottom: 0; }
+.list > li:first-child { border-radius: 12px 12px 0 0; }
+.list > li:last-child { border-radius: 0 0 12px 12px; }
+.list li > div { flex: 1; min-width: 0; }
+.details { margin: 4px 0 0; padding-left: 18px; color: color-mix(in srgb, var(--text) 82%, var(--muted)); }
+.list .details li { display: list-item; padding: 2px 0; border: 0; }
+.list .n { flex: none; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; font-size: 13px; font-weight: 700; color: var(--flow); background: color-mix(in srgb, var(--flow) 12%, transparent); }
+.list .st-added { background: color-mix(in srgb, var(--added) 12%, transparent); box-shadow: inset 3px 0 0 var(--added); }
+.list .st-changed { background: color-mix(in srgb, var(--changed) 14%, transparent); box-shadow: inset 3px 0 0 var(--changed); }
+.list .st-removed { opacity: .65; text-decoration: line-through; background: color-mix(in srgb, var(--removed) 9%, transparent); box-shadow: inset 3px 0 0 var(--removed); }
+.list li.match { background: color-mix(in srgb, var(--accent) 9%, transparent); }
+.list li.current { box-shadow: inset 0 0 0 2px var(--accent); }
+.diff { margin: 0; padding: 4px 0; line-height: 1.55; overflow-wrap: anywhere; }
+.diff span, .diff del, .diff ins { display: block; padding: 1px 8px; border-radius: 4px; }
+.diff .dh { margin-top: 10px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.diff .dl { position: relative; padding-left: calc(28px + var(--ind, 0) * 18px); }
+.diff .dl > i { position: absolute; left: calc(10px + var(--ind, 0) * 18px); font-style: normal; color: var(--muted); }
+.diff .dc { font: 14px var(--mono); white-space: pre-wrap; }
+.diff del { text-decoration: line-through; color: var(--removed); background: color-mix(in srgb, var(--removed) 9%, transparent); box-shadow: inset 3px 0 0 var(--removed); }
+.diff ins { text-decoration: none; background: color-mix(in srgb, var(--added) 13%, transparent); box-shadow: inset 3px 0 0 var(--added); }
+.empty, .empty-state { color: var(--muted); }
+.empty-state { padding: 40px; }
+/* Review comments */
+#comments { display: none; }
+body.review #comments { display: inline-flex; }
+#comments.has { color: var(--flow); background: color-mix(in srgb, var(--flow) 14%, var(--surface)); }
+.cm { position: relative; padding-right: 36px; }
+.cbtn { position: absolute; top: 6px; right: 4px; width: 26px; height: 26px; padding: 0; border: 0; border-radius: 8px; background: color-mix(in srgb, var(--text) 6%, var(--surface)); color: var(--muted); font-size: 14px; line-height: 1; cursor: pointer; opacity: 0; }
+.cm:hover > .cbtn, .cm > .cbtn:focus-visible, .cm.has > .cbtn { opacity: 1; }
+.cm.has > .cbtn { color: var(--surface); background: var(--flow); }
+.cnote { display: block; margin: 6px 0 4px; padding: 8px 10px; border-left: 3px solid var(--flow); border-radius: 6px; background: color-mix(in srgb, var(--flow) 8%, var(--surface)); color: var(--text); font: 15px/1.45 var(--font); text-decoration: none; white-space: pre-wrap; cursor: pointer; }
+.list > li.cnote { display: block; margin: 0; padding: 8px 14px 8px 52px; border-left: 0; border-radius: 0; }
+.cnote textarea { display: block; width: 100%; min-height: 72px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); resize: vertical; font: inherit; color: inherit; }
+.cnote .cact { display: flex; gap: 6px; margin-top: 6px; }
+.cnote .cact .btn { height: 30px; font-size: 13px; }
+#toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); padding: 8px 14px; border-radius: 10px; background: var(--text); color: var(--bg); font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 5; }
+#toast.on { opacity: 1; }
+/* Narrow screens: the sidebar slides in from the left. */
+@media (max-width: 860px) {
+  .dlink, .dwas:not([hidden]) { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .dwires { display: none; }
+  .fhead { margin-left: 0; }
+  #menu { display: inline-flex; }
+  .top { gap: 8px; padding: 0 8px; }
+  .top .meta { display: none; }
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  #side { position: fixed; top: 56px; bottom: 0; left: 0; width: min(300px, 86vw); z-index: 4; transform: translateX(-105%); transition: transform .2s; box-shadow: 0 10px 40px rgb(0 0 0 / .2); }
+  body.nav #side { transform: none; }
+  #view { padding: 20px 16px 100px; }
+  .dtitle h2 { font-size: 20px; }
+  .toc { top: -20px; }
+}
+@media (max-width: 560px) {
+  .brand h1 { font-size: 0; }
+  .brand h1::before { margin: 0; }
+  #comments span { display: none; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <button class="btn icon" id="menu" aria-label="Show the flows" aria-expanded="false" aria-controls="side"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 4h12M2 8h12M2 12h12"/></svg></button>
+  <div class="brand"><h1 id="title">Mirror</h1><span class="meta" id="meta"></span></div>
+  <div class="search">
+    <input id="q" type="search" placeholder="Search flows, steps, code  ( / )" aria-label="Search" autocomplete="off">
+    <span class="meta count" id="qcount"></span>
+  </div>
+  <div class="tools">
+    <button class="btn" id="comments" title="Copy all comments, to paste them to Claude">&#x1F4AC; <span>Copy comments</span></button>
+    <button class="btn icon" id="theme" title="Toggle light / dark" aria-label="Toggle light or dark theme"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13Zm0 1.5v10a5 5 0 0 1 0-10Z"/></svg></button>
+  </div>
+</header>
+<div class="shell">
+  <nav id="side" aria-label="Projects, flows and pages"></nav>
+  <main id="view"></main>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+<script type="application/json" id="mirror-data">{"generated":"2026-10-25","title":"shop","projects":[{"id":"web","kind":"frontend","definition":"The `web` project is the shop for customers. A customer finds products, fills a cart, pays with Stripe and follows the order.\n\n## Stack\n\n- TypeScript, React 18, React Router 6, Vite. Stripe.js for the payment page.\n- This example has no code.\n\n## Technical decisions\n\n- Call the API only through `src/api/client.ts`. Each call uses the base path `/api`.\n- Keep the cart in `localStorage` under the key `cart`. The cart needs no account.\n- Send the customer to Stripe Checkout to pay. The shop never sees a card number.\n","status":null,"flows":[{"id":"cart","kind":"page","trigger":"page","entry":"/cart","group":"buy","definition":"Show the cart and let the customer change it.\n","rules":"**Relates to:** `web/product-detail`, `web/checkout`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer checks what they will buy before they pay.\n\n## Goal\n\n- Let the customer change or remove each item.\n\n## Non-goal\n\n- Check the prices. The shop checks them when it creates the order.\n\n## Constraints\n\n- Show the total from the prices in the cart. The checkout can show a new total.\n\n## Acceptance criteria\n\n- Show each item of the cart.\n- Remove an item when its quantity changes to 0.\n- Disable \"Checkout\" when the cart is empty.\n\n## Open questions\n\n- None.\n","design":"## Layout\n\n- Header: the shop name and the title \"Cart\".\n- List: one row per item.\n- Summary: the total and the \"Checkout\" button, below the list.\n\n## Components\n\n- `CartRow`: the product image, the name, a `QuantityField` and the line price.\n- `Button`: primary for \"Checkout\".\n\n## States\n\n- Empty: the text \"Your cart is empty.\" and a link to `/`.\n\n## Responsive\n\n- On a small screen, the summary sticks to the bottom of the screen.\n","actions":"## Open the page\n- Then: show each item of the cart from `localStorage`, and the total.\n\n## Change a quantity\n- Then: save the new quantity. Remove the item when the quantity is 0.\n\n## Click \"Checkout\"\n- Then: open `/checkout`.\n","designSvg":"\u003csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 960 500\" width=\"960\" height=\"500\" font-family=\"ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif\">\n\u003ctitle>Cart\u003c/title>\n\u003crect width=\"960\" height=\"500\" fill=\"#f4f4f5\"/>\n\u003crect x=\"0\" y=\"0\" width=\"960\" height=\"64\" fill=\"#ffffff\"/>\n\u003cline x1=\"0\" y1=\"64\" x2=\"960\" y2=\"64\" stroke=\"#e4e4e7\"/>\n\u003ctext x=\"32\" y=\"40\" font-size=\"20\" font-weight=\"700\" fill=\"#09090b\">Shop\u003c/text>\n\u003ctext x=\"110\" y=\"40\" font-size=\"20\" font-weight=\"400\" fill=\"#a1a1aa\" text-anchor=\"start\">/\u003c/text>\u003ctext x=\"126\" y=\"40\" font-size=\"20\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"start\">Cart\u003c/text>\n\u003crect x=\"32\" y=\"96\" width=\"896\" height=\"88\" rx=\"10\" fill=\"#ffffff\" stroke=\"#e4e4e7\"/>\u003crect x=\"48\" y=\"108\" width=\"64\" height=\"64\" rx=\"8\" fill=\"#e4e4e7\" stroke=\"#d4d4d8\"/>\u003cpath d=\"M48 108 L112 172 M112 108 L48 172\" stroke=\"#d4d4d8\"/>\u003ctext x=\"132\" y=\"146\" font-size=\"17\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"start\">Mug\u003c/text>\u003cg data-action=\"Change a quantity\">\u003crect x=\"560\" y=\"120\" width=\"120\" height=\"40\" rx=\"8\" fill=\"#ffffff\" stroke=\"#d4d4d8\"/>\u003ctext x=\"578\" y=\"146\" font-size=\"18\" font-weight=\"600\" fill=\"#52525b\" text-anchor=\"middle\">−\u003c/text>\u003ctext x=\"620\" y=\"146\" font-size=\"15\" font-weight=\"500\" fill=\"#09090b\" text-anchor=\"middle\">2\u003c/text>\u003ctext x=\"662\" y=\"146\" font-size=\"18\" font-weight=\"600\" fill=\"#52525b\" text-anchor=\"middle\">+\u003c/text>\u003cline x1=\"596\" y1=\"120\" x2=\"596\" y2=\"160\" stroke=\"#e4e4e7\"/>\u003cline x1=\"644\" y1=\"120\" x2=\"644\" y2=\"160\" stroke=\"#e4e4e7\"/>\u003c/g>\n\u003ctext x=\"908\" y=\"146\" font-size=\"17\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"end\">€24.00\u003c/text>\u003crect x=\"32\" y=\"200\" width=\"896\" height=\"88\" rx=\"10\" fill=\"#ffffff\" stroke=\"#e4e4e7\"/>\u003crect x=\"48\" y=\"212\" width=\"64\" height=\"64\" rx=\"8\" fill=\"#e4e4e7\" stroke=\"#d4d4d8\"/>\u003cpath d=\"M48 212 L112 276 M112 212 L48 276\" stroke=\"#d4d4d8\"/>\u003ctext x=\"132\" y=\"250\" font-size=\"17\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"start\">T-shirt\u003c/text>\u003cg data-action=\"Change a quantity\">\u003crect x=\"560\" y=\"224\" width=\"120\" height=\"40\" rx=\"8\" fill=\"#ffffff\" stroke=\"#d4d4d8\"/>\u003ctext x=\"578\" y=\"250\" font-size=\"18\" font-weight=\"600\" fill=\"#52525b\" text-anchor=\"middle\">−\u003c/text>\u003ctext x=\"620\" y=\"250\" font-size=\"15\" font-weight=\"500\" fill=\"#09090b\" text-anchor=\"middle\">1\u003c/text>\u003ctext x=\"662\" y=\"250\" font-size=\"18\" font-weight=\"600\" fill=\"#52525b\" text-anchor=\"middle\">+\u003c/text>\u003cline x1=\"596\" y1=\"224\" x2=\"596\" y2=\"264\" stroke=\"#e4e4e7\"/>\u003cline x1=\"644\" y1=\"224\" x2=\"644\" y2=\"264\" stroke=\"#e4e4e7\"/>\u003c/g>\n\u003ctext x=\"908\" y=\"250\" font-size=\"17\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"end\">€25.00\u003c/text>\u003crect x=\"32\" y=\"320\" width=\"896\" height=\"140\" rx=\"10\" fill=\"#ffffff\" stroke=\"#e4e4e7\"/>\u003ctext x=\"56\" y=\"362\" font-size=\"18\" font-weight=\"500\" fill=\"#52525b\" text-anchor=\"start\">Total\u003c/text>\u003ctext x=\"904\" y=\"362\" font-size=\"24\" font-weight=\"700\" fill=\"#09090b\" text-anchor=\"end\">€49.00\u003c/text>\u003cg data-action=\"Click &quot;Checkout&quot;\">\u003crect x=\"704\" y=\"390\" width=\"200\" height=\"44\" rx=\"8\" fill=\"#2563eb\" stroke=\"#2563eb\"/>\u003ctext x=\"804.0\" y=\"417.0\" font-size=\"15\" font-weight=\"600\" fill=\"#ffffff\" text-anchor=\"middle\">Checkout\u003c/text>\u003c/g>\n\n\u003c/svg>\n","status":null,"steps":[{"n":1,"title":"Open the page.","text":"Open the page. Then: show each item of the cart from `localStorage`, and the total.","details":["Then: show each item of the cart from `localStorage`, and the total."],"status":null},{"n":2,"title":"Change a quantity.","text":"Change a quantity. Then: save the new quantity. Remove the item when the quantity is 0.","details":["Then: save the new quantity. Remove the item when the quantity is 0."],"status":null},{"n":3,"title":"Click \"Checkout\".","text":"Click \"Checkout\". Then: open `/checkout`.","details":["Then: open `/checkout`."],"status":null}]},{"id":"checkout","kind":"page","trigger":"page","entry":"/checkout","group":"buy","definition":"Take the email of the customer and send them to Stripe to pay.\n","rules":"**Relates to:** `api/create-order`, `web/order-status`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer is ready to pay. The shop hands the payment to Stripe.\n\n## Goal\n\n- Create the order and send the customer to the Stripe payment page.\n\n## Non-goal\n\n- Take a card number. Stripe does it.\n\n## Constraints\n\n- Keep the cart until the order is paid. The customer can come back and try again.\n\n## Acceptance criteria\n\n- Show each item of the cart and its line price before the customer pays.\n- Send the customer to the Stripe payment page after the order is created.\n- Tell the customer when the stock is too low for the cart.\n- Keep the cart when the payment fails.\n\n## Open questions\n\n- None.\n","design":"## Layout\n\n- Header: the shop name, the title \"Checkout\" and a \"Back to cart\" link.\n- Summary: one row per item of the cart, then the total.\n- Form: the email field.\n- Footer: the \"Pay\" button.\n\n## Components\n\n- `SummaryRow`: the product name, the quantity and the line price.\n- `TextField`: a label, an input and an error line below the input in the danger color.\n- `Button`: primary for \"Pay\".\n\n## States\n\n- Paying: the \"Pay\" button shows a spinner and is disabled.\n- Field error: the API error message below the email field.\n- Error: an alert with \"Payment is not available.\"\n\n## Responsive\n\n- On a small screen, the \"Pay\" button takes the full width.\n","actions":"## Open the page\n- Then: show each item of the cart, the total and an email field.\n\n## Click \"Pay\"\n- Call: `api/create-order`: `POST /api/orders` with the email and the cart items.\n- Call: `stripe`: `redirectToCheckout` with the session id.\n- Then: Stripe opens its payment page. After the payment, Stripe opens `/orders/\u003corderId>`.\n- Fail: show the API error on the form for 400 and 409. Show \"Payment is not available.\" for 502.\n\n## Click \"Back to cart\"\n- Then: open `/cart`.\n","designSvg":"\u003csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 960 556\" width=\"960\" height=\"556\" font-family=\"ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif\">\n\u003ctitle>Checkout\u003c/title>\n\u003crect width=\"960\" height=\"556\" fill=\"#f4f4f5\"/>\n\u003crect x=\"0\" y=\"0\" width=\"960\" height=\"64\" fill=\"#ffffff\"/>\n\u003cline x1=\"0\" y1=\"64\" x2=\"960\" y2=\"64\" stroke=\"#e4e4e7\"/>\n\u003ctext x=\"32\" y=\"40\" font-size=\"20\" font-weight=\"700\" fill=\"#09090b\">Shop\u003c/text>\n\u003ctext x=\"110\" y=\"40\" font-size=\"20\" font-weight=\"400\" fill=\"#a1a1aa\" text-anchor=\"start\">/\u003c/text>\u003ctext x=\"126\" y=\"40\" font-size=\"20\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"start\">Checkout\u003c/text>\u003cg data-action=\"Click &quot;Back to cart&quot;\">\u003crect x=\"796\" y=\"18\" width=\"132\" height=\"30\" rx=\"8\" fill=\"#ffffff\" stroke=\"#ffffff\"/>\u003ctext x=\"928\" y=\"38\" font-size=\"14\" font-weight=\"600\" fill=\"#2563eb\" text-anchor=\"end\">← Back to cart\u003c/text>\u003c/g>\n\u003crect x=\"230\" y=\"96\" width=\"500\" height=\"420\" rx=\"10\" fill=\"#ffffff\" stroke=\"#e4e4e7\"/>\u003ctext x=\"258\" y=\"130\" font-size=\"15\" font-weight=\"700\" fill=\"#09090b\" text-anchor=\"start\">Your order\u003c/text>\u003ctext x=\"258\" y=\"172\" font-size=\"15\" font-weight=\"500\" fill=\"#09090b\" text-anchor=\"start\">Mug\u003c/text>\u003ctext x=\"560\" y=\"172\" font-size=\"15\" font-weight=\"400\" fill=\"#52525b\" text-anchor=\"end\">× 2\u003c/text>\u003ctext x=\"702\" y=\"172\" font-size=\"15\" font-weight=\"500\" fill=\"#09090b\" text-anchor=\"end\">€24.00\u003c/text>\u003cline x1=\"258\" y1=\"186\" x2=\"702\" y2=\"186\" stroke=\"#f4f4f5\"/>\u003ctext x=\"258\" y=\"216\" font-size=\"15\" font-weight=\"500\" fill=\"#09090b\" text-anchor=\"start\">T-shirt\u003c/text>\u003ctext x=\"560\" y=\"216\" font-size=\"15\" font-weight=\"400\" fill=\"#52525b\" text-anchor=\"end\">× 1\u003c/text>\u003ctext x=\"702\" y=\"216\" font-size=\"15\" font-weight=\"500\" fill=\"#09090b\" text-anchor=\"end\">€25.00\u003c/text>\u003cline x1=\"258\" y1=\"230\" x2=\"702\" y2=\"230\" stroke=\"#f4f4f5\"/>\u003ctext x=\"258\" y=\"262\" font-size=\"16\" font-weight=\"500\" fill=\"#52525b\" text-anchor=\"start\">Total\u003c/text>\u003ctext x=\"702\" y=\"262\" font-size=\"22\" font-weight=\"700\" fill=\"#09090b\" text-anchor=\"end\">€49.00\u003c/text>\u003cline x1=\"258\" y1=\"282\" x2=\"702\" y2=\"282\" stroke=\"#e4e4e7\"/>\u003ctext x=\"258\" y=\"316\" font-size=\"14\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"start\">Email\u003c/text>\u003crect x=\"258\" y=\"328\" width=\"444\" height=\"44\" rx=\"8\" fill=\"#ffffff\" stroke=\"#d4d4d8\"/>\u003ctext x=\"274\" y=\"356\" font-size=\"15\" font-weight=\"400\" fill=\"#09090b\" text-anchor=\"start\">anna@example.com\u003c/text>\n\u003cg data-action=\"Click &quot;Pay&quot;\">\u003crect x=\"258\" y=\"440\" width=\"444\" height=\"44\" rx=\"8\" fill=\"#2563eb\" stroke=\"#2563eb\"/>\u003ctext x=\"480.0\" y=\"467.0\" font-size=\"15\" font-weight=\"600\" fill=\"#ffffff\" text-anchor=\"middle\">Pay\u003c/text>\u003c/g>\n\n\u003c/svg>\n","status":"changed","steps":[{"n":1,"title":"Open the page.","text":"Open the page. Then: show the cart total and an email field.","details":["Then: show the cart total and an email field."],"status":"removed"},{"n":1,"title":"Open the page.","text":"Open the page. Then: show each item of the cart, the total and an email field.","details":["Then: show each item of the cart, the total and an email field."],"status":"added"},{"n":2,"title":"Click \"Pay\".","text":"Click \"Pay\". Call: `api/create-order`: `POST /api/orders` with the email and the cart items. Call: `stripe`: `redirectToCheckout` with the session id. Then: Stripe opens its payment page. After the payment, Stripe opens `/orders/\u003corderId>`. Fail: show the API error on the form for 400 and 409. Show \"Payment is not available.\" for 502.","details":["Call: `api/create-order`: `POST /api/orders` with the email and the cart items.","Call: `stripe`: `redirectToCheckout` with the session id.","Then: Stripe opens its payment page. After the payment, Stripe opens `/orders/\u003corderId>`.","Fail: show the API error on the form for 400 and 409. Show \"Payment is not available.\" for 502."],"status":null},{"n":3,"title":"Click \"Back to cart\".","text":"Click \"Back to cart\". Then: open `/cart`.","details":["Then: open `/cart`."],"status":"added"}],"old":{"design":"## Layout\n\n- Header: the shop name and the title \"Checkout\".\n- Form: the cart total and the email field.\n- Footer: the \"Pay\" button.\n\n## Components\n\n- `TextField`: a label, an input and an error line below the input in the danger color.\n- `Button`: primary for \"Pay\".\n\n## States\n\n- Paying: the \"Pay\" button shows a spinner and is disabled.\n- Field error: the API error message below the email field.\n- Error: an alert with \"Payment is not available.\"\n\n## Responsive\n\n- On a small screen, the \"Pay\" button takes the full width.\n","designSvg":"\u003csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 960 436\" width=\"960\" height=\"436\" font-family=\"ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif\">\n\u003ctitle>Checkout\u003c/title>\n\u003crect width=\"960\" height=\"436\" fill=\"#f4f4f5\"/>\n\u003crect x=\"0\" y=\"0\" width=\"960\" height=\"64\" fill=\"#ffffff\"/>\n\u003cline x1=\"0\" y1=\"64\" x2=\"960\" y2=\"64\" stroke=\"#e4e4e7\"/>\n\u003ctext x=\"32\" y=\"40\" font-size=\"20\" font-weight=\"700\" fill=\"#09090b\">Shop\u003c/text>\n\u003ctext x=\"110\" y=\"40\" font-size=\"20\" font-weight=\"400\" fill=\"#a1a1aa\" text-anchor=\"start\">/\u003c/text>\u003ctext x=\"126\" y=\"40\" font-size=\"20\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"start\">Checkout\u003c/text>\u003crect x=\"230\" y=\"96\" width=\"500\" height=\"300\" rx=\"10\" fill=\"#ffffff\" stroke=\"#e4e4e7\"/>\u003ctext x=\"258\" y=\"136\" font-size=\"16\" font-weight=\"500\" fill=\"#52525b\" text-anchor=\"start\">Total\u003c/text>\u003ctext x=\"702\" y=\"136\" font-size=\"22\" font-weight=\"700\" fill=\"#09090b\" text-anchor=\"end\">€49.00\u003c/text>\u003cline x1=\"258\" y1=\"156\" x2=\"702\" y2=\"156\" stroke=\"#e4e4e7\"/>\u003ctext x=\"258\" y=\"192\" font-size=\"14\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"start\">Email\u003c/text>\u003crect x=\"258\" y=\"204\" width=\"444\" height=\"44\" rx=\"8\" fill=\"#ffffff\" stroke=\"#d4d4d8\"/>\u003ctext x=\"274\" y=\"232\" font-size=\"15\" font-weight=\"400\" fill=\"#09090b\" text-anchor=\"start\">anna@example.com\u003c/text>\n\u003cg data-action=\"Click &quot;Pay&quot;\">\u003crect x=\"258\" y=\"320\" width=\"444\" height=\"44\" rx=\"8\" fill=\"#2563eb\" stroke=\"#2563eb\"/>\u003ctext x=\"480.0\" y=\"347.0\" font-size=\"15\" font-weight=\"600\" fill=\"#ffffff\" text-anchor=\"middle\">Pay\u003c/text>\u003c/g>\n\n\u003c/svg>\n","rules":"**Relates to:** `api/create-order`, `web/order-status`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer is ready to pay. The shop hands the payment to Stripe.\n\n## Goal\n\n- Create the order and send the customer to the Stripe payment page.\n\n## Non-goal\n\n- Take a card number. Stripe does it.\n\n## Constraints\n\n- Keep the cart until the order is paid. The customer can come back and try again.\n\n## Acceptance criteria\n\n- Send the customer to the Stripe payment page after the order is created.\n- Tell the customer when the stock is too low for the cart.\n- Keep the cart when the payment fails.\n\n## Open questions\n\n- None.\n","actions":"## Open the page\n- Then: show the cart total and an email field.\n\n## Click \"Pay\"\n- Call: `api/create-order`: `POST /api/orders` with the email and the cart items.\n- Call: `stripe`: `redirectToCheckout` with the session id.\n- Then: Stripe opens its payment page. After the payment, Stripe opens `/orders/\u003corderId>`.\n- Fail: show the API error on the form for 400 and 409. Show \"Payment is not available.\" for 502.\n"}},{"id":"order-status","kind":"page","trigger":"page","entry":"/orders/:id","group":"buy","definition":"Show the status of an order after the payment, and let the customer cancel it.\n","rules":"**Relates to:** `api/get-order`, `api/cancel-order`, `web/checkout`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nStripe sends the customer back to the shop. The payment confirmation can come a few seconds after the customer.\n\n## Goal\n\n- Show the customer that the order is paid.\n- Let the customer cancel a paid order for 24 hours.\n\n## Non-goal\n\n- Show the delivery status.\n\n## Constraints\n\n- Do not mark the order paid on this page. Only the payment confirmation from Stripe does it.\n\n## Acceptance criteria\n\n- Show \"Paid\" for a paid order.\n- Keep checking for a short time while the order waits for the payment. Then ask the customer to check their email.\n- Empty the cart when the order is paid.\n- Show \"Cancel order\" only for a paid order of the last 24 hours.\n- Ask the customer to confirm before the cancel.\n\n## Open questions\n\n- None.\n","design":"## Layout\n\n- Header: the shop name and the title \"Your order\".\n- Status: a large status badge and the order number.\n- Items: one row per item, then the total.\n- Footer: the \"Cancel order\" button, when the order can be cancelled.\n\n## Components\n\n- `StatusBadge`: green for \"Paid\", gray for \"Waiting for the payment…\", red for \"Cancelled\".\n- `Button`: secondary for \"Cancel order\".\n- `ConfirmDialog`: \"Cancel this order?\" with \"Keep order\" and \"Cancel order\".\n\n## States\n\n- Loading: a skeleton of the badge and the rows.\n- Pending: the badge shows a spinner.\n- Not found: the text \"Order not found.\" and a link to `/`.\n- Cancel error: an alert with \"This order can no longer be cancelled.\"\n\n## Responsive\n\n- None.\n","actions":"## Open the page\n- Call: `api/get-order`: `GET /api/orders/:id` with the route `id`.\n- Then: show the status, the items and the total. Clear the cart when the status is `paid`.\n- Fail: show \"Order not found.\" for 404.\n\n## Wait while the order is pending\n- Call: `api/get-order`: ask again every 3 seconds, at most 10 times.\n- Then: show \"Paid\" when the status changes to `paid`.\n- Fail: show \"We are still waiting for the payment. Check your email.\" after 10 tries.\n\n## Cancel the order\n- Show the button only when the status is `paid` and the order is less than 24 hours old.\n- Call: `api/cancel-order`: `POST /api/orders/:id/cancel` after the customer confirms.\n- Then: show \"Cancelled. The money comes back in 5–10 days.\"\n- Fail: show \"This order can no longer be cancelled.\" for 409.\n","designSvg":"\u003csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 960 470\" width=\"960\" height=\"470\" font-family=\"ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif\">\n\u003ctitle>Order status\u003c/title>\n\u003crect width=\"960\" height=\"470\" fill=\"#f4f4f5\"/>\n\u003crect x=\"0\" y=\"0\" width=\"960\" height=\"64\" fill=\"#ffffff\"/>\n\u003cline x1=\"0\" y1=\"64\" x2=\"960\" y2=\"64\" stroke=\"#e4e4e7\"/>\n\u003ctext x=\"32\" y=\"40\" font-size=\"20\" font-weight=\"700\" fill=\"#09090b\">Shop\u003c/text>\n\u003ctext x=\"110\" y=\"40\" font-size=\"20\" font-weight=\"400\" fill=\"#a1a1aa\" text-anchor=\"start\">/\u003c/text>\u003ctext x=\"126\" y=\"40\" font-size=\"20\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"start\">Your order\u003c/text>\u003crect x=\"32\" y=\"96\" width=\"896\" height=\"110\" rx=\"10\" fill=\"#ffffff\" stroke=\"#e4e4e7\"/>\u003crect x=\"56\" y=\"124\" width=\"110\" height=\"36\" rx=\"18\" fill=\"#dcfce7\" stroke=\"#bbf7d0\"/>\u003ctext x=\"111\" y=\"148\" font-size=\"16\" font-weight=\"700\" fill=\"#15803d\" text-anchor=\"middle\">Paid\u003c/text>\u003ctext x=\"190\" y=\"148\" font-size=\"18\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"start\">Order #1042\u003c/text>\u003ctext x=\"190\" y=\"176\" font-size=\"14\" font-weight=\"400\" fill=\"#52525b\" text-anchor=\"start\">Placed on 1 October 2026\u003c/text>\u003crect x=\"32\" y=\"226\" width=\"896\" height=\"48\" rx=\"10\" fill=\"#ffffff\" stroke=\"#e4e4e7\"/>\u003ctext x=\"56\" y=\"256\" font-size=\"16\" font-weight=\"500\" fill=\"#09090b\" text-anchor=\"start\">Mug × 2\u003c/text>\u003ctext x=\"904\" y=\"256\" font-size=\"16\" font-weight=\"500\" fill=\"#09090b\" text-anchor=\"end\">€24.00\u003c/text>\u003crect x=\"32\" y=\"282\" width=\"896\" height=\"48\" rx=\"10\" fill=\"#ffffff\" stroke=\"#e4e4e7\"/>\u003ctext x=\"56\" y=\"312\" font-size=\"16\" font-weight=\"500\" fill=\"#09090b\" text-anchor=\"start\">T-shirt × 1\u003c/text>\u003ctext x=\"904\" y=\"312\" font-size=\"16\" font-weight=\"500\" fill=\"#09090b\" text-anchor=\"end\">€25.00\u003c/text>\u003ctext x=\"56\" y=\"368\" font-size=\"17\" font-weight=\"500\" fill=\"#52525b\" text-anchor=\"start\">Total\u003c/text>\u003ctext x=\"904\" y=\"368\" font-size=\"20\" font-weight=\"700\" fill=\"#09090b\" text-anchor=\"end\">€49.00\u003c/text>\n\u003cg data-action=\"Cancel the order\">\u003crect x=\"744\" y=\"396\" width=\"184\" height=\"44\" rx=\"8\" fill=\"#ffffff\" stroke=\"#a1a1aa\"/>\u003ctext x=\"836.0\" y=\"423.0\" font-size=\"15\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"middle\">Cancel order\u003c/text>\u003c/g>\n\n\u003c/svg>\n","status":null,"steps":[{"n":1,"title":"Open the page.","text":"Open the page. Call: `api/get-order`: `GET /api/orders/:id` with the route `id`. Then: show the status, the items and the total. Clear the cart when the status is `paid`. Fail: show \"Order not found.\" for 404.","details":["Call: `api/get-order`: `GET /api/orders/:id` with the route `id`.","Then: show the status, the items and the total. Clear the cart when the status is `paid`.","Fail: show \"Order not found.\" for 404."],"status":null},{"n":2,"title":"Wait while the order is pending.","text":"Wait while the order is pending. Call: `api/get-order`: ask again every 3 seconds, at most 10 times. Then: show \"Paid\" when the status changes to `paid`. Fail: show \"We are still waiting for the payment. Check your email.\" after 10 tries.","details":["Call: `api/get-order`: ask again every 3 seconds, at most 10 times.","Then: show \"Paid\" when the status changes to `paid`.","Fail: show \"We are still waiting for the payment. Check your email.\" after 10 tries."],"status":null},{"n":3,"title":"Cancel the order.","text":"Cancel the order. Show the button only when the status is `paid` and the order is less than 24 hours old. Call: `api/cancel-order`: `POST /api/orders/:id/cancel` after the customer confirms. Then: show \"Cancelled. The money comes back in 5–10 days.\". Fail: show \"This order can no longer be cancelled.\" for 409.","details":["Show the button only when the status is `paid` and the order is less than 24 hours old.","Call: `api/cancel-order`: `POST /api/orders/:id/cancel` after the customer confirms.","Then: show \"Cancelled. The money comes back in 5–10 days.\".","Fail: show \"This order can no longer be cancelled.\" for 409."],"status":null}]},{"id":"product-detail","kind":"page","trigger":"page","entry":"/products/:id","group":"browse","definition":"Show one product and let the customer add it to the cart.\n","rules":"**Relates to:** `api/get-product`, `web/cart`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer reads about one product and decides to buy it.\n\n## Goal\n\n- Let the customer add the product to the cart.\n\n## Non-goal\n\n- Keep the cart for the customer on another device.\n\n## Constraints\n\n- Do not let the cart quantity be more than the stock that the page shows.\n\n## Acceptance criteria\n\n- Add the product to the cart. The cart is still there when the customer comes back on the same device.\n- Add to the quantity when the product is already in the cart.\n- Show \"Product not found.\" for a product that does not exist.\n\n## Open questions\n\n- None.\n","design":"## Layout\n\n- Header: the shop name and a cart link with the item count.\n- Main: the product image on the left. The name, the price, the description and the stock on\n  the right.\n- Buy box: the quantity field and the \"Add to cart\" button, below the description.\n\n## Components\n\n- `QuantityField`: a number field with a minus and a plus button.\n- `Button`: primary for \"Add to cart\".\n- `Toast`: \"Added to cart.\" at the bottom of the screen for 3 seconds.\n\n## States\n\n- Loading: a skeleton of the image and the text.\n- Not found: the text \"Product not found.\" and a link to `/`.\n- Too many: the text \"Only \u003cstock> left.\" below the quantity field in the danger color.\n- Sold out: the \"Add to cart\" button is disabled.\n\n## Responsive\n\n- On a small screen, the image is above the text.\n","actions":"## Open the page\n- Call: `api/get-product`: `GET /api/products/:id` with the route `id`.\n- Then: show the name, the description, the price and the stock.\n- Fail: show \"Product not found.\" for 404.\n\n## Click \"Add to cart\"\n- Then: add the product to the cart in `localStorage`. Show \"Added to cart.\"\n- Fail: show \"Only \u003cstock> left.\" when the cart quantity is more than the stock.\n","designSvg":"\u003csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 960 548\" width=\"960\" height=\"548\" font-family=\"ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif\">\n\u003ctitle>Product detail\u003c/title>\n\u003crect width=\"960\" height=\"548\" fill=\"#f4f4f5\"/>\n\u003crect x=\"0\" y=\"0\" width=\"960\" height=\"64\" fill=\"#ffffff\"/>\n\u003cline x1=\"0\" y1=\"64\" x2=\"960\" y2=\"64\" stroke=\"#e4e4e7\"/>\n\u003ctext x=\"32\" y=\"40\" font-size=\"20\" font-weight=\"700\" fill=\"#09090b\">Shop\u003c/text>\n\u003crect x=\"840\" y=\"18\" width=\"92\" height=\"30\" rx=\"15\" fill=\"#ffffff\" stroke=\"#d4d4d8\"/>\u003ctext x=\"886\" y=\"38\" font-size=\"14\" font-weight=\"500\" fill=\"#09090b\" text-anchor=\"middle\">Cart (2)\u003c/text>\u003crect x=\"32\" y=\"96\" width=\"420\" height=\"420\" rx=\"8\" fill=\"#e4e4e7\" stroke=\"#d4d4d8\"/>\u003cpath d=\"M32 96 L452 516 M452 96 L32 516\" stroke=\"#d4d4d8\"/>\u003ctext x=\"484\" y=\"130\" font-size=\"30\" font-weight=\"700\" fill=\"#09090b\" text-anchor=\"start\">T-shirt\u003c/text>\u003ctext x=\"484\" y=\"170\" font-size=\"22\" font-weight=\"500\" fill=\"#09090b\" text-anchor=\"start\">€25.00\u003c/text>\u003ctext x=\"484\" y=\"214\" font-size=\"16\" font-weight=\"400\" fill=\"#52525b\" text-anchor=\"start\">Soft cotton T-shirt with the shop logo.\u003c/text>\u003ctext x=\"484\" y=\"238\" font-size=\"16\" font-weight=\"400\" fill=\"#52525b\" text-anchor=\"start\">Printed on demand. Ships in 3 days.\u003c/text>\u003ctext x=\"484\" y=\"280\" font-size=\"15\" font-weight=\"600\" fill=\"#16a34a\" text-anchor=\"start\">In stock: 14\u003c/text>\u003crect x=\"484\" y=\"310\" width=\"444\" height=\"150\" rx=\"10\" fill=\"#ffffff\" stroke=\"#e4e4e7\"/>\u003ctext x=\"504\" y=\"342\" font-size=\"14\" font-weight=\"500\" fill=\"#52525b\" text-anchor=\"start\">Quantity\u003c/text>\u003crect x=\"504\" y=\"356\" width=\"120\" height=\"40\" rx=\"8\" fill=\"#ffffff\" stroke=\"#d4d4d8\"/>\u003ctext x=\"522\" y=\"382\" font-size=\"18\" font-weight=\"600\" fill=\"#52525b\" text-anchor=\"middle\">−\u003c/text>\u003ctext x=\"564\" y=\"382\" font-size=\"15\" font-weight=\"500\" fill=\"#09090b\" text-anchor=\"middle\">1\u003c/text>\u003ctext x=\"606\" y=\"382\" font-size=\"18\" font-weight=\"600\" fill=\"#52525b\" text-anchor=\"middle\">+\u003c/text>\u003cline x1=\"540\" y1=\"356\" x2=\"540\" y2=\"396\" stroke=\"#e4e4e7\"/>\u003cline x1=\"588\" y1=\"356\" x2=\"588\" y2=\"396\" stroke=\"#e4e4e7\"/>\n\u003cg data-action=\"Click &quot;Add to cart&quot;\">\u003crect x=\"644\" y=\"356\" width=\"264\" height=\"44\" rx=\"8\" fill=\"#2563eb\" stroke=\"#2563eb\"/>\u003ctext x=\"776.0\" y=\"383.0\" font-size=\"15\" font-weight=\"600\" fill=\"#ffffff\" text-anchor=\"middle\">Add to cart\u003c/text>\u003c/g>\n\n\u003c/svg>\n","status":null,"steps":[{"n":1,"title":"Open the page.","text":"Open the page. Call: `api/get-product`: `GET /api/products/:id` with the route `id`. Then: show the name, the description, the price and the stock. Fail: show \"Product not found.\" for 404.","details":["Call: `api/get-product`: `GET /api/products/:id` with the route `id`.","Then: show the name, the description, the price and the stock.","Fail: show \"Product not found.\" for 404."],"status":null},{"n":2,"title":"Click \"Add to cart\".","text":"Click \"Add to cart\". Then: add the product to the cart in `localStorage`. Show \"Added to cart.\". Fail: show \"Only \u003cstock> left.\" when the cart quantity is more than the stock.","details":["Then: add the product to the cart in `localStorage`. Show \"Added to cart.\".","Fail: show \"Only \u003cstock> left.\" when the cart quantity is more than the stock."],"status":null}]},{"id":"products","kind":"page","trigger":"page","entry":"/","group":"browse","definition":"Show the products that are for sale.\n","rules":"**Relates to:** `api/list-products`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer opens the shop to see what it sells.\n\n## Goal\n\n- Show all the products for sale.\n\n## Non-goal\n\n- Search or filter the products.\n\n## Constraints\n\n- Show the price in euros with two decimals.\n\n## Acceptance criteria\n\n- Show each product for sale.\n- Show \"Sold out\" for a product with no stock.\n- Show an error when the products cannot be loaded.\n\n## Open questions\n\n- None.\n","design":"## Layout\n\n- Header: the shop name and a cart link with the item count.\n- Grid: one card per product.\n\n## Components\n\n- `ProductCard`: the product image, the name, and the price. A \"Sold out\" label on the image\n  when the stock is 0.\n\n## States\n\n- Loading: a grid of empty card skeletons.\n- Empty: the text \"No products yet.\" in the center.\n- Error: an alert with \"The shop is not available. Try again later.\"\n\n## Responsive\n\n- Four cards per row on a wide screen, two on a tablet, one on a phone.\n","actions":"## Open the page\n- Call: `api/list-products`: `GET /api/products`.\n- Then: show each product with its name and its price.\n- Fail: show \"The shop is not available. Try again later.\"\n\n## Click a product\n- Then: open `/products/\u003cid>`.\n","designSvg":"\u003csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 960 640\" width=\"960\" height=\"640\" font-family=\"ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif\">\n\u003ctitle>Products\u003c/title>\n\u003crect width=\"960\" height=\"640\" fill=\"#f4f4f5\"/>\n\u003crect x=\"0\" y=\"0\" width=\"960\" height=\"64\" fill=\"#ffffff\"/>\n\u003cline x1=\"0\" y1=\"64\" x2=\"960\" y2=\"64\" stroke=\"#e4e4e7\"/>\n\u003ctext x=\"32\" y=\"40\" font-size=\"20\" font-weight=\"700\" fill=\"#09090b\">Shop\u003c/text>\n\u003crect x=\"840\" y=\"18\" width=\"92\" height=\"30\" rx=\"15\" fill=\"#ffffff\" stroke=\"#d4d4d8\"/>\u003ctext x=\"886\" y=\"38\" font-size=\"14\" font-weight=\"500\" fill=\"#09090b\" text-anchor=\"middle\">Cart (2)\u003c/text>\n\u003cg data-action=\"Click a product\">\u003crect x=\"32\" y=\"96\" width=\"212\" height=\"238\" rx=\"10\" fill=\"#ffffff\" stroke=\"#e4e4e7\"/>\u003crect x=\"44\" y=\"108\" width=\"188\" height=\"150\" rx=\"8\" fill=\"#e4e4e7\" stroke=\"#d4d4d8\"/>\u003cpath d=\"M44 108 L232 258 M232 108 L44 258\" stroke=\"#d4d4d8\"/>\u003ctext x=\"46\" y=\"286\" font-size=\"16\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"start\">Mug\u003c/text>\u003ctext x=\"46\" y=\"312\" font-size=\"15\" font-weight=\"400\" fill=\"#52525b\" text-anchor=\"start\">€12.00\u003c/text>\u003c/g>\n\u003cg data-action=\"Click a product\">\u003crect x=\"260\" y=\"96\" width=\"212\" height=\"238\" rx=\"10\" fill=\"#ffffff\" stroke=\"#e4e4e7\"/>\u003crect x=\"272\" y=\"108\" width=\"188\" height=\"150\" rx=\"8\" fill=\"#e4e4e7\" stroke=\"#d4d4d8\"/>\u003cpath d=\"M272 108 L460 258 M460 108 L272 258\" stroke=\"#d4d4d8\"/>\u003ctext x=\"274\" y=\"286\" font-size=\"16\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"start\">T-shirt\u003c/text>\u003ctext x=\"274\" y=\"312\" font-size=\"15\" font-weight=\"400\" fill=\"#52525b\" text-anchor=\"start\">€25.00\u003c/text>\u003c/g>\n\u003cg data-action=\"Click a product\">\u003crect x=\"488\" y=\"96\" width=\"212\" height=\"238\" rx=\"10\" fill=\"#ffffff\" stroke=\"#e4e4e7\"/>\u003crect x=\"500\" y=\"108\" width=\"188\" height=\"150\" rx=\"8\" fill=\"#e4e4e7\" stroke=\"#d4d4d8\"/>\u003cpath d=\"M500 108 L688 258 M688 108 L500 258\" stroke=\"#d4d4d8\"/>\u003ctext x=\"502\" y=\"286\" font-size=\"16\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"start\">Poster\u003c/text>\u003ctext x=\"502\" y=\"312\" font-size=\"15\" font-weight=\"400\" fill=\"#52525b\" text-anchor=\"start\">€18.00\u003c/text>\u003crect x=\"508\" y=\"116\" width=\"84\" height=\"26\" rx=\"13\" fill=\"#09090b\" stroke=\"#09090b\"/>\u003ctext x=\"550\" y=\"134\" font-size=\"13\" font-weight=\"600\" fill=\"#ffffff\" text-anchor=\"middle\">Sold out\u003c/text>\u003c/g>\n\u003cg data-action=\"Click a product\">\u003crect x=\"716\" y=\"96\" width=\"212\" height=\"238\" rx=\"10\" fill=\"#ffffff\" stroke=\"#e4e4e7\"/>\u003crect x=\"728\" y=\"108\" width=\"188\" height=\"150\" rx=\"8\" fill=\"#e4e4e7\" stroke=\"#d4d4d8\"/>\u003cpath d=\"M728 108 L916 258 M916 108 L728 258\" stroke=\"#d4d4d8\"/>\u003ctext x=\"730\" y=\"286\" font-size=\"16\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"start\">Cap\u003c/text>\u003ctext x=\"730\" y=\"312\" font-size=\"15\" font-weight=\"400\" fill=\"#52525b\" text-anchor=\"start\">€20.00\u003c/text>\u003c/g>\n\u003cg data-action=\"Click a product\">\u003crect x=\"32\" y=\"354\" width=\"212\" height=\"238\" rx=\"10\" fill=\"#ffffff\" stroke=\"#e4e4e7\"/>\u003crect x=\"44\" y=\"366\" width=\"188\" height=\"150\" rx=\"8\" fill=\"#e4e4e7\" stroke=\"#d4d4d8\"/>\u003cpath d=\"M44 366 L232 516 M232 366 L44 516\" stroke=\"#d4d4d8\"/>\u003ctext x=\"46\" y=\"544\" font-size=\"16\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"start\">Tote bag\u003c/text>\u003ctext x=\"46\" y=\"570\" font-size=\"15\" font-weight=\"400\" fill=\"#52525b\" text-anchor=\"start\">€15.00\u003c/text>\u003c/g>\n\u003cg data-action=\"Click a product\">\u003crect x=\"260\" y=\"354\" width=\"212\" height=\"238\" rx=\"10\" fill=\"#ffffff\" stroke=\"#e4e4e7\"/>\u003crect x=\"272\" y=\"366\" width=\"188\" height=\"150\" rx=\"8\" fill=\"#e4e4e7\" stroke=\"#d4d4d8\"/>\u003cpath d=\"M272 366 L460 516 M460 366 L272 516\" stroke=\"#d4d4d8\"/>\u003ctext x=\"274\" y=\"544\" font-size=\"16\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"start\">Sticker pack\u003c/text>\u003ctext x=\"274\" y=\"570\" font-size=\"15\" font-weight=\"400\" fill=\"#52525b\" text-anchor=\"start\">€5.00\u003c/text>\u003c/g>\n\u003cg data-action=\"Click a product\">\u003crect x=\"488\" y=\"354\" width=\"212\" height=\"238\" rx=\"10\" fill=\"#ffffff\" stroke=\"#e4e4e7\"/>\u003crect x=\"500\" y=\"366\" width=\"188\" height=\"150\" rx=\"8\" fill=\"#e4e4e7\" stroke=\"#d4d4d8\"/>\u003cpath d=\"M500 366 L688 516 M688 366 L500 516\" stroke=\"#d4d4d8\"/>\u003ctext x=\"502\" y=\"544\" font-size=\"16\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"start\">Notebook\u003c/text>\u003ctext x=\"502\" y=\"570\" font-size=\"15\" font-weight=\"400\" fill=\"#52525b\" text-anchor=\"start\">€9.00\u003c/text>\u003c/g>\n\u003cg data-action=\"Click a product\">\u003crect x=\"716\" y=\"354\" width=\"212\" height=\"238\" rx=\"10\" fill=\"#ffffff\" stroke=\"#e4e4e7\"/>\u003crect x=\"728\" y=\"366\" width=\"188\" height=\"150\" rx=\"8\" fill=\"#e4e4e7\" stroke=\"#d4d4d8\"/>\u003cpath d=\"M728 366 L916 516 M916 366 L728 516\" stroke=\"#d4d4d8\"/>\u003ctext x=\"730\" y=\"544\" font-size=\"16\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"start\">Hoodie\u003c/text>\u003ctext x=\"730\" y=\"570\" font-size=\"15\" font-weight=\"400\" fill=\"#52525b\" text-anchor=\"start\">€49.00\u003c/text>\u003c/g>\n\n\u003c/svg>\n","status":null,"steps":[{"n":1,"title":"Open the page.","text":"Open the page. Call: `api/list-products`: `GET /api/products`. Then: show each product with its name and its price. Fail: show \"The shop is not available. Try again later.\".","details":["Call: `api/list-products`: `GET /api/products`.","Then: show each product with its name and its price.","Fail: show \"The shop is not available. Try again later.\"."],"status":null},{"n":2,"title":"Click a product.","text":"Click a product. Then: open `/products/\u003cid>`.","details":["Then: open `/products/\u003cid>`."],"status":null}]}]},{"id":"app","kind":"mobile","definition":"The `app` project is the shop app for phones. A customer finds products, fills a cart and pays with Stripe.\n\n## Stack\n\n- TypeScript, React Native, Expo Router. The Stripe React Native SDK for the payment sheet.\n- This example has no code.\n\n## Technical decisions\n\n- Call the same API as `web`, through `src/api/client.ts`.\n- Keep the cart on the phone in `AsyncStorage` under the key `cart`. The cart needs no account.\n- Pay in the Stripe payment sheet. The app never sees a card number.\n","status":null,"flows":[{"id":"cart","kind":"page","trigger":"page","entry":"/cart","group":"buy","definition":"Show the cart and let the customer pay in the app.\n","rules":"**Relates to:** `api/create-order`, `app/product`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer pays for the cart without leaving the app.\n\n## Goal\n\n- Create the order and take the payment in the Stripe payment sheet.\n\n## Non-goal\n\n- Take a card number. Stripe does it.\n\n## Constraints\n\n- Keep the cart until the order is paid.\n\n## Acceptance criteria\n\n- Clear the cart after a paid order.\n- Keep the cart when the payment fails.\n- Disable \"Pay\" when the cart is empty.\n\n## Open questions\n\n- None.\n","design":"## Layout\n\n- Status bar: the time and the battery.\n- App bar: the title \"Cart\".\n- List: one row per item.\n- Summary: the total and the \"Pay\" button, above the tab bar.\n- Tab bar: \"Shop\" and \"Cart\", at the bottom.\n\n## Components\n\n- `CartRow`: the product image, the name, a `QuantityStepper` and the line price.\n- `Button`: primary for \"Pay\", the full width of the screen.\n- `TabBar`: two tabs. The open tab uses the primary color.\n\n## States\n\n- Empty: the text \"Your cart is empty.\" and a \"Shop\" button.\n- Paying: the \"Pay\" button shows a spinner and is disabled.\n\n## Responsive\n\n- None.\n","actions":"## Open the page\n- Then: show each item of the cart from `AsyncStorage`, and the total.\n\n## Change a quantity\n- Then: save the new quantity. Remove the item when the quantity is 0.\n\n## Tap \"Pay\"\n- Call: `api/create-order`: `POST /api/orders` with the email of the account and the cart items.\n- Call: `stripe`: `presentPaymentSheet` with the session id.\n- Then: clear the cart and show \"Thank you! Your order is paid.\"\n- Fail: show the API error for 400 and 409. Keep the cart when the payment fails.\n\n## Tap \"Shop\"\n- Then: open `/`.\n","designSvg":"\u003csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 390 760\" font-family=\"ui-sans-serif, system-ui, sans-serif\">\n\u003ctitle>Cart\u003c/title>\n\u003crect x=\"0.5\" y=\"0.5\" width=\"389\" height=\"759\" rx=\"40\" fill=\"#f4f4f5\" stroke=\"#d4d4d8\"/>\n\u003ctext x=\"34\" y=\"32\" font-size=\"15\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"start\">9:41\u003c/text>\u003crect x=\"324\" y=\"20\" width=\"30\" height=\"14\" rx=\"4\" fill=\"none\" stroke=\"#09090b\"/>\u003crect x=\"326\" y=\"22\" width=\"22\" height=\"10\" rx=\"2\" fill=\"#09090b\"/>\n\u003crect x=\"0\" y=\"50\" width=\"390\" height=\"54\" fill=\"#ffffff\"/>\u003cline x1=\"0\" y1=\"104\" x2=\"390\" y2=\"104\" stroke=\"#e4e4e7\"/>\n\u003ctext x=\"20\" y=\"86\" font-size=\"24\" font-weight=\"800\" fill=\"#09090b\" text-anchor=\"start\">Cart\u003c/text>\n\u003crect x=\"16\" y=\"120\" width=\"358\" height=\"88\" rx=\"14\" fill=\"#ffffff\" stroke=\"#e4e4e7\"/>\u003crect x=\"28\" y=\"134\" width=\"60\" height=\"60\" rx=\"10\" fill=\"#e4e4e7\" stroke=\"#d4d4d8\"/>\u003cpath d=\"M28 134 L88 194 M88 134 L28 194\" stroke=\"#d4d4d8\"/>\u003ctext x=\"104\" y=\"156\" font-size=\"17\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"start\">Mug\u003c/text>\u003cg data-action=\"Change a quantity\">\u003crect x=\"104\" y=\"166\" width=\"96\" height=\"34\" rx=\"17\" fill=\"#ffffff\" stroke=\"#d4d4d8\"/>\u003ctext x=\"122\" y=\"189\" font-size=\"18\" font-weight=\"600\" fill=\"#52525b\" text-anchor=\"middle\">−\u003c/text>\u003ctext x=\"152\" y=\"189\" font-size=\"15\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"middle\">2\u003c/text>\u003ctext x=\"182\" y=\"189\" font-size=\"18\" font-weight=\"600\" fill=\"#52525b\" text-anchor=\"middle\">+\u003c/text>\u003c/g>\n\u003ctext x=\"358\" y=\"188\" font-size=\"16\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"end\">€24.00\u003c/text>\u003crect x=\"16\" y=\"220\" width=\"358\" height=\"88\" rx=\"14\" fill=\"#ffffff\" stroke=\"#e4e4e7\"/>\u003crect x=\"28\" y=\"234\" width=\"60\" height=\"60\" rx=\"10\" fill=\"#e4e4e7\" stroke=\"#d4d4d8\"/>\u003cpath d=\"M28 234 L88 294 M88 234 L28 294\" stroke=\"#d4d4d8\"/>\u003ctext x=\"104\" y=\"256\" font-size=\"17\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"start\">T-shirt\u003c/text>\u003cg data-action=\"Change a quantity\">\u003crect x=\"104\" y=\"266\" width=\"96\" height=\"34\" rx=\"17\" fill=\"#ffffff\" stroke=\"#d4d4d8\"/>\u003ctext x=\"122\" y=\"289\" font-size=\"18\" font-weight=\"600\" fill=\"#52525b\" text-anchor=\"middle\">−\u003c/text>\u003ctext x=\"152\" y=\"289\" font-size=\"15\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"middle\">1\u003c/text>\u003ctext x=\"182\" y=\"289\" font-size=\"18\" font-weight=\"600\" fill=\"#52525b\" text-anchor=\"middle\">+\u003c/text>\u003c/g>\n\u003ctext x=\"358\" y=\"288\" font-size=\"16\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"end\">€25.00\u003c/text>\u003cline x1=\"16\" y1=\"560\" x2=\"374\" y2=\"560\" stroke=\"#e4e4e7\"/>\u003ctext x=\"20\" y=\"592\" font-size=\"17\" font-weight=\"500\" fill=\"#52525b\" text-anchor=\"start\">Total\u003c/text>\u003ctext x=\"370\" y=\"592\" font-size=\"22\" font-weight=\"800\" fill=\"#09090b\" text-anchor=\"end\">€49.00\u003c/text>\u003cg data-action=\"Tap &quot;Pay&quot;\">\u003crect x=\"20\" y=\"612\" width=\"350\" height=\"50\" rx=\"14\" fill=\"#2563eb\" stroke=\"#2563eb\"/>\u003ctext x=\"195.0\" y=\"643.0\" font-size=\"17\" font-weight=\"600\" fill=\"#ffffff\" text-anchor=\"middle\">Pay\u003c/text>\u003c/g>\n\u003crect x=\"0\" y=\"676\" width=\"390\" height=\"60\" fill=\"#ffffff\"/>\u003cline x1=\"0\" y1=\"676\" x2=\"390\" y2=\"676\" stroke=\"#e4e4e7\"/>\n\u003cg data-action=\"Tap &quot;Shop&quot;\">\u003crect x=\"47.5\" y=\"682\" width=\"100\" height=\"48\" fill=\"#ffffff\"/>\u003ccircle cx=\"97.5\" cy=\"698\" r=\"9\" fill=\"none\" stroke=\"#71717a\" stroke-width=\"2\"/>\u003ctext x=\"97.5\" y=\"724\" font-size=\"12\" font-weight=\"600\" fill=\"#71717a\" text-anchor=\"middle\">Shop\u003c/text>\u003c/g>\n\u003crect x=\"242.5\" y=\"682\" width=\"100\" height=\"48\" fill=\"#ffffff\"/>\u003ccircle cx=\"292.5\" cy=\"698\" r=\"9\" fill=\"none\" stroke=\"#2563eb\" stroke-width=\"2\"/>\u003ctext x=\"292.5\" y=\"724\" font-size=\"12\" font-weight=\"600\" fill=\"#2563eb\" text-anchor=\"middle\">Cart\u003c/text>\n\u003crect x=\"128.0\" y=\"746\" width=\"134\" height=\"5\" rx=\"2.5\" fill=\"#09090b\"/>\n\u003c/svg>\n","status":null,"steps":[{"n":1,"title":"Open the page.","text":"Open the page. Then: show each item of the cart from `AsyncStorage`, and the total.","details":["Then: show each item of the cart from `AsyncStorage`, and the total."],"status":null},{"n":2,"title":"Change a quantity.","text":"Change a quantity. Then: save the new quantity. Remove the item when the quantity is 0.","details":["Then: save the new quantity. Remove the item when the quantity is 0."],"status":null},{"n":3,"title":"Tap \"Pay\".","text":"Tap \"Pay\". Call: `api/create-order`: `POST /api/orders` with the email of the account and the cart items. Call: `stripe`: `presentPaymentSheet` with the session id. Then: clear the cart and show \"Thank you! Your order is paid.\". Fail: show the API error for 400 and 409. Keep the cart when the payment fails.","details":["Call: `api/create-order`: `POST /api/orders` with the email of the account and the cart items.","Call: `stripe`: `presentPaymentSheet` with the session id.","Then: clear the cart and show \"Thank you! Your order is paid.\".","Fail: show the API error for 400 and 409. Keep the cart when the payment fails."],"status":null},{"n":4,"title":"Tap \"Shop\".","text":"Tap \"Shop\". Then: open `/`.","details":["Then: open `/`."],"status":null}]},{"id":"home","kind":"page","trigger":"page","entry":"/","group":"browse","definition":"Show the products that are for sale, in a list for the phone.\n","rules":"**Relates to:** `api/list-products`, `app/product`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer opens the app to see what the shop sells.\n\n## Goal\n\n- Show each product that is for sale, with its price.\n\n## Non-goal\n\n- Search or filter the products.\n\n## Constraints\n\n- Show only the products that the API returns.\n\n## Acceptance criteria\n\n- Show one row per product.\n- Open the product when the customer taps its row.\n\n## Open questions\n\n- None.\n","design":"## Layout\n\n- Status bar: the time and the battery.\n- App bar: the title \"Shop\".\n- List: one row per product.\n- Tab bar: \"Shop\" and \"Cart\", at the bottom.\n\n## Components\n\n- `ProductRow`: the product image on the left, the name and the price on the right.\n- `TabBar`: two tabs. The open tab uses the primary color. \"Cart\" shows the item count.\n\n## States\n\n- Loading: three empty row skeletons.\n- Error: the text \"The shop is not available. Try again later.\" and a \"Try again\" button.\n\n## Responsive\n\n- None.\n","actions":"## Open the page\n- Call: `api/list-products`: `GET /api/products`.\n- Then: show one row per product.\n- Fail: show \"The shop is not available. Try again later.\" with a \"Try again\" button.\n\n## Tap a product\n- Then: open `/products/\u003cid>`.\n\n## Tap \"Cart\"\n- Then: open `/cart`.\n","designSvg":"\u003csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 390 600\" font-family=\"ui-sans-serif, system-ui, sans-serif\">\n\u003ctitle>Shop\u003c/title>\n\u003crect x=\"0.5\" y=\"0.5\" width=\"389\" height=\"599\" rx=\"40\" fill=\"#f4f4f5\" stroke=\"#d4d4d8\"/>\n\u003ctext x=\"34\" y=\"32\" font-size=\"15\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"start\">9:41\u003c/text>\u003crect x=\"324\" y=\"20\" width=\"30\" height=\"14\" rx=\"4\" fill=\"none\" stroke=\"#09090b\"/>\u003crect x=\"326\" y=\"22\" width=\"22\" height=\"10\" rx=\"2\" fill=\"#09090b\"/>\n\u003crect x=\"0\" y=\"50\" width=\"390\" height=\"54\" fill=\"#ffffff\"/>\u003cline x1=\"0\" y1=\"104\" x2=\"390\" y2=\"104\" stroke=\"#e4e4e7\"/>\n\u003ctext x=\"20\" y=\"86\" font-size=\"24\" font-weight=\"800\" fill=\"#09090b\" text-anchor=\"start\">Shop\u003c/text>\n\u003cg data-action=\"Tap a product\">\u003crect x=\"16\" y=\"120\" width=\"358\" height=\"84\" rx=\"14\" fill=\"#ffffff\" stroke=\"#e4e4e7\"/>\u003crect x=\"28\" y=\"132\" width=\"60\" height=\"60\" rx=\"10\" fill=\"#e4e4e7\" stroke=\"#d4d4d8\"/>\u003cpath d=\"M28 132 L88 192 M88 132 L28 192\" stroke=\"#d4d4d8\"/>\u003ctext x=\"104\" y=\"158\" font-size=\"17\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"start\">Mug\u003c/text>\u003ctext x=\"104\" y=\"182\" font-size=\"15\" font-weight=\"400\" fill=\"#52525b\" text-anchor=\"start\">€12.00\u003c/text>\u003c/g>\n\u003cg data-action=\"Tap a product\">\u003crect x=\"16\" y=\"216\" width=\"358\" height=\"84\" rx=\"14\" fill=\"#ffffff\" stroke=\"#e4e4e7\"/>\u003crect x=\"28\" y=\"228\" width=\"60\" height=\"60\" rx=\"10\" fill=\"#e4e4e7\" stroke=\"#d4d4d8\"/>\u003cpath d=\"M28 228 L88 288 M88 228 L28 288\" stroke=\"#d4d4d8\"/>\u003ctext x=\"104\" y=\"254\" font-size=\"17\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"start\">T-shirt\u003c/text>\u003ctext x=\"104\" y=\"278\" font-size=\"15\" font-weight=\"400\" fill=\"#52525b\" text-anchor=\"start\">€25.00\u003c/text>\u003c/g>\n\u003cg data-action=\"Tap a product\">\u003crect x=\"16\" y=\"312\" width=\"358\" height=\"84\" rx=\"14\" fill=\"#ffffff\" stroke=\"#e4e4e7\"/>\u003crect x=\"28\" y=\"324\" width=\"60\" height=\"60\" rx=\"10\" fill=\"#e4e4e7\" stroke=\"#d4d4d8\"/>\u003cpath d=\"M28 324 L88 384 M88 324 L28 384\" stroke=\"#d4d4d8\"/>\u003ctext x=\"104\" y=\"350\" font-size=\"17\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"start\">Poster\u003c/text>\u003ctext x=\"104\" y=\"374\" font-size=\"15\" font-weight=\"400\" fill=\"#52525b\" text-anchor=\"start\">€18.00\u003c/text>\u003c/g>\n\u003cg data-action=\"Tap a product\">\u003crect x=\"16\" y=\"408\" width=\"358\" height=\"84\" rx=\"14\" fill=\"#ffffff\" stroke=\"#e4e4e7\"/>\u003crect x=\"28\" y=\"420\" width=\"60\" height=\"60\" rx=\"10\" fill=\"#e4e4e7\" stroke=\"#d4d4d8\"/>\u003cpath d=\"M28 420 L88 480 M88 420 L28 480\" stroke=\"#d4d4d8\"/>\u003ctext x=\"104\" y=\"446\" font-size=\"17\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"start\">Cap\u003c/text>\u003ctext x=\"104\" y=\"470\" font-size=\"15\" font-weight=\"400\" fill=\"#52525b\" text-anchor=\"start\">€20.00\u003c/text>\u003c/g>\n\u003crect x=\"0\" y=\"516\" width=\"390\" height=\"60\" fill=\"#ffffff\"/>\u003cline x1=\"0\" y1=\"516\" x2=\"390\" y2=\"516\" stroke=\"#e4e4e7\"/>\n\u003crect x=\"47.5\" y=\"522\" width=\"100\" height=\"48\" fill=\"#ffffff\"/>\u003ccircle cx=\"97.5\" cy=\"538\" r=\"9\" fill=\"none\" stroke=\"#2563eb\" stroke-width=\"2\"/>\u003ctext x=\"97.5\" y=\"564\" font-size=\"12\" font-weight=\"600\" fill=\"#2563eb\" text-anchor=\"middle\">Shop\u003c/text>\n\u003cg data-action=\"Tap &quot;Cart&quot;\">\u003crect x=\"242.5\" y=\"522\" width=\"100\" height=\"48\" fill=\"#ffffff\"/>\u003ccircle cx=\"292.5\" cy=\"538\" r=\"9\" fill=\"none\" stroke=\"#71717a\" stroke-width=\"2\"/>\u003ctext x=\"292.5\" y=\"564\" font-size=\"12\" font-weight=\"600\" fill=\"#71717a\" text-anchor=\"middle\">Cart (2)\u003c/text>\u003c/g>\n\u003crect x=\"128.0\" y=\"586\" width=\"134\" height=\"5\" rx=\"2.5\" fill=\"#09090b\"/>\n\u003c/svg>\n","status":null,"steps":[{"n":1,"title":"Open the page.","text":"Open the page. Call: `api/list-products`: `GET /api/products`. Then: show one row per product. Fail: show \"The shop is not available. Try again later.\" with a \"Try again\" button.","details":["Call: `api/list-products`: `GET /api/products`.","Then: show one row per product.","Fail: show \"The shop is not available. Try again later.\" with a \"Try again\" button."],"status":null},{"n":2,"title":"Tap a product.","text":"Tap a product. Then: open `/products/\u003cid>`.","details":["Then: open `/products/\u003cid>`."],"status":null},{"n":3,"title":"Tap \"Cart\".","text":"Tap \"Cart\". Then: open `/cart`.","details":["Then: open `/cart`."],"status":null}]},{"id":"product","kind":"page","trigger":"page","entry":"/products/:id","group":"browse","definition":"Show one product and let the customer add it to the cart.\n","rules":"**Relates to:** `api/get-product`, `app/cart`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer looks at one product before they buy it.\n\n## Goal\n\n- Let the customer add the product to the cart.\n\n## Non-goal\n\n- Reserve the stock. The shop checks it when it creates the order.\n\n## Constraints\n\n- Do not add a product with a stock of 0.\n\n## Acceptance criteria\n\n- Add one item to the cart for each tap on \"Add to cart\".\n- Disable \"Add to cart\" when the stock is 0.\n\n## Open questions\n\n- None.\n","design":"## Layout\n\n- Status bar: the time and the battery.\n- App bar: a back button and the product name.\n- Image: the product image, the full width of the screen.\n- Details: the name, the price and the description.\n- Footer: the \"Add to cart\" button, at the bottom.\n\n## Components\n\n- `Button`: primary for \"Add to cart\", the full width of the screen.\n- `Toast`: \"Added to cart.\" above the button for 3 seconds.\n\n## States\n\n- Loading: a skeleton of the image and the text.\n- Not found: the text \"Product not found.\" and a back button.\n- Sold out: the \"Add to cart\" button is disabled and shows \"Sold out\".\n\n## Responsive\n\n- None.\n","actions":"## Open the page\n- Call: `api/get-product`: `GET /api/products/:id` with the route `id`.\n- Then: show the image, the name, the price and the description.\n- Fail: show \"Product not found.\" for 404.\n\n## Tap \"Add to cart\"\n- Then: add one item to the cart in `AsyncStorage`. Show \"Added to cart.\"\n","designSvg":"\u003csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 390 780\" font-family=\"ui-sans-serif, system-ui, sans-serif\">\n\u003ctitle>T-shirt\u003c/title>\n\u003crect x=\"0.5\" y=\"0.5\" width=\"389\" height=\"779\" rx=\"40\" fill=\"#f4f4f5\" stroke=\"#d4d4d8\"/>\n\u003ctext x=\"34\" y=\"32\" font-size=\"15\" font-weight=\"600\" fill=\"#09090b\" text-anchor=\"start\">9:41\u003c/text>\u003crect x=\"324\" y=\"20\" width=\"30\" height=\"14\" rx=\"4\" fill=\"none\" stroke=\"#09090b\"/>\u003crect x=\"326\" y=\"22\" width=\"22\" height=\"10\" rx=\"2\" fill=\"#09090b\"/>\n\u003crect x=\"0\" y=\"50\" width=\"390\" height=\"54\" fill=\"#ffffff\"/>\u003cline x1=\"0\" y1=\"104\" x2=\"390\" y2=\"104\" stroke=\"#e4e4e7\"/>\n\u003ctext x=\"20\" y=\"86\" font-size=\"30\" font-weight=\"400\" fill=\"#2563eb\" text-anchor=\"start\">‹\u003c/text>\u003ctext x=\"195.0\" y=\"84\" font-size=\"17\" font-weight=\"700\" fill=\"#09090b\" text-anchor=\"middle\">T-shirt\u003c/text>\n\u003crect x=\"0\" y=\"104\" width=\"390\" height=\"300\" rx=\"10\" fill=\"#e4e4e7\" stroke=\"#d4d4d8\"/>\u003cpath d=\"M0 104 L390 404 M390 104 L0 404\" stroke=\"#d4d4d8\"/>\u003ctext x=\"20\" y=\"446\" font-size=\"26\" font-weight=\"800\" fill=\"#09090b\" text-anchor=\"start\">T-shirt\u003c/text>\u003ctext x=\"20\" y=\"478\" font-size=\"20\" font-weight=\"500\" fill=\"#09090b\" text-anchor=\"start\">€25.00\u003c/text>\u003ctext x=\"20\" y=\"514\" font-size=\"15\" font-weight=\"400\" fill=\"#52525b\" text-anchor=\"start\">Soft cotton T-shirt with the shop logo.\u003c/text>\u003ctext x=\"20\" y=\"536\" font-size=\"15\" font-weight=\"400\" fill=\"#52525b\" text-anchor=\"start\">Ships in 3 days.\u003c/text>\u003cg data-action=\"Tap &quot;Add to cart&quot;\">\u003crect x=\"20\" y=\"700\" width=\"350\" height=\"50\" rx=\"14\" fill=\"#2563eb\" stroke=\"#2563eb\"/>\u003ctext x=\"195.0\" y=\"731.0\" font-size=\"17\" font-weight=\"600\" fill=\"#ffffff\" text-anchor=\"middle\">Add to cart\u003c/text>\u003c/g>\n\u003crect x=\"128.0\" y=\"766\" width=\"134\" height=\"5\" rx=\"2.5\" fill=\"#09090b\"/>\n\u003c/svg>\n","status":null,"steps":[{"n":1,"title":"Open the page.","text":"Open the page. Call: `api/get-product`: `GET /api/products/:id` with the route `id`. Then: show the image, the name, the price and the description. Fail: show \"Product not found.\" for 404.","details":["Call: `api/get-product`: `GET /api/products/:id` with the route `id`.","Then: show the image, the name, the price and the description.","Fail: show \"Product not found.\" for 404."],"status":null},{"n":2,"title":"Tap \"Add to cart\".","text":"Tap \"Add to cart\". Then: add one item to the cart in `AsyncStorage`. Show \"Added to cart.\".","details":["Then: add one item to the cart in `AsyncStorage`. Show \"Added to cart.\"."],"status":null}]}]},{"id":"api","kind":"backend","definition":"The `api` project is the HTTP API of the shop. It serves the products, creates the orders, and takes the payment events from Stripe.\n\n## Stack\n\n- TypeScript on Node 20. Fastify 4. zod. `pg` for Postgres, `ioredis` for Redis, `kafkajs` for Kafka, the Stripe SDK.\n- This example has no code.\n\n## Technical decisions\n\n- Keep the products and the orders in Postgres (`shop-db`).\n- Cache the product list in Redis (`product-cache`) for 60 seconds.\n- Create a Stripe Checkout session for each order. Mark the order paid only from the Stripe webhook, not from the browser.\n- Publish `order.paid` to the Kafka topic `order.events` after an order is paid.\n- Map errors to HTTP: `validation` 400, `not-found` 404, `conflict` 409, an unexpected error 500.\n","status":null,"flows":[{"id":"cancel-order","kind":"flow","trigger":"http","entry":"POST /orders/:id/cancel","group":"orders","definition":"Cancel a paid order, refund the payment with Stripe, and tell the other services.\n","rules":"**Relates to:** `web/order-status`, `worker/update-stock`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer can change their mind after the payment. The shop lets them cancel for 24 hours.\n\n## Goal\n\n- Cancel a paid order and give the money back.\n- Put the items of the order back in the stock.\n\n## Non-goal\n\n- Cancel a part of an order.\n- Cancel an order that is shipped.\n\n## Constraints\n\n- A customer can cancel only a paid order, and only in the 24 hours after the order.\n- Give the money back before the order is cancelled.\n- Put the items back in the stock only after the order is cancelled.\n\n## Acceptance criteria\n\n- A paid order of the last 24 hours is cancelled.\n- An order that is not paid, is already cancelled, or is older than 24 hours cannot be cancelled.\n- When the refund fails, the order stays paid and the customer sees an error.\n- The items of a cancelled order go back in the stock one time.\n\n## Open questions\n\n- Should the customer get an email for the refund?\n","boundary":"## Input\n\n`POST /orders/:id/cancel`:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `id` | path string | yes | not empty |\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 200 | `{ id, status: \"cancelled\" }` | The order is cancelled and the refund exists. |\n| 404 | `{ error: { code: \"not-found\", message } }` | The order does not exist. |\n| 409 | `{ error: { code: \"conflict\", message } }` | The order is not `paid`, or it is older than 24 hours. |\n| 502 | `{ error: { code: \"payment\", message } }` | Stripe does not answer. |\n\nExample (200):\n\n```json\n{ \"id\": \"o1\", \"status\": \"cancelled\" }\n```\n\nExample (409):\n\n```json\n{ \"error\": { \"code\": \"conflict\", \"message\": \"Only a paid order of the last 24 hours can be cancelled.\" } }\n```\n\n## Dependencies\n\n- reads `shop-db`: the order, its status and its payment id.\n- calls `stripe`: creates a refund for the payment.\n- writes `shop-db`: the order with the status `cancelled`.\n- publishes `order-events`: the event `order.cancelled` with the items.\n","status":null,"steps":[{"n":1,"title":"Read the order.","text":"Read the order. Return HTTP 404 when it does not exist. Return HTTP 409 when it is not `paid` or is older than 24 hours.","details":["Return HTTP 404 when it does not exist.","Return HTTP 409 when it is not `paid` or is older than 24 hours."],"status":null},{"n":2,"title":"Refund the payment with Stripe.","text":"Refund the payment with Stripe. Return HTTP 502 when Stripe does not answer.","details":["Return HTTP 502 when Stripe does not answer."],"status":null},{"n":3,"title":"Save the order with the status `cancelled`.","text":"Save the order with the status `cancelled`.","details":[],"status":null},{"n":4,"title":"Publish `order.cancelled` with the items of the order.","text":"Publish `order.cancelled` with the items of the order.","details":[],"status":null},{"n":5,"title":"Return the order id and the new status.","text":"Return the order id and the new status.","details":[],"status":null}]},{"id":"create-order","kind":"flow","trigger":"http","entry":"POST /orders","group":"orders","definition":"Create an order from a cart and start the payment with Stripe.\n","rules":"**Relates to:** `web/checkout`, `api/stripe-webhook`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer clicks \"Pay\" on the checkout page. The shop saves the order and sends the customer to Stripe to pay.\n\n## Goal\n\n- Save an order with the prices of now, not the prices the customer saw before.\n- Send the customer to pay.\n\n## Non-goal\n\n- Take the payment. Stripe does it.\n- Hold the stock. The stock changes after the payment.\n\n## Constraints\n\n- Use the current price of each item.\n- The order is not paid until Stripe confirms the payment.\n\n## Acceptance criteria\n\n- A valid cart creates an order and sends the customer to pay.\n- The order total uses the current prices.\n- A cart with more items than the stock is refused.\n- When Stripe fails, the order stays unpaid and the customer sees an error.\n\n## Open questions\n\n- Should an unpaid order expire after 24 hours?\n","boundary":"## Input\n\n`POST /orders`, JSON body:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `email` | string | yes | valid email |\n| `items` | array | yes | 1–50 items |\n| `items[].productId` | string | yes | not empty |\n| `items[].quantity` | integer | yes | 1–10 |\n\nExample:\n\n```json\n{ \"email\": \"ada@example.com\", \"items\": [{ \"productId\": \"p1\", \"quantity\": 2 }] }\n```\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 201 | `{ orderId, sessionId }` | The order is saved and the Stripe session exists. |\n| 400 | `{ error: { code: \"validation\", field, message } }` | A field fails its validation. |\n| 409 | `{ error: { code: \"conflict\", field: \"items\", message } }` | A product is not for sale or has too little stock. |\n| 502 | `{ error: { code: \"payment\", message } }` | Stripe does not answer. |\n\nExample (201):\n\n```json\n{ \"orderId\": \"o1\", \"sessionId\": \"cs_test_a1b2\" }\n```\n\nExample (409):\n\n```json\n{ \"error\": { \"code\": \"conflict\", \"field\": \"items\", \"message\": \"Blue mug has only 1 left.\" } }\n```\n\n## Dependencies\n\n- reads `shop-db`: the products and their prices.\n- writes `shop-db`: the order with the status `pending`.\n- calls `stripe`: creates a Checkout session.\n","status":null,"steps":[{"n":1,"title":"Validate the body.","text":"Validate the body. Return HTTP 400 when it is not valid.","details":["Return HTTP 400 when it is not valid."],"status":null},{"n":2,"title":"Read the products of the cart and their prices.","text":"Read the products of the cart and their prices. Return HTTP 409 when a product does not exist, is not active, or has less stock than the quantity.","details":["Return HTTP 409 when a product does not exist, is not active, or has less stock than the quantity."],"status":null},{"n":3,"title":"Save the order with the status `pending`.","text":"Save the order with the status `pending`.","details":[],"status":null},{"n":4,"title":"Create a Stripe Checkout session for the order.","text":"Create a Stripe Checkout session for the order. Put the order id in the session metadata.","details":["Put the order id in the session metadata."],"status":null},{"n":5,"title":"Return the order id and the session id.","text":"Return the order id and the session id.","details":[],"status":null}]},{"id":"get-order","kind":"flow","trigger":"http","entry":"GET /orders/:id","group":"orders","definition":"Return one order with its status and its items.\n","rules":"**Relates to:** `web/order-status`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer comes back from the payment and wants to know if the order is paid.\n\n## Goal\n\n- Show the status, the total and the items of the order.\n\n## Non-goal\n\n- Check who asks. The order number is long and hard to guess.\n\n## Constraints\n\n- Show only the domain of the customer email, not the full email.\n\n## Acceptance criteria\n\n- A customer sees an order that exists.\n- A customer sees \"not found\" for an order that does not exist.\n\n## Open questions\n\n- Should the customer need a link from the email to see the order?\n","boundary":"## Input\n\n`GET /orders/:id`:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `id` | path string | yes | not empty |\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 200 | `Order` | The order exists. |\n| 404 | `{ error: { code: \"not-found\", message } }` | The order does not exist. |\n\nExample (200):\n\n```json\n{ \"id\": \"o1\", \"status\": \"paid\", \"totalCents\": 2400, \"items\": [{ \"productId\": \"p1\", \"name\": \"Blue mug\", \"quantity\": 2 }] }\n```\n\nExample (404):\n\n```json\n{ \"error\": { \"code\": \"not-found\", \"message\": \"Order not found.\" } }\n```\n\n## Dependencies\n\n- reads `shop-db`: the order and its items.\n","status":null,"steps":[{"n":1,"title":"Read the order and its items from the database.","text":"Read the order and its items from the database. Return HTTP 404 when it does not exist.","details":["Return HTTP 404 when it does not exist."],"status":null},{"n":2,"title":"Return the order.","text":"Return the order.","details":[],"status":null}]},{"id":"get-product","kind":"flow","trigger":"http","entry":"GET /products/:id","group":"products","definition":"Return one product with its details.\n","rules":"**Relates to:** `web/product-detail`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer opens one product to read about it before they add it to the cart.\n\n## Goal\n\n- Show the product with its description, price and stock.\n\n## Non-goal\n\n- Show the reviews of the product.\n\n## Constraints\n\n- Do not show a product that is not for sale.\n\n## Acceptance criteria\n\n- A customer sees a product that is for sale.\n- A customer sees \"not found\" for a product that does not exist.\n- A customer sees \"not found\" for a product that is not for sale.\n\n## Open questions\n\n- None.\n","boundary":"## Input\n\n`GET /products/:id`:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `id` | path string | yes | not empty |\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 200 | `Product` with `description` | The product exists and is active. |\n| 404 | `{ error: { code: \"not-found\", message } }` | The product does not exist or is not active. |\n\nExample (200):\n\n```json\n{ \"id\": \"p1\", \"name\": \"Blue mug\", \"description\": \"A mug for tea.\", \"priceCents\": 1200, \"stock\": 8 }\n```\n\nExample (404):\n\n```json\n{ \"error\": { \"code\": \"not-found\", \"message\": \"Product not found.\" } }\n```\n\n## Dependencies\n\n- reads `shop-db`: the product by id.\n","status":null,"steps":[{"n":1,"title":"Read the product from the database.","text":"Read the product from the database. Return HTTP 404 when it does not exist or is not active.","details":["Return HTTP 404 when it does not exist or is not active."],"status":null},{"n":2,"title":"Return the product.","text":"Return the product.","details":[],"status":null}]},{"id":"list-products","kind":"flow","trigger":"http","entry":"GET /products","group":"products","definition":"List the products that are for sale.\n","rules":"**Relates to:** `web/products`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer opens the shop. The page shows all the products that are for sale.\n\n## Goal\n\n- Show each product for sale with its price and its stock.\n\n## Non-goal\n\n- Filter the list or split it in pages. The shop has few products.\n\n## Constraints\n\n- Do not show a product that is not for sale.\n- A price change can take up to 60 seconds to show.\n\n## Acceptance criteria\n\n- Show the products for sale, sorted by name.\n- Show an empty list when no product is for sale.\n\n## Open questions\n\n- None.\n","boundary":"## Input\n\n`GET /products`. No parameters.\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 200 | `Product[]` | Always. The list can be empty. |\n| 500 | `{ error: { code: \"unexpected\", message } }` | The database fails. |\n\nExample (200):\n\n```json\n[{ \"id\": \"p1\", \"name\": \"Blue mug\", \"priceCents\": 1200, \"stock\": 8 }]\n```\n\nExample (500):\n\n```json\n{ \"error\": { \"code\": \"unexpected\", \"message\": \"Try again later.\" } }\n```\n\n## Dependencies\n\n- reads `product-cache`: the cached list, 60 seconds.\n- reads `shop-db`: the active products, when the cache is empty.\n","status":null,"steps":[{"n":1,"title":"Read the product list from the cache.","text":"Read the product list from the cache. Return the cached list when it exists.","details":["Return the cached list when it exists."],"status":null},{"n":2,"title":"Read the products from the database.","text":"Read the products from the database. Read only the products with `active` set to true, sorted by name.","details":["Read only the products with `active` set to true, sorted by name."],"status":null},{"n":3,"title":"Put the list in the cache for 60 seconds.","text":"Put the list in the cache for 60 seconds.","details":[],"status":null},{"n":4,"title":"Return the list.","text":"Return the list.","details":[],"status":null}]},{"id":"stripe-webhook","kind":"flow","trigger":"http","entry":"POST /webhooks/stripe","group":"payments","definition":"Mark an order paid when Stripe says that the payment is complete.\n","rules":"**Relates to:** `api/create-order`, `worker/send-receipt`, `worker/update-stock`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nStripe tells the shop when a customer pays. It is the only way an order becomes paid.\n\n## Goal\n\n- Mark the order paid one time.\n- Start the receipt and the stock change.\n\n## Non-goal\n\n- Handle refunds. A person does them in Stripe.\n\n## Constraints\n\n- Trust only a message that really comes from Stripe.\n- Stripe can send the same payment more than one time.\n\n## Acceptance criteria\n\n- An unpaid order becomes paid when Stripe confirms the payment.\n- The receipt and the stock change happen one time per order, also when Stripe sends the payment two times.\n- A message that does not come from Stripe changes nothing.\n- Other news from Stripe changes nothing.\n\n## Open questions\n\n- None.\n","boundary":"## Input\n\n`POST /webhooks/stripe`, header `Stripe-Signature`, JSON body: a Stripe event.\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `type` | string | yes | Stripe event type |\n| `data.object.metadata.orderId` | string | yes | for `checkout.session.completed` |\n\nExample:\n\n```json\n{ \"id\": \"evt_1\", \"type\": \"checkout.session.completed\", \"data\": { \"object\": { \"id\": \"cs_test_a1b2\", \"metadata\": { \"orderId\": \"o1\" } } } }\n```\n\n## Output\n\n| Status | Body | When |\n| --- | --- | --- |\n| 200 | `{ received: true }` | The event is handled or skipped. |\n| 400 | `{ error: { code: \"signature\", message } }` | The signature is not valid. |\n| Publish `order.paid` | `{ eventId, orderId, email, items }` | The order changes to `paid`. |\n\nExample (published):\n\n```json\n{ \"eventId\": \"evt_1\", \"type\": \"order.paid\", \"orderId\": \"o1\", \"email\": \"ada@example.com\", \"items\": [{ \"productId\": \"p1\", \"quantity\": 2 }] }\n```\n\nExample (400):\n\n```json\n{ \"error\": { \"code\": \"signature\", \"message\": \"Invalid signature.\" } }\n```\n\n## Dependencies\n\n- writes `shop-db`: the order status `paid`.\n- publishes `order-events`: the event `order.paid`.\n","status":null,"steps":[{"n":1,"title":"Check the Stripe signature of the request.","text":"Check the Stripe signature of the request. Return HTTP 400 when the signature is not valid.","details":["Return HTTP 400 when the signature is not valid."],"status":null},{"n":2,"title":"Skip each event that is not `checkout.session.completed`.","text":"Skip each event that is not `checkout.session.completed`. Return HTTP 200 for it.","details":["Return HTTP 200 for it."],"status":null},{"n":3,"title":"Set the status of the order to `paid`.","text":"Set the status of the order to `paid`. Do nothing when the order is already `paid`.","details":["Do nothing when the order is already `paid`."],"status":null},{"n":4,"title":"Publish `order.paid` to `order.events`.","text":"Publish `order.paid` to `order.events`.","details":[],"status":null}]}]},{"id":"worker","kind":"consumer","definition":"The `worker` project handles the order events from Kafka. It sends the receipt and updates the stock after a payment.\n\n## Stack\n\n- TypeScript on Node 20. `kafkajs`, `pg`, the SendGrid SDK.\n- This example has no code.\n\n## Technical decisions\n\n- Read the topic `order.events` in the consumer group `shop-worker`. Commit the offset after the handler ends.\n- Make each handler idempotent with the event id. Kafka can deliver an event more than one time.\n- Send an event that fails 5 times to the topic `order.events.dlq`.\n","status":null,"flows":[{"id":"send-receipt","kind":"flow","trigger":"message","entry":"order.events","group":"orders","definition":"Send the receipt email after an order is paid.\n","rules":"**Relates to:** `api/stripe-webhook`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nA customer pays. They expect an email with the order in a few minutes.\n\n## Goal\n\n- Send one receipt for each paid order.\n\n## Non-goal\n\n- Send marketing email.\n\n## Constraints\n\n- Send the receipt at most one time for each order.\n\n## Acceptance criteria\n\n- Send the receipt when an order is paid.\n- Send nothing when the shop hears about the same payment again.\n- After 5 failed tries, put the receipt aside for a person to check.\n\n## Open questions\n\n- None.\n","boundary":"## Input\n\nTopic `order.events`, event `order.paid`:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `eventId` | string | yes | not empty |\n| `orderId` | string | yes | not empty |\n| `email` | string | yes | valid email |\n\nExample:\n\n```json\n{ \"eventId\": \"evt_1\", \"type\": \"order.paid\", \"orderId\": \"o1\", \"email\": \"ada@example.com\" }\n```\n\n## Output\n\n| Result | When |\n| --- | --- |\n| Send the receipt email | The receipt of the event is not sent yet. |\n| Do nothing | The event is not `order.paid`, or the receipt is already sent. |\n| Retry, then send the event to `order.events.dlq` | SendGrid fails 5 times. |\n\n## Dependencies\n\n- consumes `order-events`: the event `order.paid`.\n- reads `shop-db`: the sent receipts.\n- writes `shop-db`: a sent receipt.\n- calls `mailer`: sends the email.\n","status":null,"steps":[{"n":1,"title":"Skip each event that is not `order.paid`.","text":"Skip each event that is not `order.paid`.","details":[],"status":null},{"n":2,"title":"Skip the event when its receipt is already sent.","text":"Skip the event when its receipt is already sent.","details":[],"status":null},{"n":3,"title":"Send the receipt email with SendGrid.","text":"Send the receipt email with SendGrid.","details":[],"status":null},{"n":4,"title":"Record that the receipt is sent.","text":"Record that the receipt is sent.","details":[],"status":null}]},{"id":"update-stock","kind":"flow","trigger":"message","entry":"order.events","group":"orders","definition":"Take the paid items out of the stock, and put the cancelled items back.\n","rules":"**Relates to:** `api/stripe-webhook`, `api/cancel-order`\n**Inherits:** none\n**Supersedes:** none\n\n## Context\n\nThe stock must show what is left after each paid order, so the shop does not sell what it does not have.\n\n## Goal\n\n- Lower the stock by the paid quantity of each item.\n- Raise the stock by the quantity of each item of a cancelled order.\n\n## Non-goal\n\n- Reorder products from a supplier.\n\n## Constraints\n\n- Change the stock only one time for each payment and each cancel.\n- The stock can go below 0 when two customers pay for the last item. A person then fixes it.\n\n## Acceptance criteria\n\n- Lower the stock when an order is paid.\n- Raise the stock when an order is cancelled.\n- Change nothing when the shop hears about the same payment or cancel again.\n- Change all items of the order or none.\n\n## Open questions\n\n- Should the shop alert a person when the stock goes below 0?\n","boundary":"## Input\n\nTopic `order.events`, events `order.paid` and `order.cancelled`:\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| `eventId` | string | yes | not empty |\n| `items[].productId` | string | yes | not empty |\n| `items[].quantity` | integer | yes | 1 or more |\n\nExample:\n\n```json\n{ \"eventId\": \"evt_1\", \"type\": \"order.paid\", \"orderId\": \"o1\", \"items\": [{ \"productId\": \"p1\", \"quantity\": 2 }] }\n```\n\n## Output\n\n| Result | When |\n| --- | --- |\n| Lower the stock of each item | The event is a new `order.paid`. |\n| Raise the stock of each item | The event is a new `order.cancelled`. |\n| Do nothing | The event is of another type, or its id is already recorded. |\n\n## Dependencies\n\n- consumes `order-events`: the events `order.paid` and `order.cancelled`.\n- writes `shop-db`: the stock and `stock_events`.\n","status":null,"steps":[{"n":1,"title":"Skip each event that is not `order.paid` or `order.cancelled`.","text":"Skip each event that is not `order.paid` or `order.cancelled`.","details":[],"status":null},{"n":2,"title":"Take the quantity of each item out of the stock, in one transaction.","text":"Take the quantity of each item out of the stock, in one transaction. Do it only for `order.paid`. Skip the event when its id is already in `stock_events`. Record the event id in `stock_events`.","details":["Do it only for `order.paid`.","Skip the event when its id is already in `stock_events`.","Record the event id in `stock_events`."],"status":null},{"n":3,"title":"Put the quantity of each item back in the stock, in one transaction.","text":"Put the quantity of each item back in the stock, in one transaction. Do it only for `order.cancelled`. Skip the event when its id is already in `stock_events`. Record the event id in `stock_events`.","details":["Do it only for `order.cancelled`.","Skip the event when its id is already in `stock_events`.","Record the event id in `stock_events`."],"status":null}]}]}]}</script>
+<script id="mirror-app">
+(function () {
+  'use strict';
+
+  function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function inline(s) {
+    return esc(s)
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      // A link: an https link opens in a new tab. Other links show only their text.
+      .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, function (m, text, url) {
+        return /^https:\/\//.test(url) ? '<a href="' + url + '" target="_blank" rel="noopener">' + text + '</a>' : text;
+      });
+  }
+
+  // Headings, bullet and numbered lists, tables, code fences, paragraphs. Input is escaped first.
+  // folds: when given, each `#` or `##` section becomes a closed <details>; folds[i] true opens section i.
+  function renderMd(text, folds) {
+    var out = [], list = null, code = null, sec = -1;
+    function closeList() {
+      if (list) { out.push(list === 'table' ? '</tbody></table>' : '</' + list + '>'); list = null; }
+    }
+    function openList(tag) { if (list !== tag) { closeList(); list = tag; out.push('<' + tag + '>'); } }
+    function cells(line, tag) {
+      return '<tr>' + line.trim().replace(/^\||\|$/g, '').split('|').map(function (c) {
+        return '<' + tag + '>' + inline(c.trim()) + '</' + tag + '>';
+      }).join('') + '</tr>';
+    }
+    String(text || '').split(/\r?\n/).forEach(function (line) {
+      var m;
+      if (code !== null) {
+        if (/^```/.test(line)) { out.push('<pre><code>' + esc(code.join('\n')) + '</code></pre>'); code = null; }
+        else code.push(line);
+        return;
+      }
+      if (/^\s*\|/.test(line)) {
+        if (/^\s*\|[\s:|-]+\|\s*$/.test(line)) return; // separator row
+        if (list === 'table') { out.push(cells(line, 'td')); return; }
+        closeList();
+        list = 'table';
+        out.push('<table><thead>' + cells(line, 'th') + '</thead><tbody>');
+        return;
+      }
+      if (/^```/.test(line)) { closeList(); code = []; return; }
+      if ((m = /^(#{1,6})\s+(.*)$/.exec(line))) {
+        closeList();
+        if (folds && m[1].length <= 2) {
+          if (sec >= 0) out.push('</div></details>');
+          sec++;
+          out.push('<details class="fold" data-fold="' + sec + '"' + (folds[sec] ? ' open' : '') + '><summary>' + inline(m[2]) + '</summary><div>');
+          return;
+        }
+        var lv = Math.min(m[1].length + 3, 6);
+        out.push('<h' + lv + '>' + inline(m[2]) + '</h' + lv + '>');
+        return;
+      }
+      if ((m = /^\s*[-*]\s+(.*)$/.exec(line))) { openList('ul'); out.push('<li>' + inline(m[1]) + '</li>'); return; }
+      if ((m = /^\s*\d+\.\s+(.*)$/.exec(line))) { openList('ol'); out.push('<li>' + inline(m[1]) + '</li>'); return; }
+      closeList();
+      if (line.trim()) out.push('<p>' + inline(line) + '</p>');
+    });
+    closeList();
+    if (code !== null) out.push('<pre><code>' + esc(code.join('\n')) + '</code></pre>');
+    if (sec >= 0) out.push('</div></details>');
+    return out.join('');
+  }
+
+  // The first plain paragraph of a markdown text: the short definition shown on a row.
+  function summary(md) {
+    var out = [];
+    String(md || '').split(/\r?\n/).some(function (line) {
+      var s = line.trim();
+      if (!s || /^(#|[-*]\s|\d+\.\s|\||```)/.test(s)) return out.length > 0;
+      out.push(s);
+      return false;
+    });
+    return out.join(' ');
+  }
+
+  var BADGE = { http: 'HTTP', main: 'MAIN', message: 'MSG', schedule: 'CRON', page: 'PAGE' };
+  var STATUS = { added: 1, changed: 1, removed: 1 };
+
+  // One project as rows: the project, its flows, and the steps of each flow.
+  function model(p) {
+    var pn = { key: p.id, type: 'project', title: p.id, label: p.id, sub: p.kind || '', badge: 'PROJECT', status: p.status || null, item: p };
+    var all = [pn];
+    var flows = (p.flows || []).map(function (f) {
+      var key = p.id + '/' + f.id;
+      var fn = { key: key, type: f.kind === 'page' ? 'page' : 'flow', title: f.id, label: f.id, sub: f.entry || '',
+        badge: BADGE[f.trigger] || '', status: f.status || null, item: f };
+      fn.unit = typeof f.actions === 'string' ? 'action' : 'step';
+      all.push(fn);
+      fn.steps = (f.steps || []).map(function (s, i) {
+        var sn = { key: key + '#' + i, type: 'step', title: s.n + '. ' + s.text, label: s.title || s.text, num: s.n, sub: '',
+          status: s.status || null, item: s, parent: f, parentKey: key };
+        all.push(sn);
+        return sn;
+      });
+      return fn;
+    });
+    return { project: pn, flows: flows, groups: groups(flows), all: all };
+  }
+
+  // Flows by the group of their frontmatter, in order of first use. Flows without a group go last.
+  function groups(flows) {
+    var out = [], by = {}, other = [];
+    flows.forEach(function (f) {
+      var g = String(f.item.group || '').trim();
+      if (!g) { other.push(f); return; }
+      if (!by[g]) out.push(by[g] = { name: g, flows: [] });
+      by[g].flows.push(f);
+    });
+    if (other.length) out.push({ name: out.length ? 'other' : '', flows: other });
+    return out;
+  }
+
+  function statusClass(n) { return STATUS[n.status] ? ' st-' + n.status : ''; }
+
+  // The bullets of an action as HTML, with the label of each (`Call:`, `Then:`, `Fail:`).
+  function actionDetails(details) {
+    var d = details || [];
+    return d.length ? '<ul class="details">' + d.map(function (x) {
+      var m = /^(Call|Then|Fail):\s*(.*)$/.exec(x);
+      var h = m ? inline(m[2]) : inline(x);
+      // A call to a flow of the mirror (`project/flow`) links to that flow.
+      if (m && m[1] === 'Call') h = h.replace(/^<code>([a-z0-9_-]+\/[a-z0-9_.-]+)<\/code>/i, '<button type="button" class="call" data-goto="$1" title="Open $1">$1 \u2197</button>');
+      return '<li>' + (m ? '<span class="meta">' + m[1] + '</span> ' + h : h) + '</li>';
+    }).join('') + '</ul>' : '';
+  }
+
+  function matches(n, q) {
+    q = String(q || '').trim().toLowerCase();
+    if (!q) return false;
+    return [n.title, n.sub, n.item && n.item.trigger].join('\n').toLowerCase().indexOf(q) >= 0;
+  }
+
+  // True when a project, or a flow or step in it, has a review status.
+  function hasChanges(p) {
+    return !!STATUS[p.status] || (p.flows || []).some(function (f) {
+      return !!STATUS[f.status] || (f.steps || []).some(function (s) { return !!STATUS[s.status]; });
+    });
+  }
+
+  // Line diff of two texts as HTML: old lines in <del>, new lines in <ins>, same lines in <span>.
+  // ponytail: O(n*m) LCS table, fine for doc-sized texts; use Myers if docs grow to thousands of lines.
+  function diffHtml(a, b) {
+    a = String(a || '').split(/\r?\n/); b = String(b || '').split(/\r?\n/);
+    var n = a.length, m = b.length, t = [], i, j;
+    for (i = n; i >= 0; i--) {
+      t[i] = [];
+      for (j = m; j >= 0; j--) t[i][j] = i === n || j === m ? 0 : a[i] === b[j] ? t[i + 1][j + 1] + 1 : Math.max(t[i + 1][j], t[i][j + 1]);
+    }
+    var out = [], fence = false;
+    function line(tag, s) {
+      var r = diffLine(s, fence);
+      if (/^\s*```/.test(s)) fence = !fence;
+      out.push('<' + tag + r.cls + '>' + (r.html || ' ') + '</' + tag + '>');
+    }
+    for (i = 0, j = 0; i < n || j < m;) {
+      if (i < n && j < m && a[i] === b[j]) { line('span', a[i]); i++; j++; }
+      else if (j < m && (i === n || t[i][j + 1] >= t[i + 1][j])) line('ins', b[j++]);
+      else line('del', a[i++]);
+    }
+    return '<div class="diff">' + out.join('') + '</div>';
+  }
+
+  // One markdown line of a diff as HTML: a heading, a list item, a code or table line, or text.
+  function diffLine(s, fence) {
+    var m;
+    if (fence || /^\s*(```|\|)/.test(s)) return { cls: ' class="dc"', html: esc(s) };
+    if ((m = /^#{1,6}\s+(.*)$/.exec(s))) return { cls: ' class="dh"', html: inline(m[1]) };
+    if ((m = /^(\s*)([-*]|\d+\.)\s+(.*)$/.exec(s))) {
+      return { cls: ' class="dl" style="--ind:' + Math.floor(m[1].length / 2) + '"',
+        html: '<i>' + (/\d/.test(m[2]) ? esc(m[2]) : '•') + '</i>' + inline(m[3]) };
+    }
+    return { cls: '', html: inline(s) };
+  }
+
+  // The text of a row tab, as the diff compares it. The definition tab also holds the frontmatter.
+  function tabText(it, tab) {
+    if (tab !== 'definition' || it.trigger === undefined) return it[tab] || '';
+    return ['trigger: ' + (it.trigger || ''), 'entry: ' + (it.entry || ''), 'group: ' + (it.group || ''), '', it.definition || ''].join('\n');
+  }
+
+  function rowTabs(n) {
+    // A page with a design picture shows it first, as its UI.
+    var ui = n.item && (n.item.designSvg || n.item.designImage) ? ['ui'] : [];
+    return n.type === 'project' ? ['definition'] : n.type === 'page' ? ['definition'].concat(ui, [n.unit === 'action' ? 'actions' : 'steps', 'design', 'rules'])
+      : ['definition', 'steps', 'boundary', 'rules'];
+  }
+
+
+  // The bullets under a step header. Old data has no details: its text holds them.
+  function detailsHtml(s) {
+    var d = s.details || [];
+    return d.length ? '<ul class="details">' + d.map(function (x) { return '<li>' + inline(x) + '</li>'; }).join('') + '</ul>' : '';
+  }
+
+  function body(n, tab, folds) {
+    var it = n.item;
+    if (tab === 'steps' || tab === 'actions') {
+      var steps = it.steps || [], act = tab === 'actions', tag = act ? 'ul' : 'ol';
+      return steps.length ? '<' + tag + ' class="list">' + steps.map(function (s, i) {
+        return '<li data-key="' + esc(n.key + '#' + i) + '"' + (STATUS[s.status] ? ' class="st-' + s.status + '"' : '') + '><span class="n">' + (act ? '•' : esc(s.n)) + '</span><div><strong>' +
+          inline(s.title || s.text) + '</strong>' + (act ? actionDetails(s.details) : detailsHtml(s)) + '</div></li>';
+      }).join('') + '</' + tag + '>' : '<p class="empty">' + (act ? 'No actions.' : 'No steps.') + '</p>';
+    }
+    // The UI part shows the design picture. An SVG shows its actions beside it, with a line from
+    // each control to its action.
+    var shot = tab !== 'ui' ? '' : it.designSvg ? '<div class="dlink"><div class="shot demo" data-demo="' + esc(n.key) + '"></div>' +
+      '<ul class="dacts" aria-label="Actions"></ul><svg class="dwires" aria-hidden="true"></svg></div>' +
+      '<p class="hint">Each line links a part of the page to its action. Click either one to follow it. A call opens the backend flow.</p>' : designImageHtml(it.designImage);
+    // A changed design on a review page: a switch between the new design and the old one.
+    if (shot && it.designSvg && it.old && it.old.designSvg !== undefined && it.old.designSvg !== it.designSvg) {
+      shot = '<div class="dver" role="group" aria-label="Design version"><button type="button" class="on" data-dver="after" aria-pressed="true">After</button>' +
+        '<button type="button" data-dver="before" aria-pressed="false">Before</button><span>The design changed.</span></div>' +
+        '<div class="dwas" hidden><div class="shot demo was" data-demo-old="' + esc(n.key) + '"></div></div><div class="dnow">' + shot + '</div>';
+    }
+    // A changed item keeps its old values in `old`: show the changed lines of this tab.
+    if (it.old) {
+      var before = tabText(Object.assign({}, it, it.old), tab), after = tabText(it, tab);
+      if (before !== after) return shot + diffHtml(before, after);
+    }
+    // A project definition shows each section closed, so the page opens short.
+    return shot + (it[tab] ? renderMd(it[tab], n.type === 'project' ? folds || {} : null) : shot ? '' : '<p class="empty">Nothing here yet.</p>');
+  }
+
+  // A relative path or an https URL. A click opens the full image.
+  function designImageHtml(src) {
+    if (!src || /^(?!https:)[a-z][a-z0-9+.-]*:/i.test(src) || /^\/\//.test(src)) return '';
+    return '<a class="shot" href="' + esc(src) + '" target="_blank" rel="noopener"><img src="' + esc(src) + '" alt="Design" loading="lazy"></a>';
+  }
+
+  // The path of a flow, and its name when another flow of the project has the same path.
+  function pathHtml(n, flows) {
+    var p = badgeOf(n).path, dup = (flows || []).some(function (f) { return f !== n && badgeOf(f).path === p; });
+    return esc(p) + (dup ? '<small>' + esc(n.label) + '</small>' : '');
+  }
+
+  // The badge and the title of a flow or page: an HTTP flow shows its method and path.
+  function badgeOf(n) {
+    var m = n.item.trigger === 'http' && /^([A-Z]+)\s+(.+)$/.exec(n.sub || '');
+    if (m) return { badge: m[1], path: m[2] };
+    return { badge: n.badge || (n.type === 'page' ? 'PAGE' : 'FLOW'), path: n.sub || n.label };
+  }
+
+  function chipHtml(n) {
+    return STATUS[n.status] ? '<span class="chip" style="--c: var(--' + n.status + ')">' + n.status + '</span>' : '';
+  }
+
+  function markHtml(status, title) {
+    return STATUS[status] ? '<span class="mark" style="--c: var(--' + status + ')" title="' + esc(title || status) + '"></span>' : '';
+  }
+
+  // True when a flow or one of its steps has a review status.
+  function flowChanged(f) {
+    return !!STATUS[f.status] || f.steps.some(function (s) { return !!STATUS[s.status]; });
+  }
+
+  // The header of a section that folds. key: its key in shut. open: false for a closed section.
+  function foldHead(key, open, label) {
+    return '<button type="button" class="fhead" data-fold-sec="' + esc(key) + '" aria-expanded="' + open + '">' + label + '</button>';
+  }
+
+  function partLabel(tab) { return tab === 'ui' ? 'UI' : tab.charAt(0).toUpperCase() + tab.slice(1); }
+
+  // One part of a flow or page: a heading and its text. The definition is the lead, with no heading.
+  // shut(key): true for each closed part. A part's key is the key of its flow, `#`, and the part.
+  function partHtml(n, tab, folds, shut) {
+    var text = body(n, tab, folds), lead = tab === 'definition' && text.indexOf('class="diff"') < 0, count = (tab === 'steps' || tab === 'actions') ? (n.item.steps || []).length : 0;
+    var key = n.key + '#' + tab, closed = !lead && !!shut && shut(key);
+    return '<section class="part' + (lead ? ' lead' : '') + (closed ? ' shut' : '') + '" data-part="' + tab + '">' +
+      (lead ? '' : '<h3>' + foldHead(key, !closed, partLabel(tab) + (count ? ' <small>' + count + '</small>' : '')) + '</h3>') +
+      (closed ? '' : '<div class="db">' + text + '</div>') + '</section>';
+  }
+
+  // A flow or page as a document: its title, a bar of its parts, then each part.
+  // group: the group name of the flow, shown in the path above the title.
+  // shut(key): true for each closed part.
+  function flowHtml(n, group, shut) {
+    var b = badgeOf(n), parts = rowTabs(n), pid = n.key.split('/')[0];
+    var kind = n.type === 'page' ? 'page' : (n.item.trigger || 'flow') + ' flow';
+    return '<article class="doc' + statusClass(n) + '" data-row="' + esc(n.key) + '">' +
+      '<div class="crumb"><button type="button" data-go="' + esc(pid) + '">' + esc(pid) + '</button>' +
+      (group ? '<span aria-hidden="true">/</span><span>' + esc(group) + '</span>' : '') + '</div>' +
+      '<div class="dtitle"><span class="badge">' + esc(b.badge) + '</span><h2>' + esc(b.path) + '</h2>' + chipHtml(n) + '</div>' +
+      '<div class="dname">' + esc(n.label) + ' · ' + esc(kind) + '</div>' +
+      partHtml(n, 'definition') +
+      '<nav class="toc" aria-label="Parts">' + parts.slice(1).map(function (t) {
+        return '<button type="button" data-part="' + t + '">' + partLabel(t) + '</button>';
+      }).join('') + '</nav>' +
+      parts.slice(1).map(function (t) { return partHtml(n, t, null, shut); }).join('') + '</article>';
+  }
+
+  // A flow or page as a card in a project overview. A click opens it. flows: all flows of the project.
+  function cardHtml(n, flows) {
+    var b = badgeOf(n);
+    return '<button type="button" class="card' + statusClass(n) + '" data-go="' + esc(n.key) + '"' +
+      (STATUS[n.status] ? ' style="--c: var(--' + n.status + ')"' : '') + '>' +
+      '<span class="ch"><span class="badge">' + esc(b.badge) + '</span><span class="te">' + pathHtml(n, flows) + '</span>' + chipHtml(n) + '</span>' +
+      '<span class="cs">' + inline(summary(n.item.definition) || n.label) + '</span></button>';
+  }
+
+  // A project as a document: its definition, its changes on a review page, then all its flows.
+  // m: the model of the project. folds: the open sections of its definition. pi: its index, for its color.
+  // shut(key): true for each closed section or group. Keys: `<project>#changes`, `<project>#flows`, `<project>>group`.
+  function projectHtml(m, folds, pi, shut) {
+    var n = m.project, changed = m.flows.filter(flowChanged);
+    function card(f) { return cardHtml(f, m.flows); }
+    function closed(key) { return !!shut && shut(key); }
+    function sec(key, label, inner) {
+      var c = closed(key);
+      return '<section class="part' + (c ? ' shut' : '') + '"><h3>' + foldHead(key, !c, label) + '</h3>' + (c ? '' : inner) + '</section>';
+    }
+    return '<article class="doc proj' + statusClass(n) + '" data-row="' + esc(n.key) + '" style="--c: var(--tab-' + ((pi || 0) % 5 + 1) + ')">' +
+      '<div class="dtitle"><h2>' + esc(n.label) + '</h2>' + (n.sub ? '<span class="kind">' + esc(n.sub) + '</span>' : '') + chipHtml(n) + '</div>' +
+      partHtml(n, 'definition', folds) +
+      (changed.length ? sec(n.key + '#changes', 'Changes <small>' + changed.length + '</small>', '<div class="cards">' + changed.map(card).join('') + '</div>') : '') +
+      sec(n.key + '#flows', (m.flows.some(function (f) { return f.type === 'page'; }) ? 'Pages and flows' : 'Flows') + ' <small>' + m.flows.length + '</small>',
+        m.flows.length ? m.groups.map(function (g) {
+          var gk = n.key + '>' + g.name, c = !!g.name && closed(gk);
+          return (g.name ? '<h4 class="gname' + (c ? ' shut' : '') + '">' + foldHead(gk, !c, esc(g.name) + (c ? ' <small>' + g.flows.length + '</small>' : '')) + '</h4>' : '') +
+            (c ? '' : '<div class="cards">' + g.flows.map(card).join('') + '</div>');
+        }).join('') : '<p class="empty">No flows yet.</p>') + '</article>';
+  }
+
+  // The sidebar: each project, then its flows by group. keep(f): true for each flow to show.
+  // sel: the key of the open project or flow. shut(key): true for each closed group. A closed
+  // group shows only its header, with a mark when a flow in it changed.
+  function treeHtml(models, sel, keep, shut) {
+    return models.map(function (m, i) {
+      var p = m.project, flows = m.flows.filter(keep);
+      if (!flows.length && !keep(null, p)) return '';
+      // A closed project shows only its own row. Its key: `side:<project>`.
+      var pk = 'side:' + p.key, pclosed = !!shut && shut(pk);
+      return '<div class="tp"><div class="tprow"><button type="button" class="tfold" data-group="' + esc(pk) + '" aria-expanded="' + !pclosed + '" aria-label="' +
+        (pclosed ? 'Open ' : 'Close ') + esc(p.label) + '"></button><button type="button" class="tproj' + (sel === p.key ? ' on' : '') + '" data-go="' + esc(p.key) + '" style="--c: var(--tab-' + (i % 5 + 1) + ')">' +
+        '<span class="pdot"></span><span>' + esc(p.label) + '</span>' + (p.sub ? '<small>' + esc(p.sub) + '</small>' : '') +
+        markHtml(hasChanges(p.item) || (pclosed && flows.some(flowChanged)) ? 'changed' : null, 'Has changes') + '</button></div>' +
+        (pclosed ? '' : groups(flows).map(function (g) {
+          var gk = p.key + '/' + g.name, closed = !!g.name && !!shut && shut(gk, g);
+          var head = g.name ? '<button type="button" class="tgroup" data-group="' + esc(gk) + '" aria-expanded="' + !closed + '">' + esc(g.name) +
+            (closed ? ' <small>' + g.flows.length + '</small>' + markHtml(g.flows.some(flowChanged) ? 'changed' : null, 'Has changes') : '') + '</button>' : '';
+          return head + (closed ? '' : g.flows.map(function (f) {
+            var b = badgeOf(f), st = STATUS[f.status] ? f.status : flowChanged(f) ? 'changed' : null;
+            return '<button type="button" class="titem' + statusClass(f) + (sel === f.key ? ' on' : '') + '" data-go="' + esc(f.key) + '" title="' + esc(f.sub || f.label) + ' (' + esc(f.label) + ')">' +
+              '<span class="tb">' + esc(b.badge) + '</span><span class="te">' + pathHtml(f, m.flows) + '</span>' + markHtml(st) + '</button>';
+          }).join(''));
+        }).join('')) + '</div>';
+    }).join('');
+  }
+
+  // All review comments as one markdown text, to paste to Claude. The mirror:change skill reads it.
+  // page: the file name of the review page. list: { where, quote, text }, in page order.
+  function commentsText(page, list) {
+    return ['# Mirror review comments', '', 'Page: ' + page, ''].concat(list.map(function (c, i) {
+      return '## ' + (i + 1) + '. ' + c.where + '\n\n' + String(c.quote).split('\n').map(function (q) { return '> ' + q; }).join('\n') +
+        '\n\n' + String(c.text).trim() + '\n';
+    })).join('\n');
+  }
+
+  globalThis.MirrorViewer = { esc: esc, renderMd: renderMd, summary: summary, model: model, groups: groups, matches: matches, hasChanges: hasChanges,
+    diffHtml: diffHtml, actionDetails: actionDetails, badgeOf: badgeOf, flowHtml: flowHtml, projectHtml: projectHtml, treeHtml: treeHtml,
+    commentsText: commentsText };
+  if (typeof document === 'undefined') return;
+
+  // ---- Browser only below ----
+
+  // sel: the key of the open project or flow. hits: the search matches in all projects.
+  var state = { sel: '', models: [], q: '', hits: [], hit: -1, changedOnly: false, folds: {}, shut: {}, comments: {}, ckeys: [], editing: null, draft: '' };
+
+  function $(id) { return document.getElementById(id); }
+  function sel(attr, value) { return '[' + attr + '="' + String(value).replace(/["\\]/g, '\\$&') + '"]'; }
+
+  // ---- Theme ----
+
+  var media = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+  function savedTheme() { try { return localStorage.getItem('mirror-theme'); } catch (e) { return null; } }
+  function applyTheme() {
+    document.documentElement.setAttribute('data-theme', savedTheme() || (media && media.matches ? 'dark' : 'light'));
+  }
+  function toggleTheme() {
+    var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem('mirror-theme', next); } catch (e) { /* private mode */ }
+    applyTheme();
+  }
+
+  // ---- Sidebar and pane ----
+
+  function modelOf(key) {
+    var pid = String(key).split('/')[0];
+    return state.models.filter(function (m) { return m.project.key === pid; })[0] || null;
+  }
+
+  function flowByKey(key) {
+    var m = modelOf(key);
+    return m ? m.flows.filter(function (f) { return f.key === key; })[0] || null : null;
+  }
+
+  function exists(key) { var m = modelOf(key); return !!m && (m.project.key === key || !!flowByKey(key)); }
+
+  // The first page to show: on a review page the first project with changes, else the first project.
+  function home() {
+    var m = state.models.filter(function (x) { return hasChanges(x.project.item); })[0] || state.models[0];
+    return m ? m.project.key : '';
+  }
+
+  // A flow is in the sidebar when it matches the search and, with "Changes only", when it changed.
+  // keep(null, project) says if a project with no such flow stays.
+  function keep(f, p) {
+    var q = state.q.trim();
+    if (!f) return !q && (!state.changedOnly || hasChanges(p.item));
+    if (state.changedOnly && !flowChanged(f)) return false;
+    return !q || matches(f, q) || f.steps.some(function (s) { return matches(s, q); });
+  }
+
+  // A closed group or section stays closed for this viewer. A group opens while a search runs, and
+  // when you open a flow in it. You can still close the group of the open flow.
+  function loadShut() {
+    try { state.shut = JSON.parse(localStorage.getItem('mirror-groups:' + location.pathname) || '{}') || {}; } catch (e) { state.shut = {}; }
+  }
+  function setShut(key, on) {
+    if (on) state.shut[key] = 1; else delete state.shut[key];
+    try { localStorage.setItem('mirror-groups:' + location.pathname, JSON.stringify(state.shut)); } catch (e) { /* private mode */ }
+  }
+  // Open or close a section of the pane.
+  function toggleSection(key) {
+    setShut(key, !state.shut[key]);
+    drawView();
+    var b = $('view').querySelector(sel('data-fold-sec', key));
+    if (b) b.focus({ preventScroll: true });
+  }
+  function toggleGroup(key) {
+    setShut(key, !state.shut[key]);
+    drawSide();
+    var b = $('side').querySelector(sel('data-group', key));
+    if (b) b.focus();
+  }
+  function shut(key) {
+    return !!state.shut[key] && !state.q.trim();
+  }
+  // Open the project and the group that hold a flow, so the flow shows in the sidebar.
+  function showGroup(key) {
+    state.models.forEach(function (m) {
+      if (m.flows.some(function (f) { return f.key === key; })) setShut('side:' + m.project.key, false);
+      groups(m.flows).forEach(function (g) {
+        if (g.name && g.flows.some(function (f) { return f.key === key; })) setShut(m.project.key + '/' + g.name, false);
+      });
+    });
+  }
+
+  function drawSide() {
+    var review = document.body.classList.contains('review'), html = '';
+    if (review) {
+      var n = { added: 0, changed: 0, removed: 0 };
+      state.models.forEach(function (m) {
+        if (STATUS[m.project.status]) n[m.project.status]++;
+        m.flows.forEach(function (f) { if (STATUS[f.status]) n[f.status]++; else if (flowChanged(f)) n.changed++; });
+      });
+      var total = n.added + n.changed + n.removed;
+      html += '<div class="rbar"><strong>' + total + ' change' + (total === 1 ? '' : 's') + '</strong> in this review' +
+        '<div class="legend">' + Object.keys(n).map(function (k) { return '<span>' + markHtml(k) + ' ' + n[k] + ' ' + k + '</span>'; }).join('') + '</div>' +
+        '<button type="button" class="btn" id="changed-only" aria-pressed="' + state.changedOnly + '">Show changes only</button></div>';
+    }
+    var tree = treeHtml(state.models, state.sel, keep, shut);
+    $('side').innerHTML = html + (tree || '<p class="tnone">' + (state.q.trim() ? 'No match.' : 'Nothing here.') + '</p>');
+    var on = $('side').querySelector('.on');
+    if (on && on.scrollIntoView) on.scrollIntoView({ block: 'nearest' });
+  }
+
+  function drawView() {
+    var m = modelOf(state.sel);
+    if (!m) {
+      $('view').innerHTML = '<p class="empty-state">No projects yet. Run mirror:init.</p>';
+      return;
+    }
+    var f = flowByKey(state.sel), group = f ? String(f.item.group || '').trim() : '';
+    var closed = function (k) { return !!state.shut[k]; };
+    $('view').innerHTML = f ? flowHtml(f, group, closed) : projectHtml(m, state.folds[m.project.key], state.models.indexOf(m), closed);
+    // Mark the matching steps of this flow.
+    state.hits.forEach(function (h, i) {
+      if (h.type !== 'step' || h.parentKey !== state.sel) return;
+      var e = $('view').querySelector('.db ' + sel('data-key', h.key));
+      if (e) e.classList.add('match', i === state.hit ? 'current' : 'match');
+    });
+    fillDemos();
+    decorate();
+  }
+
+  function draw() {
+    drawSide();
+    drawView();
+    $('qcount').textContent = state.q.trim() ? (state.hits.length ? (state.hit + 1) + '/' + state.hits.length : '0') : '';
+  }
+
+  // Open a project or a flow. o.push: add a history entry, so that back returns here.
+  // o.part: the part to scroll to. o.step: the key of a step or action to scroll to.
+  function open(key, o) {
+    o = o || {};
+    if (!exists(key)) { if (o.push) toast(key + ' is not in this mirror.'); return; }
+    try {
+      if (o.push && state.sel) { history.replaceState(null, '', '#' + state.sel); history.pushState(null, '', '#' + key); }
+      else history.replaceState(null, '', '#' + key);
+    } catch (e) { /* file:// in some browsers */ }
+    var same = key === state.sel;
+    if (!same) showGroup(key);
+    state.sel = key;
+    state.editing = null;
+    document.body.classList.remove('nav');
+    $('menu').setAttribute('aria-expanded', 'false');
+    draw();
+    if (!same) $('view').scrollTop = 0;
+    if (o.step) revealStep(o.step);
+    else if (o.part) showPart(o.part);
+  }
+
+  // Scroll to a step or action of the open flow. Its part opens first when it is closed.
+  function revealStep(key) {
+    var fk = key.split('#')[0];
+    if (state.shut[fk + '#steps'] || state.shut[fk + '#actions']) {
+      setShut(fk + '#steps', false); setShut(fk + '#actions', false);
+      drawView();
+    }
+    reveal($('view').querySelector('.db ' + sel('data-key', key)));
+  }
+
+  function showPart(tab) {
+    if (state.shut[state.sel + '#' + tab]) { setShut(state.sel + '#' + tab, false); drawView(); }
+    var e = $('view').querySelector('.part' + sel('data-part', tab));
+    if (e) e.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }
+
+  // ---- Page demos ----
+
+  // An SVG design without scripts, event handlers or links, or null.
+  function cleanSvg(text) {
+    var doc = new DOMParser().parseFromString(String(text || ''), 'image/svg+xml'), svg = doc.documentElement;
+    if (!svg || svg.nodeName !== 'svg' || doc.getElementsByTagName('parsererror').length) return null;
+    [].slice.call(svg.querySelectorAll('script, foreignObject, iframe, object, embed, style')).forEach(function (e) { e.remove(); });
+    [svg].concat([].slice.call(svg.querySelectorAll('*'))).forEach(function (el) {
+      [].slice.call(el.attributes).forEach(function (a) { if (/^on|href$/i.test(a.name)) el.removeAttribute(a.name); });
+    });
+    svg.removeAttribute('width'); svg.removeAttribute('height');
+    svg = document.importNode(svg, true);
+    // A phone or a window design keeps its own width: it is not stretched to the pane.
+    var vb = String(svg.getAttribute('viewBox') || '').trim().split(/[\s,]+/).map(Number);
+    if (vb.length === 4 && vb[2] > 0) svg.style.maxWidth = vb[2] + 'px';
+    return svg;
+  }
+
+  // Put the SVG of the open page in its Design part. Each part with data-action is a control.
+  function fillDemos() {
+    [].forEach.call($('view').querySelectorAll('[data-demo-old]'), function (box) {
+      var f = flowByKey(box.getAttribute('data-demo-old')), svg = f && f.item.old && cleanSvg(f.item.old.designSvg);
+      if (!svg) return;
+      [].forEach.call(svg.querySelectorAll('[data-action]'), function (el) { el.removeAttribute('data-action'); });
+      box.appendChild(svg);
+      box.style.maxWidth = svg.style.maxWidth;
+    });
+    [].forEach.call($('view').querySelectorAll('[data-demo]'), function (box) {
+      var f = flowByKey(box.getAttribute('data-demo')), svg = f && cleanSvg(f.item.designSvg);
+      if (!svg) return;
+      [].forEach.call(svg.querySelectorAll('[data-action]'), function (el) {
+        var t = demoTarget(f, el.getAttribute('data-action'));
+        el.setAttribute('tabindex', '0');
+        el.setAttribute('role', 'button');
+        el.setAttribute('aria-label', el.getAttribute('data-action') + (t.key ? ': opens ' + t.key : ''));
+        var tip = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+        tip.textContent = el.getAttribute('data-action') + (t.key ? ' \u2192 ' + t.key : '');
+        el.insertBefore(tip, el.firstChild);
+      });
+      box.appendChild(svg);
+      box.style.maxWidth = svg.style.maxWidth;
+      var link = box.closest('.dlink');
+      if (link) fillActions(link, f);
+    });
+  }
+
+  // Show the new or the old design of a changed page.
+  function showVersion(b) {
+    var part = b.closest('.db'), old = b.getAttribute('data-dver') === 'before';
+    [].forEach.call(part.querySelectorAll('[data-dver]'), function (x) {
+      var on = x === b;
+      x.classList.toggle('on', on);
+      x.setAttribute('aria-pressed', String(on));
+    });
+    part.querySelector('.dwas').hidden = !old;
+    part.querySelector('.dnow').hidden = old;
+    if (!old) [].forEach.call(part.querySelectorAll('.dlink'), drawWires);
+  }
+
+  function actionName(x) { return String(x || '').replace(/\.$/, '').trim().toLowerCase(); }
+
+  // The actions beside a design, each with where it goes. A grey action has no control in the design.
+  function fillActions(link, f) {
+    var used = {};
+    [].forEach.call(link.querySelectorAll('.demo [data-action]'), function (el) { used[actionName(el.getAttribute('data-action'))] = 1; });
+    // A removed action has no control: it is not beside the design.
+    link.querySelector('.dacts').innerHTML = (f.item.steps || []).filter(function (s) { return s.status !== 'removed'; }).map(function (s) {
+      var name = String(s.title || s.text || '').replace(/\.$/, ''), t = demoTarget(f, name);
+      return '<li><button type="button" class="dact' + (used[actionName(name)] ? '' : ' free') + '" data-act="' + esc(name) + '">' + esc(name) +
+        (t.key ? '<small>\u2192 ' + esc(t.key) + '</small>' : '') + '</button></li>';
+    }).join('');
+    drawWires(link);
+    if (window.ResizeObserver) new ResizeObserver(function () { drawWires(link); }).observe(link);
+  }
+
+  // A line from the right side of each control to the edge of the design, then a curve to its action.
+  function drawWires(link) {
+    var base = link.getBoundingClientRect(), edge = link.querySelector('.demo').getBoundingClientRect().right - base.left, out = '';
+    if (!base.width) return;
+    [].forEach.call(link.querySelectorAll('.demo [data-action]'), function (el) {
+      var name = actionName(el.getAttribute('data-action'));
+      var item = [].filter.call(link.querySelectorAll('.dact'), function (b) { return actionName(b.getAttribute('data-act')) === name; })[0];
+      if (!item) return;
+      var r = el.getBoundingClientRect(), q = item.getBoundingClientRect();
+      var x1 = r.right - base.left, y1 = r.top + r.height / 2 - base.top, x2 = q.left - base.left, y2 = q.top + q.height / 2 - base.top;
+      var xe = Math.max(x1, edge), c = (x2 - xe) / 2, a = ' data-wire="' + esc(name) + '"';
+      out += '<path' + a + ' d="M' + x1 + ' ' + y1 + ' H' + xe + ' C' + (xe + c) + ' ' + y1 + ' ' + (x2 - c) + ' ' + y2 + ' ' + x2 + ' ' + y2 + '"/>' +
+        '<circle' + a + ' cx="' + x1 + '" cy="' + y1 + '" r="3"/><circle' + a + ' cx="' + x2 + '" cy="' + y2 + '" r="3"/>';
+    });
+    link.querySelector('.dwires').innerHTML = out;
+  }
+
+  // Light up a control, its action and the line between them.
+  function lightWire(e, on) {
+    var t = e.target.closest && e.target.closest('.dlink [data-action], .dlink .dact'), link = t && t.closest('.dlink');
+    if (!link) return;
+    var name = actionName(t.getAttribute('data-action') || t.getAttribute('data-act'));
+    [].forEach.call(link.querySelectorAll('[data-action], .dact, [data-wire]'), function (x) {
+      x.classList.toggle('hot', on && actionName(x.getAttribute('data-action') || x.getAttribute('data-act') || x.getAttribute('data-wire')) === name);
+    });
+  }
+
+  // Where a control of a page demo goes: the flow of the first call of its action, else the page
+  // that the action opens, else the action itself.
+  function demoTarget(f, name) {
+    var norm = function (x) { return String(x || '').replace(/\.$/, '').trim().toLowerCase(); };
+    var i = -1, s = null;
+    (f.item.steps || []).some(function (x, j) { if (norm(x.title || x.text) === norm(name)) { i = j; s = x; return true; } return false; });
+    if (!s) return {};
+    var d = s.details || [], m, k;
+    for (k = 0; k < d.length; k++) {
+      if ((m = /^Call:\s*`([a-z0-9_-]+\/[a-z0-9_.-]+)`/i.exec(d[k])) && flowByKey(m[1])) return { key: m[1] };
+    }
+    for (k = 0; k < d.length; k++) {
+      if (!(m = /^Then:.*?\bopens?\s+`(\/[^`]*)`/i.exec(d[k]))) continue;
+      var route = m[1].replace(/<[^>]+>|:[^/]+/g, '*');
+      var page = modelOf(f.key).flows.filter(function (g) {
+        return g.type === 'page' && String(g.item.entry || '').replace(/<[^>]+>|:[^/]+/g, '*') === route;
+      })[0];
+      if (page) return { key: page.key, tab: 'ui' };
+    }
+    return { action: i };
+  }
+
+  function followDemo(name) {
+    var f = flowByKey(state.sel);
+    if (!f) return;
+    var t = demoTarget(f, name);
+    if (t.key) { open(t.key, { push: true, part: t.tab }); return; }
+    if (t.action === undefined) { toast('No action "' + name + '" in actions.md.'); return; }
+    revealStep(f.key + '#' + t.action);
+  }
+
+  // ---- Review comments ----
+
+  // Comments live in the browser, per page and per data: a rebuild with new data starts empty.
+  function commentsStore() {
+    var s = $('mirror-data').textContent, h = 5381, i;
+    for (i = 0; i < s.length; i++) h = (h * 33 + s.charCodeAt(i)) | 0;
+    return 'mirror-comments:' + location.pathname + ':' + (h >>> 0).toString(36);
+  }
+  function loadComments() {
+    try { state.comments = JSON.parse(localStorage.getItem(commentsStore()) || '{}') || {}; } catch (e) { state.comments = {}; }
+  }
+  function saveComments() {
+    try { localStorage.setItem(commentsStore(), JSON.stringify(state.comments)); } catch (e) { /* private mode: keep them in memory */ }
+  }
+
+  function commentList() {
+    return Object.keys(state.comments).map(function (k) { return state.comments[k]; })
+      .sort(function (a, b) { return a.pi - b.pi || a.fi - b.fi || a.seq - b.seq; });
+  }
+
+  function updateCommentsButton() {
+    var n = commentList().length;
+    $('comments').lastElementChild.textContent = n ? 'Copy comments (' + n + ')' : 'Copy comments';
+    $('comments').classList.toggle('has', n > 0);
+  }
+
+  // The lines of a part that take a comment: each step or action, and each line of the
+  // other parts (rules, definition, boundary, design), also in a diff.
+  function commentTargets(part, f, tab) {
+    var db = part.querySelector('.db');
+    if (!db) return [];
+    if (tab === 'steps' || tab === 'actions') {
+      return [].map.call(db.querySelectorAll('.list > li[data-key]'), function (el) {
+        var s = f.item.steps[Number(el.getAttribute('data-key').split('#').pop())];
+        return { el: el, quote: [s.title || s.text].concat(s.details || []).join('\n'),
+          where: tab === 'actions' ? 'action "' + String(s.title || s.text).replace(/\.$/, '') + '"' : 'step ' + s.n };
+      });
+    }
+    var sels = ':scope > p, :scope > ul > li, :scope > ol > li, :scope > table > tbody > tr, :scope > pre, .diff > span:not(.dh), .diff > ins, .diff > del';
+    return [].filter.call(db.querySelectorAll(sels), function (el) { return el.textContent.trim(); }).map(function (el) {
+      var t = el.tagName === 'TR' ? [].map.call(el.cells, function (c) { return c.textContent.trim(); }).join(' | ') : el.textContent.replace(/\s+/g, ' ').trim();
+      var sec = section(el);
+      return { el: el, quote: (el.tagName === 'INS' ? 'new: ' : el.tagName === 'DEL' ? 'old: ' : '') + t, where: tab + (sec ? ', ' + sec : '') };
+    });
+  }
+
+  // The heading above a line in a part: a markdown heading, or a heading line of a diff.
+  function section(el) {
+    var e = /^(LI|TR)$/.test(el.tagName) ? el.closest('ul, ol, table') : el;
+    while ((e = e && e.previousElementSibling)) {
+      if (/^H[1-6]$/.test(e.tagName) || e.classList.contains('dh')) return e.textContent.trim();
+    }
+    return '';
+  }
+
+  // Add a comment button, and the comment or its editor, to each line of each part of the open flow.
+  function decorate() {
+    state.ckeys = [];
+    var f = flowByKey(state.sel), m = modelOf(state.sel);
+    if (!document.body.classList.contains('review') || !f) return;
+    var rk = f.key, fi = m.flows.indexOf(f), pi = state.models.indexOf(m);
+    [].forEach.call($('view').querySelectorAll('.part[data-part]'), function (part) {
+      var tab = part.getAttribute('data-part');
+      commentTargets(part, f, tab).forEach(function (t) {
+        var key = rk + '|' + tab + '|' + t.quote, id = state.ckeys.push({ key: key, pi: pi, fi: fi, where: rk + ', ' + t.where, quote: t.quote }) - 1;
+        var c = state.comments[key], host = t.el.tagName === 'TR' ? t.el.lastElementChild : t.el;
+        host.classList.add('cm');
+        host.classList.toggle('has', !!c);
+        var b = document.createElement('button');
+        b.type = 'button'; b.className = 'cbtn'; b.textContent = '\u{1F4AC}';
+        b.title = c ? 'Edit the comment' : 'Comment'; b.setAttribute('aria-label', b.title);
+        b.setAttribute('data-cmt', id);
+        host.appendChild(b);
+        if (!c && state.editing !== key) return;
+        var step = t.el.parentNode.classList.contains('list'), note = document.createElement(step ? 'li' : 'div');
+        note.className = 'cnote';
+        note.setAttribute('data-cmt', id);
+        if (state.editing === key) {
+          note.innerHTML = '<textarea aria-label="Comment" placeholder="What should change here?"></textarea><div class="cact">' +
+            '<button type="button" class="btn" data-csave="' + id + '">Save</button><button type="button" class="btn" data-ccancel="1">Cancel</button>' +
+            (c ? '<button type="button" class="btn" data-cdel="' + id + '">Delete</button>' : '') + '</div>';
+          note.firstChild.value = state.draft;
+        } else {
+          note.textContent = c.text;
+          note.title = 'Edit the comment';
+        }
+        if (!step && (host.tagName === 'LI' || host.tagName === 'TD')) host.appendChild(note);
+        else t.el.parentNode.insertBefore(note, t.el.nextSibling);
+      });
+    });
+    var ta = $('view').querySelector('.cnote textarea');
+    if (ta) { ta.focus({ preventScroll: true }); ta.setSelectionRange(ta.value.length, ta.value.length); }
+  }
+
+  function editComment(id) {
+    var k = state.ckeys[id];
+    if (!k) return;
+    state.editing = k.key;
+    state.draft = state.comments[k.key] ? state.comments[k.key].text : '';
+    drawView();
+  }
+
+  function saveComment(id, text) {
+    var k = state.ckeys[id];
+    if (!k) return;
+    var old = state.comments[k.key];
+    if (String(text).trim()) {
+      state.comments[k.key] = { pi: k.pi, fi: k.fi, seq: old ? old.seq : Date.now(), where: k.where, quote: k.quote, text: String(text).trim() };
+    } else delete state.comments[k.key];
+    saveComments();
+    closeEditor();
+  }
+
+  function closeEditor() {
+    state.editing = null;
+    state.draft = '';
+    drawView();
+    updateCommentsButton();
+  }
+
+  function toast(msg) {
+    var t = $('toast');
+    t.textContent = msg;
+    t.classList.add('on');
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(function () { t.classList.remove('on'); }, 2600);
+  }
+
+  function copyText(s, done) {
+    function fallback() {
+      var t = document.createElement('textarea'), ok = false;
+      t.value = s; t.setAttribute('readonly', ''); t.style.position = 'fixed'; t.style.opacity = '0';
+      document.body.appendChild(t);
+      t.select();
+      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      document.body.removeChild(t);
+      done(ok);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(s).then(function () { done(true); }, fallback);
+    else fallback();
+  }
+
+  function copyComments() {
+    var list = commentList();
+    if (!list.length) { toast('No comments yet. Open a flow and click \u{1F4AC} on a step or a rule.'); return; }
+    var page = decodeURIComponent(location.pathname.split('/').pop() || 'review page');
+    copyText(commentsText(page, list), function (ok) {
+      toast(ok ? 'Copied ' + list.length + ' comment' + (list.length > 1 ? 's' : '') + '. Paste them to Claude.' : 'Could not copy. Your browser blocked the clipboard.');
+    });
+  }
+
+  // Scroll an element into view and flash it.
+  function reveal(e) {
+    if (!e) return;
+    e.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    e.classList.remove('flash');
+    void e.offsetWidth;
+    e.classList.add('flash');
+  }
+
+  // ---- Search ----
+
+  // The sidebar shows the flows that match. Enter goes from match to match, in all projects.
+  function search(q) {
+    state.q = q;
+    state.hits = q.trim() ? [].concat.apply([], state.models.map(function (m) {
+      return m.all.filter(function (n) { return n.type !== 'project' && matches(n, q); });
+    })) : [];
+    state.hit = -1;
+    if (state.hits.length) next(1);
+    else draw();
+  }
+
+  function next(dir) {
+    if (!state.hits.length) return;
+    state.hit = (state.hit + dir + state.hits.length) % state.hits.length;
+    var h = state.hits[state.hit], key = h.type === 'step' ? h.parentKey : h.key;
+    if (key !== state.sel) open(key, { step: h.type === 'step' ? h.key : null });
+    else {
+      draw();
+      if (h.type === 'step') revealStep(h.key); else reveal($('view').querySelector('.dtitle'));
+    }
+  }
+
+  // ---- Wiring ----
+
+  function fromHash() {
+    var id = '';
+    try { id = decodeURIComponent(location.hash.slice(1)); } catch (e) { /* bad hash */ }
+    open(exists(id) ? id : state.sel || home());
+  }
+
+  function main() {
+    applyTheme();
+    if (media && media.addEventListener) media.addEventListener('change', applyTheme);
+    state.data = JSON.parse($('mirror-data').textContent);
+    state.models = (state.data.projects || []).map(model);
+    document.body.classList.toggle('review', (state.data.projects || []).some(hasChanges));
+    document.title = state.data.title || 'Mirror';
+    $('title').textContent = state.data.title || 'Mirror';
+    $('meta').textContent = state.data.generated ? 'generated ' + state.data.generated : '';
+    loadComments();
+    loadShut();
+    updateCommentsButton();
+    fromHash();
+
+    $('side').addEventListener('click', function (e) {
+      var b = e.target.closest('button');
+      if (!b) return;
+      if (b.id === 'changed-only') { state.changedOnly = !state.changedOnly; drawSide(); return; }
+      if (b.hasAttribute('data-group')) { toggleGroup(b.getAttribute('data-group')); return; }
+      if (b.hasAttribute('data-go')) open(b.getAttribute('data-go'), { push: true });
+    });
+    $('view').addEventListener('click', function (e) {
+      if (document.body.classList.contains('nav')) { document.body.classList.remove('nav'); $('menu').setAttribute('aria-expanded', 'false'); return; }
+      var b = e.target.closest('button'), demo = e.target.closest('.demo [data-action]');
+      if (demo) { followDemo(demo.getAttribute('data-action')); return; }
+      if (!b) {
+        var note = e.target.closest('.cnote[data-cmt]');
+        if (note && !note.querySelector('textarea')) editComment(Number(note.getAttribute('data-cmt')));
+        return;
+      }
+      if (b.hasAttribute('data-dver')) showVersion(b);
+      else if (b.hasAttribute('data-act')) followDemo(b.getAttribute('data-act'));
+      else if (b.hasAttribute('data-go')) open(b.getAttribute('data-go'), { push: true });
+      else if (b.hasAttribute('data-goto')) open(b.getAttribute('data-goto'), { push: true });
+      else if (b.closest('.toc')) showPart(b.getAttribute('data-part'));
+      else if (b.hasAttribute('data-fold-sec')) toggleSection(b.getAttribute('data-fold-sec'));
+      else if (b.hasAttribute('data-cmt')) editComment(Number(b.getAttribute('data-cmt')));
+      else if (b.hasAttribute('data-csave')) saveComment(Number(b.getAttribute('data-csave')), b.closest('.cnote').querySelector('textarea').value);
+      else if (b.hasAttribute('data-cdel')) saveComment(Number(b.getAttribute('data-cdel')), '');
+      else if (b.hasAttribute('data-ccancel')) closeEditor();
+    });
+    $('view').addEventListener('toggle', function (e) {
+      var d = e.target, r = d.closest && d.closest('[data-row]');
+      if (!r || !d.hasAttribute('data-fold')) return;
+      var k = r.getAttribute('data-row');
+      (state.folds[k] = state.folds[k] || {})[d.getAttribute('data-fold')] = d.open;
+    }, true);
+    $('view').addEventListener('mouseover', function (e) { lightWire(e, true); });
+    $('view').addEventListener('mouseout', function (e) { lightWire(e, false); });
+    $('view').addEventListener('focusin', function (e) { lightWire(e, true); });
+    $('view').addEventListener('focusout', function (e) { lightWire(e, false); });
+    $('view').addEventListener('input', function (e) { if (e.target.closest('.cnote')) state.draft = e.target.value; });
+    $('view').addEventListener('keydown', function (e) {
+      var note = e.target.tagName === 'TEXTAREA' && e.target.closest('.cnote');
+      var demo = (e.key === 'Enter' || e.key === ' ') && e.target.closest && e.target.closest('.demo [data-action]');
+      if (demo) { e.preventDefault(); followDemo(demo.getAttribute('data-action')); return; }
+      if (!note) return;
+      if (e.key === 'Escape') { e.preventDefault(); closeEditor(); }
+      else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); note.querySelector('[data-csave]').click(); }
+    });
+    // A hash like #api/create-order opens that flow. pushState does not fire hashchange; back does.
+    window.addEventListener('hashchange', fromHash);
+    window.addEventListener('popstate', fromHash);
+    $('q').addEventListener('input', function (e) { search(e.target.value); });
+    $('q').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); next(e.shiftKey ? -1 : 1); }
+      else if (e.key === 'Escape') { e.target.value = ''; search(''); e.target.blur(); }
+    });
+    $('menu').addEventListener('click', function () {
+      var on = document.body.classList.toggle('nav');
+      $('menu').setAttribute('aria-expanded', String(on));
+    });
+    $('theme').addEventListener('click', toggleTheme);
+    $('comments').addEventListener('click', copyComments);
+    document.addEventListener('keydown', function (e) {
+      var typing = /^(INPUT|TEXTAREA)$/.test(document.activeElement && document.activeElement.tagName);
+      if (e.key === '/' && !typing) { e.preventDefault(); $('q').focus(); }
+    });
+  }
+
+  main();
+})();
+</script>
+</body>
+</html>

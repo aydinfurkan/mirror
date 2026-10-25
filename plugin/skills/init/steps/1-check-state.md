@@ -6,3 +6,5 @@ If `.mirror/xsrc/` exists, stop. Ask the user to select one option:
 - Keep: add only the missing flows and pages.
   - Do not change existing files.
   - Skip each existing `config.json` entry, `definition.md` and flow folder.
+  - Add `design.svg` to each existing page that has none. See
+    `page/design-svg.md` of `mirror:formats`.

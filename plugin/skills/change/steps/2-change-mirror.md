@@ -5,7 +5,8 @@
 2. Change only files under `.mirror/xsrc/`. Do not change code in this step.
    - A new flow or page: create its folder with its files. See "Flows and pages" in
      `layout.md` of `mirror:formats`.
-   - A changed flow or page: edit its files.
+   - A changed flow or page: edit its files. For a page, keep `design.svg` in line with
+     `design.md` and the headers of `actions.md`.
    - A removed flow or page: delete its folder.
 3. When the change breaks a contract of a flow (it removes a field, adds a required field, or
    changes a status code or an event shape), edit the files of each affected flow too.

@@ -30,24 +30,10 @@ Each sub-folder is a flow or a page. Read its `definition.md` first.
 - For a flow only: `boundary`, the full text of `boundary.md`.
 - For a page only: `design`, the full text of `design.md`, and `actions`, the full text of
   `actions.md`.
-- For a page only: `designImage`, see "Design image".
+- For a page only: `designSvg`, the full text of `design.svg`. Leave it out when the file does
+  not exist.
 - `status`: `null`.
 - `steps`: see "Steps".
-
-## Design image
-
-Read the link on the `**Design file:**` line of `design.md`.
-
-- A path to an image file in the repo (`.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`, `.webp`) that
-  exists: the path from the folder of the target page to the file. For
-  `.mirror/visualize.html` and the file `docs/screens/checkout.png`, this is
-  `../docs/screens/checkout.png`. For a review page in `.mirror/features/`, it is
-  `../../docs/screens/checkout.png`.
-- An `https://` URL that ends in one of these extensions: the URL.
-- Else, for example `none` or a Figma link: `""`.
-
-For a `.svg` file in the repo, also set `designSvg`: the full text of the file. The viewer then
-shows the page as a demo. Else leave `designSvg` out.
 
 ## Steps
 

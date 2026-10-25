@@ -1,5 +1,3 @@
-**Design file:** [product-detail.svg](design/product-detail.svg)
-
 ## Layout
 
 - Header: the shop name and a cart link with the item count.
