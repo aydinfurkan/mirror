@@ -8,11 +8,22 @@ as a clickable demo.
 - Write it for each page. Draw it from `design.md` and `actions.md`.
 - When you change `design.md` or the headers of `actions.md`, change `design.svg` to match.
 
+## Frame
+
+Draw the frame of the `kind` of the project in `config.json`. `H` is the height that the page
+needs.
+
+| Kind       | Root `viewBox` | Frame                                                                   |
+| ---------- | -------------- | ----------------------------------------------------------------------- |
+| `frontend` | `0 0 960 H`    | A web page. A header bar at the top.                                    |
+| `mobile`   | `0 0 390 H`    | A phone screen with round corners. A status bar with the time, the app bar, then the content. The tab bar at the bottom when the app has one. |
+| `desktop`  | `0 0 1200 H`   | An app window. A title bar with the name of the app, then the content.   |
+
 ## Drawing
 
-- The root: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 H">`, with `H` the height
-  that the page needs. Add a `<title>` with the page name.
-- Draw the normal view of the page, as on a wide screen. Do not draw the other states.
+- The root: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="…">`, with the `viewBox` of the
+  frame. Add a `<title>` with the page name.
+- Draw the normal view of the page, in its frame. Do not draw the other states.
 - Draw each region of `## Layout` in its order, from top to bottom.
 - Draw each component of `## Components` with plain shapes: `rect`, `line`, `path`, `circle`
   and `text`. Draw an image as a gray box with a cross.
@@ -38,4 +49,5 @@ as a clickable demo.
 
 ## Example
 
-See `examples/page/design.svg`.
+See `examples/page/design.svg` for a `frontend` page and `examples/page/design-mobile.svg` for a
+`mobile` page.

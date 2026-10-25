@@ -793,7 +793,11 @@ body.review #comments { display: inline-flex; }
       [].slice.call(el.attributes).forEach(function (a) { if (/^on|href$/i.test(a.name)) el.removeAttribute(a.name); });
     });
     svg.removeAttribute('width'); svg.removeAttribute('height');
-    return document.importNode(svg, true);
+    svg = document.importNode(svg, true);
+    // A phone or a window design keeps its own width: it is not stretched to the pane.
+    var vb = String(svg.getAttribute('viewBox') || '').trim().split(/[\s,]+/).map(Number);
+    if (vb.length === 4 && vb[2] > 0) svg.style.maxWidth = vb[2] + 'px';
+    return svg;
   }
 
   // Put the SVG of the open page in its Design part. Each part with data-action is a control.
@@ -811,6 +815,7 @@ body.review #comments { display: inline-flex; }
         el.insertBefore(tip, el.firstChild);
       });
       box.appendChild(svg);
+      box.style.maxWidth = svg.style.maxWidth;
       var link = box.closest('.dlink');
       if (link) fillActions(link, f);
     });

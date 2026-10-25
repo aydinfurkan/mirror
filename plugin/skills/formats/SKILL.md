@@ -26,5 +26,5 @@ This rule applies only to these files, not to the code or the other files of the
 | `xsrc/<project>/<page>/definition.md`     | `page/definition.md`        | `examples/page/definition.md`                                            |
 | `xsrc/<project>/<page>/actions.md`        | `page/actions.md`           | `examples/page/actions.md`                                               |
 | `xsrc/<project>/<page>/design.md`         | `page/design.md`            | `examples/page/design.md`                                                |
-| `xsrc/<project>/<page>/design.svg`        | `page/design-svg.md`        | `examples/page/design.svg`                                               |
+| `xsrc/<project>/<page>/design.svg`        | `page/design-svg.md`        | `examples/page/design.svg`, `examples/page/design-mobile.svg`            |
 | `xsrc/<project>/<page>/business-rules.md` | `page/business-rules.md`    | `examples/page/business-rules.md`                                        |
