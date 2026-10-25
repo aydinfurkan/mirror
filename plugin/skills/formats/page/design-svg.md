@@ -5,9 +5,7 @@ as a clickable demo.
 
 ## When to write it
 
-- Write it for each page, when `design.md` has no image file on its `**Design file:**` line:
-  `none`, or a link to Figma or another site. Draw it from `design.md` and `actions.md`.
-- When `design.md` links an image file in the repo, do not write it. The viewer shows that file.
+- Write it for each page. Draw it from `design.md` and `actions.md`.
 - When you change `design.md` or the headers of `actions.md`, change `design.svg` to match.
 
 ## Drawing
@@ -28,17 +26,15 @@ as a clickable demo.
 
 ## Controls
 
+- A click on a control opens the flow of the first `Call:` of its action, for example
+  `api/create-order`. When the action has no call, a bullet like ``Then: open `/checkout`.``
+  opens that page. Else the click shows the action.
 - Put each control that starts an action of `actions.md` in a `<g>` with
   `data-action="<the header of the action>"`. Write `&quot;` for a `"` in the header:
   `<g data-action="Click &quot;Save&quot;">`.
 - Put the whole control in the group: its shape and its text.
 - Do not mark the `Open the page` action. It has no control.
 - One action can have many controls, for example each card of a list.
-
-## Link
-
-Do not change the `**Design file:**` line of `design.md`. The build finds `design.svg` in the
-folder of the page.
 
 ## Example
 

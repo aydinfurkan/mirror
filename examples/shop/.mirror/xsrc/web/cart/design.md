@@ -1,5 +1,3 @@
-**Design file:** none
-
 ## Layout
 
 - Header: the shop name and the title "Cart".

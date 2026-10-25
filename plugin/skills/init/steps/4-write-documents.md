@@ -7,7 +7,7 @@ to write and how. To find the content, trace the code from the entry point:
   output.
 - A page: find the actions from the load effect, the event handlers and the form submits. Read
   the components, the styles and the design links for the design. Then draw `design.svg` from
-  the design and the actions, unless the design links an image file in the repo.
+  the design and the actions.
 - A call to an API: link to the backend flow with the same method and path.
 - Read the tests to find the constraints and the acceptance criteria. Ask the user for the
   context, the goal and the non-goal when the code does not show them.

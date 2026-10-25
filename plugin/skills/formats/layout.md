@@ -14,8 +14,7 @@
 - A flow belongs to a `backend`, `worker` or `consumer` project. It has `definition.md`,
   `steps.md`, `boundary.md` and `business-rules.md`.
 - A page belongs to a `frontend`, `mobile` or `desktop` project. It has `definition.md`,
-  `actions.md`, `design.md` and `business-rules.md`. It also has `design.svg`, a wireframe, when
-  `design.md` links no image file in the repo.
+  `actions.md`, `design.md`, `design.svg` (a wireframe) and `business-rules.md`.
 
 ## config.json
 
