@@ -9,9 +9,10 @@ shows it in one HTML page.
 
 ## Install
 
+Mirror is in the official Claude Code plugin directory.
+
 ```sh
-/plugin marketplace add aydinfurkan/mirror
-/plugin install mirror@mirror
+/plugin install mirror@anthropic-plugin-directory
 ```
 
 ## How it works
