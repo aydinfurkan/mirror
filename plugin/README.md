@@ -22,11 +22,16 @@ From then on, Claude changes the mirror first, you review it, then the code foll
 ## What it does
 
 - **Init.** Finds each flow and page in your code and writes down its intent.
-- **Viewer.** Lists all flows and pages in one HTML page you can search and open.
+- **Viewer.** Shows all flows and pages in one HTML page: a sidebar of projects and groups,
+  and a reading pane. Search it, and fold the groups and parts you don't need.
+- **Wireframes.** Draws a `design.svg` wireframe for each page, as a web page or a phone
+  screen. In the viewer, a click on a button follows its action to the next page or to the
+  backend flow it calls.
 - **Map.** Claude reads the mirror before the code. Ask "what happens when an order is
   cancelled?" and Claude follows the flows and their links to answer.
 - **Review.** For each change, Claude updates the mirror and shows you a review page. The
-  code changes only after your OK. Comment on a step or a rule in the page, click "Copy
+  code changes only after your OK. The page shows the changed lines, and the old and the new
+  wireframe of a changed page. Comment on a step or a rule in the page, click "Copy
   comments", and paste them to Claude.
 - **Tests.** Turns each rule of a flow or page into a test, and lists the rules without a
   test.
@@ -55,8 +60,9 @@ reaches each repo at once.
   Mirror instructions into Claude.
 - **Files.** Reads your code. Writes only to the `.mirror/` folder, except for the tests
   that `mirror:test` writes and the workflow that `mirror:github` writes.
-- **Network.** No network calls. The HTML pages use the system fonts. Review comments stay in
-  your browser until you copy them.
+- **Network.** The plugin makes no network calls. The HTML pages load the Inter and
+  JetBrains Mono fonts from Google Fonts, and fall back to the system fonts offline. Review
+  comments stay in your browser until you copy them.
 
 ## Requirements
 
