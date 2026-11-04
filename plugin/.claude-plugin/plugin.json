@@ -8,6 +8,7 @@
   "homepage": "https://github.com/aydinfurkan/mirror",
   "repository": "https://github.com/aydinfurkan/mirror",
   "license": "MIT",
+  "icon": "./icon.png",
   "keywords": [
     "documentation",
     "architecture",
