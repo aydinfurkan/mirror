@@ -52,8 +52,8 @@ reaches each repo at once.
 
 ### What it runs, reads and sends
 
-- **Hook.** At session start, in a repo with a `.mirror/` folder, a shell command loads the
-  Mirror instructions into Claude.
+- **No hooks.** The plugin runs no commands of its own. Claude picks each skill from its
+  description, in a repo with a `.mirror/` folder.
 - **Files.** Reads your code. Writes only to the `.mirror/` folder, except for the tests
   that `mirror:test` writes and the workflow that `mirror:github` writes.
 - **Network.** No network calls. The HTML pages use the system fonts. Review comments stay in
