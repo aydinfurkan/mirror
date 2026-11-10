@@ -49,5 +49,5 @@ needs.
 
 ## Example
 
-See `examples/page/design.svg` for a `frontend` page and `examples/page/design-mobile.svg` for a
+See `examples/page/design.svg.md` for a `frontend` page and `examples/page/design-mobile.svg.md` for a
 `mobile` page.

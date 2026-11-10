@@ -1,3 +1,6 @@
+# Example: `cancel-order.test.ts`
+
+```ts
 // The tests of `api/cancel-order`, with a tag on each test.
 // The project uses Vitest and Fastify. The helpers come from the test setup of the project.
 import { describe, expect, it } from "vitest";
@@ -79,3 +82,4 @@ describe("POST /orders/:id/cancel", () => {
     expect(events.published("order.cancelled")).toHaveLength(1);
   });
 });
+```
