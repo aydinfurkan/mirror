@@ -1,3 +1,6 @@
+# Example: `design.svg` of a `frontend` page
+
+```svg
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 420" font-family="ui-sans-serif, system-ui, sans-serif">
 <title>Edit user</title>
 <rect width="960" height="420" fill="#f4f4f5"/>
@@ -11,3 +14,4 @@
 <g data-action="Click &quot;Cancel&quot;"><rect x="438" y="320" width="124" height="44" rx="8" fill="#ffffff" stroke="#a1a1aa"/><text x="500.0" y="347.0" font-size="15" font-weight="600" fill="#09090b" text-anchor="middle">Cancel</text></g>
 <g data-action="Click &quot;Save&quot;"><rect x="578" y="320" width="124" height="44" rx="8" fill="#2563eb" stroke="#2563eb"/><text x="640.0" y="347.0" font-size="15" font-weight="600" fill="#ffffff" text-anchor="middle">Save</text></g>
 </svg>
+```

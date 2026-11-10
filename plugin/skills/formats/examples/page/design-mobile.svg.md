@@ -1,3 +1,6 @@
+# Example: `design.svg` of a `mobile` page
+
+```svg
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 760" font-family="ui-sans-serif, system-ui, sans-serif">
 <title>Edit user</title>
 <rect x="0.5" y="0.5" width="389" height="759" rx="36" fill="#f4f4f5" stroke="#d4d4d8"/>
@@ -10,3 +13,4 @@
 <g data-action="Click &quot;Cancel&quot;"><rect x="20" y="680" width="350" height="48" rx="12" fill="#ffffff" stroke="#a1a1aa"/><text x="195.0" y="709.0" font-size="16" font-weight="600" fill="#09090b" text-anchor="middle">Cancel</text></g>
 <rect x="128" y="744" width="134" height="5" rx="2.5" fill="#09090b"/>
 </svg>
+```

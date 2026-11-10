@@ -1,3 +1,8 @@
+# Viewer template
+
+The HTML template of the viewer page: the text between the ```` ```html ```` line and the last ```` ``` ```` line.
+
+```html
 <!doctype html>
 <html lang="en">
 <head>
@@ -1203,3 +1208,4 @@ body.review #comments { display: inline-flex; }
 </script>
 </body>
 </html>
+```

@@ -18,4 +18,4 @@
    - A test cannot run, for example it has a wrong import: fix the test. Run it again.
 6. Do not change the code or the files under `.mirror/xsrc/`.
 
-Example: `examples/cancel-order.test.ts`.
+Example: `examples/cancel-order.test.ts.md`.
