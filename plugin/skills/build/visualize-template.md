@@ -61,9 +61,22 @@ button, input { font: inherit; color: inherit; }
 #menu { display: none; }
 button:focus-visible, a:focus-visible, .demo [data-action]:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 /* Sidebar and reading pane */
-.shell { flex: 1; min-height: 0; display: grid; grid-template-columns: 290px minmax(0, 1fr); }
+.shell { position: relative; flex: 1; min-height: 0; display: grid; grid-template-columns: var(--side-w, 290px) minmax(0, 1fr); }
+/* Drag the line between the sidebar and the pane to change the sidebar width. */
+#resize { position: absolute; top: 0; bottom: 0; left: calc(var(--side-w, 290px) - 4px); width: 8px; z-index: 2; cursor: col-resize; touch-action: none; }
+#resize::after { content: ""; position: absolute; top: 0; bottom: 0; left: 3px; width: 2px; border-radius: 2px; background: transparent; transition: background .15s; }
+#resize:hover::after, #resize.on::after, #resize:focus-visible::after { background: var(--flow); }
+#resize:focus-visible { outline: none; }
+body.resizing { cursor: col-resize; user-select: none; }
+body.resizing #view { pointer-events: none; }
 #side { overflow: auto; padding: 12px 10px 60px; background: color-mix(in srgb, var(--text) 3%, var(--panel)); border-right: 1px solid var(--border); }
 #view { position: relative; overflow: auto; padding: 28px 40px 120px; }
+/* The zoom of the pane only. --zoom is set on #view by the zoom buttons. */
+#view > * { zoom: var(--zoom, 1); }
+.zoom { display: flex; align-items: center; gap: 2px; }
+.zoom .btn { font-variant-numeric: tabular-nums; }
+.zoom #zoom-reset { min-width: 58px; padding: 0 8px; font-size: 13px; }
+.zoom .btn:disabled { opacity: .4; cursor: default; }
 .rbar { margin: 2px 4px 12px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); font-size: 13px; }
 .rbar strong { font-size: 14px; }
 .rbar .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 6px 0 8px; color: var(--muted); }
@@ -96,6 +109,22 @@ button:focus-visible, a:focus-visible, .demo [data-action]:focus-visible { outli
 .te { flex: 1; min-width: 0; font: 13px var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .te small { margin-left: 6px; font: 12px var(--font); color: var(--muted); }
 .titem.st-removed .te { text-decoration: line-through; opacity: .65; }
+/* Review pages: a check beside each flow or page, and the read filter. */
+.trow { display: flex; align-items: center; gap: 2px; }
+.trow .titem { flex: 1; min-width: 0; }
+.titem.read:not(.on) .te, .titem.read:not(.on) .tb { opacity: .55; }
+.tcheck { flex: none; display: grid; place-items: center; width: 26px; height: 26px; padding: 0; border: 0; border-radius: 8px; background: none; color: var(--muted); cursor: pointer; }
+.tcheck::before { content: ""; width: 14px; height: 14px; border: 1.5px solid color-mix(in srgb, var(--text) 30%, transparent); border-radius: 50%; background: no-repeat 50% 50% / 10px 10px; transition: background-color .15s, border-color .15s; }
+.tcheck:hover { background: color-mix(in srgb, var(--text) 6%, transparent); }
+.tcheck:hover::before { border-color: var(--added); }
+.tcheck[aria-pressed="true"]::before { border-color: var(--added); background-color: var(--added); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m2 5.2 2 2 4-4.4'/%3E%3C/svg%3E"); }
+.rbar .rprog { display: flex; align-items: center; gap: 8px; margin: 10px 0 6px; color: var(--muted); }
+.rbar .rprog i { flex: 1; height: 4px; border-radius: 4px; background: color-mix(in srgb, var(--text) 8%, transparent); overflow: hidden; }
+.rbar .rprog i::before { content: ""; display: block; width: var(--p); height: 100%; background: var(--added); transition: width .2s; }
+.rfilter { display: flex; gap: 2px; margin-bottom: 6px; padding: 2px; border-radius: 10px; background: color-mix(in srgb, var(--text) 5%, transparent); }
+.rfilter button { flex: 1; height: 26px; padding: 0 6px; border: 0; border-radius: 8px; background: none; color: var(--muted); font-size: 12.5px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+.rfilter button:hover { color: var(--text); }
+.rfilter button[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px rgb(0 0 0 / .08); }
 .tnone { margin: 16px 12px; color: var(--muted); font-size: 14px; }
 /* A flow, a page or a project in the pane */
 .doc { max-width: 920px; margin: 0 auto; }
@@ -110,7 +139,7 @@ button:focus-visible, a:focus-visible, .demo [data-action]:focus-visible { outli
 .kind { padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--surface); background: var(--c); }
 .dname { color: var(--muted); font-size: 14px; }
 .chip { display: inline-block; padding: 1px 9px; border-radius: 999px; font-size: 13px; font-weight: 700; letter-spacing: .03em; color: color-mix(in srgb, var(--c) 75%, var(--text)); background: color-mix(in srgb, var(--c) 16%, transparent); }
-.toc { position: sticky; top: -28px; z-index: 1; display: flex; flex-wrap: wrap; gap: 2px; margin: 18px 0 0; padding: 8px 0; background: var(--bg); }
+.toc { position: sticky; top: calc(-28px / var(--zoom, 1)); z-index: 1; display: flex; flex-wrap: wrap; gap: 2px; margin: 18px 0 0; padding: 8px 0; background: var(--bg); }
 .toc button { padding: 6px 14px; border: 0; border-radius: 10px; background: color-mix(in srgb, var(--text) 5%, transparent); color: var(--muted); font-weight: 500; cursor: pointer; }
 .toc button:hover { color: var(--flow); background: color-mix(in srgb, var(--flow) 12%, transparent); }
 .toc small { margin-left: 4px; font-size: 12px; }
@@ -231,16 +260,18 @@ body.review #comments { display: inline-flex; }
   .top { gap: 8px; padding: 0 8px; }
   .top .meta { display: none; }
   .shell { grid-template-columns: minmax(0, 1fr); }
+  #resize { display: none; }
   #side { position: fixed; top: 56px; bottom: 0; left: 0; width: min(300px, 86vw); z-index: 4; transform: translateX(-105%); transition: transform .2s; box-shadow: 0 10px 40px rgb(0 0 0 / .2); }
   body.nav #side { transform: none; }
   #view { padding: 20px 16px 100px; }
   .dtitle h2 { font-size: 20px; }
-  .toc { top: -20px; }
+  .toc { top: calc(-20px / var(--zoom, 1)); }
 }
 @media (max-width: 560px) {
   .brand h1 { font-size: 0; }
   .brand h1::before { margin: 0; }
   #comments span { display: none; }
+  .zoom { display: none; }
 }
 </style>
 </head>
@@ -253,12 +284,18 @@ body.review #comments { display: inline-flex; }
     <span class="meta count" id="qcount"></span>
   </div>
   <div class="tools">
+    <div class="zoom" role="group" aria-label="Zoom the page">
+      <button class="btn icon" id="zoom-out" title="Zoom out  ( - )" aria-label="Zoom out"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3.5 8h9"/></svg></button>
+      <button class="btn" id="zoom-reset" title="Reset the zoom  ( 0 )" aria-label="Reset the zoom">100%</button>
+      <button class="btn icon" id="zoom-in" title="Zoom in  ( + )" aria-label="Zoom in"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3.5 8h9M8 3.5v9"/></svg></button>
+    </div>
     <button class="btn" id="comments" title="Copy all comments, to paste them to Claude">&#x1F4AC; <span>Copy comments</span></button>
     <button class="btn icon" id="theme" title="Toggle light / dark" aria-label="Toggle light or dark theme"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13Zm0 1.5v10a5 5 0 0 1 0-10Z"/></svg></button>
   </div>
 </header>
 <div class="shell">
   <nav id="side" aria-label="Projects, flows and pages"></nav>
+  <div id="resize" role="separator" aria-orientation="vertical" aria-controls="side" aria-label="Sidebar width" aria-valuemin="200" tabindex="0" title="Drag to change the width. Double-click to reset."></div>
   <main id="view"></main>
 </div>
 <div id="toast" role="status" aria-live="polite"></div>
@@ -595,7 +632,8 @@ body.review #comments { display: inline-flex; }
   // The sidebar: each project, then its flows by group. keep(f): true for each flow to show.
   // sel: the key of the open project or flow. shut(key): true for each closed group. A closed
   // group shows only its header, with a mark when a flow in it changed.
-  function treeHtml(models, sel, keep, shut) {
+  // read(key): on a review page, true when the viewer checked that flow as reviewed. Without it, no checks.
+  function treeHtml(models, sel, keep, shut, read) {
     return models.map(function (m, i) {
       var p = m.project, flows = m.flows.filter(keep);
       if (!flows.length && !keep(null, p)) return '';
@@ -611,8 +649,12 @@ body.review #comments { display: inline-flex; }
             (closed ? ' <small>' + g.flows.length + '</small>' + markHtml(g.flows.some(flowChanged) ? 'changed' : null, 'Has changes') : '') + '</button>' : '';
           return head + (closed ? '' : g.flows.map(function (f) {
             var b = badgeOf(f), st = STATUS[f.status] ? f.status : flowChanged(f) ? 'changed' : null;
-            return '<button type="button" class="titem' + statusClass(f) + (sel === f.key ? ' on' : '') + '" data-go="' + esc(f.key) + '" title="' + esc(f.sub || f.label) + ' (' + esc(f.label) + ')">' +
+            var done = !!read && read(f.key);
+            var item = '<button type="button" class="titem' + statusClass(f) + (sel === f.key ? ' on' : '') + (done ? ' read' : '') + '" data-go="' + esc(f.key) + '" title="' + esc(f.sub || f.label) + ' (' + esc(f.label) + ')">' +
               '<span class="tb">' + esc(b.badge) + '</span><span class="te">' + pathHtml(f, m.flows) + '</span>' + markHtml(st) + '</button>';
+            if (!read) return item;
+            return '<div class="trow">' + item + '<button type="button" class="tcheck" data-read="' + esc(f.key) + '" aria-pressed="' + done + '" aria-label="' +
+              (done ? 'Mark as not reviewed: ' : 'Mark as reviewed: ') + esc(f.label) + '" title="' + (done ? 'Reviewed. Click to mark as not reviewed.' : 'Mark as reviewed') + '"></button></div>';
           }).join(''));
         }).join('')) + '</div>';
     }).join('');
@@ -635,7 +677,7 @@ body.review #comments { display: inline-flex; }
   // ---- Browser only below ----
 
   // sel: the key of the open project or flow. hits: the search matches in all projects.
-  var state = { sel: '', models: [], q: '', hits: [], hit: -1, changedOnly: false, folds: {}, shut: {}, comments: {}, ckeys: [], editing: null, draft: '' };
+  var state = { sel: '', models: [], q: '', hits: [], hit: -1, changedOnly: false, folds: {}, shut: {}, comments: {}, ckeys: [], editing: null, draft: '', zoom: 1, sideWidth: 290, read: {}, readFilter: 'all' };
 
   function $(id) { return document.getElementById(id); }
   function sel(attr, value) { return '[' + attr + '="' + String(value).replace(/["\\]/g, '\\$&') + '"]'; }
@@ -651,6 +693,86 @@ body.review #comments { display: inline-flex; }
     var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
     try { localStorage.setItem('mirror-theme', next); } catch (e) { /* private mode */ }
     applyTheme();
+  }
+
+  // ---- Sidebar width and pane zoom ----
+  // Both are saved for all pages: mirror-side-width and mirror-zoom.
+
+  var SIDE_MIN = 200, SIDE_DEFAULT = 290;
+  var ZOOMS = [0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2];
+  function saveSetting(key, value) {
+    try { if (value == null) localStorage.removeItem(key); else localStorage.setItem(key, String(value)); } catch (e) { /* private mode */ }
+  }
+  function loadSetting(key) { try { return Number(localStorage.getItem(key)) || 0; } catch (e) { return 0; } }
+
+  function sideMax() { return Math.max(SIDE_MIN, Math.min(640, Math.round(window.innerWidth * 0.6))); }
+  function setSide(w, save) {
+    w = Math.round(Math.min(sideMax(), Math.max(SIDE_MIN, w || SIDE_DEFAULT)));
+    state.sideWidth = w;
+    document.documentElement.style.setProperty('--side-w', w + 'px');
+    $('resize').setAttribute('aria-valuenow', String(w));
+    $('resize').setAttribute('aria-valuemax', String(sideMax()));
+    if (save) saveSetting('mirror-side-width', w);
+  }
+  function initResize() {
+    var bar = $('resize'), drag = null;
+    setSide(loadSetting('mirror-side-width') || SIDE_DEFAULT, false);
+    bar.addEventListener('pointerdown', function (e) {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      drag = { x: e.clientX, w: state.sideWidth };
+      bar.setPointerCapture(e.pointerId);
+      bar.classList.add('on');
+      document.body.classList.add('resizing');
+    });
+    bar.addEventListener('pointermove', function (e) { if (drag) setSide(drag.w + e.clientX - drag.x, false); });
+    function stop() {
+      if (!drag) return;
+      drag = null;
+      bar.classList.remove('on');
+      document.body.classList.remove('resizing');
+      setSide(state.sideWidth, true);
+    }
+    bar.addEventListener('pointerup', stop);
+    bar.addEventListener('pointercancel', stop);
+    bar.addEventListener('dblclick', function () { setSide(SIDE_DEFAULT, false); saveSetting('mirror-side-width', null); });
+    bar.addEventListener('keydown', function (e) {
+      var step = e.shiftKey ? 64 : 16, w = { ArrowLeft: state.sideWidth - step, ArrowRight: state.sideWidth + step, Home: SIDE_MIN, End: sideMax() }[e.key];
+      if (w == null) return;
+      e.preventDefault();
+      setSide(w, true);
+    });
+    // A smaller window can make the saved width too wide. Keep the saved width for a bigger window.
+    window.addEventListener('resize', function () { setSide(loadSetting('mirror-side-width') || SIDE_DEFAULT, false); });
+  }
+
+  function setZoom(z, save) {
+    var i = 0;
+    ZOOMS.forEach(function (v, j) { if (Math.abs(v - z) < Math.abs(ZOOMS[i] - z)) i = j; });
+    state.zoom = ZOOMS[i];
+    $('view').style.setProperty('--zoom', String(state.zoom));
+    $('zoom-reset').textContent = Math.round(state.zoom * 100) + '%';
+    $('zoom-out').disabled = i === 0;
+    $('zoom-in').disabled = i === ZOOMS.length - 1;
+    if (save) saveSetting('mirror-zoom', state.zoom === 1 ? null : state.zoom);
+    [].forEach.call($('view').querySelectorAll('.dlink'), drawWires);
+  }
+  function zoomBy(dir) { setZoom(ZOOMS[Math.max(0, Math.min(ZOOMS.length - 1, ZOOMS.indexOf(state.zoom) + dir))], true); }
+  function initZoom() {
+    var wheel = 0;
+    setZoom(loadSetting('mirror-zoom') || 1, false);
+    $('zoom-in').addEventListener('click', function () { zoomBy(1); });
+    $('zoom-out').addEventListener('click', function () { zoomBy(-1); });
+    $('zoom-reset').addEventListener('click', function () { setZoom(1, true); });
+    // Ctrl or Cmd and the wheel over the pane zoom the pane, not the browser.
+    $('view').addEventListener('wheel', function (e) {
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      wheel += e.deltaY;
+      if (Math.abs(wheel) < 40) return;
+      zoomBy(wheel < 0 ? 1 : -1);
+      wheel = 0;
+    }, { passive: false });
   }
 
   // ---- Sidebar and pane ----
@@ -677,9 +799,24 @@ body.review #comments { display: inline-flex; }
   // keep(null, project) says if a project with no such flow stays.
   function keep(f, p) {
     var q = state.q.trim();
-    if (!f) return !q && (!state.changedOnly || hasChanges(p.item));
+    if (!f) return !q && (!state.changedOnly || hasChanges(p.item)) && (!isReview() || state.readFilter === 'all');
     if (state.changedOnly && !flowChanged(f)) return false;
+    if (isReview() && state.readFilter !== 'all' && !!state.read[f.key] !== (state.readFilter === 'read')) return false;
     return !q || matches(f, q) || f.steps.some(function (s) { return matches(s, q); });
+  }
+
+  // Review pages: the flows and pages that this viewer checked as reviewed, saved per page
+  // under mirror-read:<path>. The filter shows all, the unread or the read ones.
+  function isReview() { return document.body.classList.contains('review'); }
+  function loadRead() {
+    try { state.read = JSON.parse(localStorage.getItem('mirror-read:' + location.pathname) || '{}') || {}; } catch (e) { state.read = {}; }
+  }
+  function toggleRead(key) {
+    if (state.read[key]) delete state.read[key]; else state.read[key] = 1;
+    try { localStorage.setItem('mirror-read:' + location.pathname, JSON.stringify(state.read)); } catch (e) { /* private mode: keep them in memory */ }
+    drawSide();
+    var b = $('side').querySelector('.tcheck' + sel('data-read', key));
+    if (b) b.focus();
   }
 
   // A closed group or section stays closed for this viewer. A group opens while a search runs, and
@@ -717,6 +854,15 @@ body.review #comments { display: inline-flex; }
     });
   }
 
+  // The reviewed count of all flows and pages, and the all / unread / read filter.
+  function readHtml() {
+    var all = 0, done = 0;
+    state.models.forEach(function (m) { m.flows.forEach(function (f) { all++; if (state.read[f.key]) done++; }); });
+    var pick = function (v, label) { return '<button type="button" data-read-filter="' + v + '" aria-pressed="' + (state.readFilter === v) + '">' + label + '</button>'; };
+    return '<div class="rprog"><span>' + done + ' of ' + all + ' reviewed</span><i style="--p: ' + (all ? Math.round(done / all * 100) : 0) + '%"></i></div>' +
+      '<div class="rfilter" role="group" aria-label="Show">' + pick('all', 'All') + pick('unread', 'Unread ' + (all - done)) + pick('read', 'Read ' + done) + '</div>';
+  }
+
   function drawSide() {
     var review = document.body.classList.contains('review'), html = '';
     if (review) {
@@ -728,9 +874,10 @@ body.review #comments { display: inline-flex; }
       var total = n.added + n.changed + n.removed;
       html += '<div class="rbar"><strong>' + total + ' change' + (total === 1 ? '' : 's') + '</strong> in this review' +
         '<div class="legend">' + Object.keys(n).map(function (k) { return '<span>' + markHtml(k) + ' ' + n[k] + ' ' + k + '</span>'; }).join('') + '</div>' +
+        readHtml() +
         '<button type="button" class="btn" id="changed-only" aria-pressed="' + state.changedOnly + '">Show changes only</button></div>';
     }
-    var tree = treeHtml(state.models, state.sel, keep, shut);
+    var tree = treeHtml(state.models, state.sel, keep, shut, review ? function (k) { return !!state.read[k]; } : null);
     $('side').innerHTML = html + (tree || '<p class="tnone">' + (state.q.trim() ? 'No match.' : 'Nothing here.') + '</p>');
     var on = $('side').querySelector('.on');
     if (on && on.scrollIntoView) on.scrollIntoView({ block: 'nearest' });
@@ -875,19 +1022,21 @@ body.review #comments { display: inline-flex; }
 
   // A line from the right side of each control to the edge of the design, then a curve to its action.
   function drawWires(link) {
-    var base = link.getBoundingClientRect(), edge = link.querySelector('.demo').getBoundingClientRect().right - base.left, out = '';
-    if (!base.width) return;
+    var base = link.getBoundingClientRect(), demo = link.querySelector('.demo'), wires = link.querySelector('.dwires'), out = '';
+    if (!base.width || !demo || !wires) return;
+    // The pane can be zoomed: the boxes are in screen pixels, the lines are in page pixels.
+    var k = base.width / (link.offsetWidth || base.width), edge = (demo.getBoundingClientRect().right - base.left) / k;
     [].forEach.call(link.querySelectorAll('.demo [data-action]'), function (el) {
       var name = actionName(el.getAttribute('data-action'));
       var item = [].filter.call(link.querySelectorAll('.dact'), function (b) { return actionName(b.getAttribute('data-act')) === name; })[0];
       if (!item) return;
       var r = el.getBoundingClientRect(), q = item.getBoundingClientRect();
-      var x1 = r.right - base.left, y1 = r.top + r.height / 2 - base.top, x2 = q.left - base.left, y2 = q.top + q.height / 2 - base.top;
+      var x1 = (r.right - base.left) / k, y1 = (r.top + r.height / 2 - base.top) / k, x2 = (q.left - base.left) / k, y2 = (q.top + q.height / 2 - base.top) / k;
       var xe = Math.max(x1, edge), c = (x2 - xe) / 2, a = ' data-wire="' + esc(name) + '"';
       out += '<path' + a + ' d="M' + x1 + ' ' + y1 + ' H' + xe + ' C' + (xe + c) + ' ' + y1 + ' ' + (x2 - c) + ' ' + y2 + ' ' + x2 + ' ' + y2 + '"/>' +
         '<circle' + a + ' cx="' + x1 + '" cy="' + y1 + '" r="3"/><circle' + a + ' cx="' + x2 + '" cy="' + y2 + '" r="3"/>';
     });
-    link.querySelector('.dwires').innerHTML = out;
+    wires.innerHTML = out;
   }
 
   // Light up a control, its action and the line between them.
@@ -1134,13 +1283,18 @@ body.review #comments { display: inline-flex; }
     $('meta').textContent = state.data.generated ? 'generated ' + state.data.generated : '';
     loadComments();
     loadShut();
+    loadRead();
     updateCommentsButton();
+    initResize();
+    initZoom();
     fromHash();
 
     $('side').addEventListener('click', function (e) {
       var b = e.target.closest('button');
       if (!b) return;
       if (b.id === 'changed-only') { state.changedOnly = !state.changedOnly; drawSide(); return; }
+      if (b.hasAttribute('data-read')) { toggleRead(b.getAttribute('data-read')); return; }
+      if (b.hasAttribute('data-read-filter')) { state.readFilter = b.getAttribute('data-read-filter'); drawSide(); return; }
       if (b.hasAttribute('data-group')) { toggleGroup(b.getAttribute('data-group')); return; }
       if (b.hasAttribute('data-go')) open(b.getAttribute('data-go'), { push: true });
     });
@@ -1200,6 +1354,10 @@ body.review #comments { display: inline-flex; }
     document.addEventListener('keydown', function (e) {
       var typing = /^(INPUT|TEXTAREA)$/.test(document.activeElement && document.activeElement.tagName);
       if (e.key === '/' && !typing) { e.preventDefault(); $('q').focus(); }
+      else if (!typing && !e.ctrlKey && !e.metaKey && !e.altKey && /^(\+|=|-|0)$/.test(e.key) && !(e.target.closest && e.target.closest('#resize'))) {
+        e.preventDefault();
+        if (e.key === '0') setZoom(1, true); else zoomBy(e.key === '-' ? -1 : 1);
+      }
     });
   }
 
