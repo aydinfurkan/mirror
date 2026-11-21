@@ -632,7 +632,8 @@ body.review #comments { display: inline-flex; }
   // The sidebar: each project, then its flows by group. keep(f): true for each flow to show.
   // sel: the key of the open project or flow. shut(key): true for each closed group. A closed
   // group shows only its header, with a mark when a flow in it changed.
-  // read(key): on a review page, true when the viewer checked that flow as reviewed. Without it, no checks.
+  // read(f): on a review page, true or false for a changed flow (checked as reviewed or not), and null
+  // for a flow without changes, which gets no check. Without read, no checks.
   function treeHtml(models, sel, keep, shut, read) {
     return models.map(function (m, i) {
       var p = m.project, flows = m.flows.filter(keep);
@@ -649,10 +650,10 @@ body.review #comments { display: inline-flex; }
             (closed ? ' <small>' + g.flows.length + '</small>' + markHtml(g.flows.some(flowChanged) ? 'changed' : null, 'Has changes') : '') + '</button>' : '';
           return head + (closed ? '' : g.flows.map(function (f) {
             var b = badgeOf(f), st = STATUS[f.status] ? f.status : flowChanged(f) ? 'changed' : null;
-            var done = !!read && read(f.key);
+            var done = read ? read(f) : null;
             var item = '<button type="button" class="titem' + statusClass(f) + (sel === f.key ? ' on' : '') + (done ? ' read' : '') + '" data-go="' + esc(f.key) + '" title="' + esc(f.sub || f.label) + ' (' + esc(f.label) + ')">' +
               '<span class="tb">' + esc(b.badge) + '</span><span class="te">' + pathHtml(f, m.flows) + '</span>' + markHtml(st) + '</button>';
-            if (!read) return item;
+            if (done === null) return item;
             return '<div class="trow">' + item + '<button type="button" class="tcheck" data-read="' + esc(f.key) + '" aria-pressed="' + done + '" aria-label="' +
               (done ? 'Mark as not reviewed: ' : 'Mark as reviewed: ') + esc(f.label) + '" title="' + (done ? 'Reviewed. Click to mark as not reviewed.' : 'Mark as reviewed') + '"></button></div>';
           }).join(''));
@@ -801,7 +802,8 @@ body.review #comments { display: inline-flex; }
     var q = state.q.trim();
     if (!f) return !q && (!state.changedOnly || hasChanges(p.item)) && (!isReview() || state.readFilter === 'all');
     if (state.changedOnly && !flowChanged(f)) return false;
-    if (isReview() && state.readFilter !== 'all' && !!state.read[f.key] !== (state.readFilter === 'read')) return false;
+    // Unread and Read show only the changed flows: only they have a check.
+    if (isReview() && state.readFilter !== 'all' && (!flowChanged(f) || !!state.read[f.key] !== (state.readFilter === 'read'))) return false;
     return !q || matches(f, q) || f.steps.some(function (s) { return matches(s, q); });
   }
 
@@ -857,9 +859,9 @@ body.review #comments { display: inline-flex; }
   // The reviewed count of all flows and pages, and the all / unread / read filter.
   function readHtml() {
     var all = 0, done = 0;
-    state.models.forEach(function (m) { m.flows.forEach(function (f) { all++; if (state.read[f.key]) done++; }); });
+    state.models.forEach(function (m) { m.flows.forEach(function (f) { if (!flowChanged(f)) return; all++; if (state.read[f.key]) done++; }); });
     var pick = function (v, label) { return '<button type="button" data-read-filter="' + v + '" aria-pressed="' + (state.readFilter === v) + '">' + label + '</button>'; };
-    return '<div class="rprog"><span>' + done + ' of ' + all + ' reviewed</span><i style="--p: ' + (all ? Math.round(done / all * 100) : 0) + '%"></i></div>' +
+    return '<div class="rprog"><span>' + done + ' of ' + all + (all === 1 ? ' change' : ' changes') + ' reviewed</span><i style="--p: ' + (all ? Math.round(done / all * 100) : 0) + '%"></i></div>' +
       '<div class="rfilter" role="group" aria-label="Show">' + pick('all', 'All') + pick('unread', 'Unread ' + (all - done)) + pick('read', 'Read ' + done) + '</div>';
   }
 
@@ -877,7 +879,7 @@ body.review #comments { display: inline-flex; }
         readHtml() +
         '<button type="button" class="btn" id="changed-only" aria-pressed="' + state.changedOnly + '">Show changes only</button></div>';
     }
-    var tree = treeHtml(state.models, state.sel, keep, shut, review ? function (k) { return !!state.read[k]; } : null);
+    var tree = treeHtml(state.models, state.sel, keep, shut, review ? function (f) { return flowChanged(f) ? !!state.read[f.key] : null; } : null);
     $('side').innerHTML = html + (tree || '<p class="tnone">' + (state.q.trim() ? 'No match.' : 'Nothing here.') + '</p>');
     var on = $('side').querySelector('.on');
     if (on && on.scrollIntoView) on.scrollIntoView({ block: 'nearest' });
