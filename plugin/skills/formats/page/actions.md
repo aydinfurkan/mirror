@@ -18,7 +18,7 @@ and `desktop` projects.
 ## Calls
 
 - Each `Call:` is a `calls` link. Write the target and the note with "Links" in
-  `flow/boundary.md`.
+  `flow/contract.md`.
 - Write local work (state, navigation, storage) in `Then:` or `Fail:`, not in `Call:`.
 
 ## Example

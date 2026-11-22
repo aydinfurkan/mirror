@@ -1,19 +1,21 @@
-# Rule: flow `boundary.md`
+# Rule: flow `contract.md`
 
-Path: `.mirror/xsrc/<project>/<flow>/boundary.md`. The contract of the flow.
+Path: `.mirror/xsrc/<project>/<flow>/contract.md`. The contract of the flow: its fields, its
+results and its links. The example input and results are in `flow.md`, not here.
 
 ## Sections
 
+In this order:
+
 - `## Input`: the trigger line (endpoint, queue or script), then one table row per input
   field: path, query, body or message field. Put the shape limits (type, required, length,
-  format) in the Validation column. Then one example of the input.
+  format) in the Validation column.
 - `## Auth`: one bullet: who can start the flow, then `: ` and how the code checks it. For
   example ``- Signed-in user: `requireAuth` reads the session cookie.`` Write `- Public: ` when
   anyone can start it. Write `- None: ` and the reason when the flow has no check, for example
   a consumer that trusts its topic. Rules about who owns the data stay in `## Constraints` of
   `business-rules.md`.
 - `## Output`: one table row per result: each status code, event or effect, with each error.
-  Then one example of the success result and one example of an error.
 - `## Dependencies`: one bullet per link to another flow, project or external system. Write
   other needs (a helper, a repository in memory) as plain bullets. See "Links".
 
@@ -39,22 +41,7 @@ Write each link as one bullet:
   See "config.json" in `layout.md`.
 - A bullet that does not start with a verb is a plain note. The viewer does not draw it.
 
-## Example blocks
-
-- Show real values, not types.
-- Use the fence language of the real format: `json`, `graphql`, `proto`, `sh` or `text`.
-- Put a label line before each fence: `Example:`, `Example (201):`, `Example (400):`.
-- Skip an example when there is no input or no output body.
-
-| Kind | Input example | Output example |
-| --- | --- | --- |
-| `backend` (REST) | The request body in `json`. | The response body in `json`: the success and one error. |
-| `backend` (GraphQL) | The query in `graphql`, then the variables in `json`. | The response in `json`, with `data` or `errors`. |
-| `backend` (RPC) | The request message in `json` or `proto`. | The response message and one error status. |
-| `consumer` | The message payload in `json`. Add the headers or the key when they matter. | The published event in `json`, or the written record. |
-| `worker` | The command line, the cron line, or the env vars in `sh`. | The written record or the published event, the log line, and the exit code. |
-
 ## Examples
 
-- REST endpoint: `examples/flow/boundary-rest.md`
-- Consumer: `examples/flow/boundary-consumer.md`
+- REST endpoint: `examples/flow/contract-rest.md`
+- Consumer: `examples/flow/contract-consumer.md`

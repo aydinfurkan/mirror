@@ -22,7 +22,7 @@ Each rule has an id. The id is `<project>/<flow-or-page> <kind><n>`:
 
 - `AC<n>`: the item `n` of `## Acceptance criteria` in `business-rules.md`.
 - `C<n>`: the item `n` of `## Constraints` in `business-rules.md`.
-- `O<n>`: the row `n` of the `## Output` table in `boundary.md`. Only a flow has it.
+- `O<n>`: the row `n` of the `## Output` table in `contract.md`. Only a flow has it.
 
 Count from 1, in the order of the file. Example: `api/cancel-order AC2`.
 
@@ -50,5 +50,5 @@ The flow `api/cancel-order` of the shop example:
 - The report from step 4: `examples/report.md`.
 
 The test example uses TypeScript and Vitest. Copy its shape: the tags, the test names and the
-use of the boundary examples. Do not copy its language. Write each test in the language and
+use of the examples of `flow.md`. Do not copy its language. Write each test in the language and
 the framework of the project.

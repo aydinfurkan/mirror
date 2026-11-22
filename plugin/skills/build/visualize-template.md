@@ -143,6 +143,9 @@ body.resizing #view { pointer-events: none; }
 .toc button { padding: 6px 14px; border: 0; border-radius: 10px; background: color-mix(in srgb, var(--text) 5%, transparent); color: var(--muted); font-weight: 500; cursor: pointer; }
 .toc button:hover { color: var(--flow); background: color-mix(in srgb, var(--flow) 12%, transparent); }
 .toc small { margin-left: 4px; font-size: 12px; }
+.ftabs { gap: 4px; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+.ftabs button { display: inline-flex; align-items: center; gap: 6px; margin-bottom: -1px; border-radius: 10px 10px 0 0; border-bottom: 2px solid transparent; background: none; }
+.ftabs button[aria-selected="true"] { color: var(--flow); font-weight: 600; border-bottom-color: var(--flow); background: color-mix(in srgb, var(--flow) 8%, transparent); }
 .part { margin-top: 30px; scroll-margin-top: 64px; }
 .part > h3 { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .part > h3::after { content: ""; flex: 1; height: 1px; background: var(--border); }
@@ -481,14 +484,48 @@ body.review #comments { display: inline-flex; }
     return { cls: '', html: inline(s) };
   }
 
-  // The text of a part. A flow shows its boundary as two parts: `input` holds the text before the
-  // `## Output` heading, and `output` holds the rest. Each part drops its own heading.
+  // The text of a part. `input` and `output` come from `flow.md`. Older data has no `input`,
+  // `output` or `contract`, only `boundary`: the contract is the boundary, and `input` and
+  // `output` are its example blocks before and after the `## Output` heading.
   function partSource(it, tab) {
+    if (tab === 'contract') return it.contract !== undefined ? it.contract : it.boundary;
     if (tab !== 'input' && tab !== 'output') return it[tab];
-    var b = it.boundary || '', m = /^##[ \t]+Output\b.*$/m.exec(b);
-    var t = tab === 'input' ? (m ? b.slice(0, m.index) : b) : (m ? b.slice(m.index) : '');
-    var head = tab === 'input' ? /^\s*##[ \t]+Input\b.*(\r?\n|$)/ : /^\s*##[ \t]+Output\b.*(\r?\n|$)/;
-    return t.replace(head, '').trim();
+    if (it[tab] !== undefined) return it[tab];
+    var b = (it.contract !== undefined ? it.contract : it.boundary) || '', m = /^##[ \t]+Output\b.*$/m.exec(b);
+    return examples(tab === 'input' ? (m ? b.slice(0, m.index) : b) : (m ? b.slice(m.index) : ''));
+  }
+
+  // Each fenced block of a markdown text, with its `Example …:` label line when it has one.
+  function examples(md) {
+    var lines = String(md || '').split(/\r?\n/), out = [], label = null;
+    for (var i = 0; i < lines.length; i++) {
+      var l = lines[i];
+      if (/^Example\b.*:$/.test(l.trim())) { label = l.trim(); continue; }
+      if (/^\s*```/.test(l)) {
+        var j = i + 1;
+        while (j < lines.length && !/^\s*```\s*$/.test(lines[j])) j++;
+        out.push((label ? label + '\n\n' : '') + lines.slice(i, j + 1).join('\n'));
+        label = null;
+        i = j;
+      } else if (l.trim()) label = null;
+    }
+    return out.join('\n\n');
+  }
+
+  // The tabs of a flow: the flow itself (its input, steps and output), its full contract, and its
+  // rules. A page and a project have no tabs.
+  function flowTabs(n) {
+    return n.type !== 'flow' ? null : [{ id: 'flow', label: 'Flow', parts: ['input', 'steps', 'output'] },
+      { id: 'contract', label: 'Contract', parts: ['contract'] }, { id: 'rules', label: 'Rules', parts: ['rules'] }];
+  }
+
+  // True when a part of a tab changed on a review page.
+  function tabChanged(n, t) {
+    var it = n.item;
+    return t.parts.some(function (p) {
+      if (p === 'steps') return (n.steps || []).some(function (s) { return !!STATUS[s.status]; });
+      return !!it.old && tabText(Object.assign({}, it, it.old), p) !== tabText(it, p);
+    });
   }
 
   // The text of a row tab, as the diff compares it. The definition tab also holds the frontmatter.
@@ -501,7 +538,7 @@ body.review #comments { display: inline-flex; }
     // A page with a design picture shows it first, as its UI.
     var ui = n.item && (n.item.designSvg || n.item.designImage) ? ['ui'] : [];
     return n.type === 'project' ? ['definition'] : n.type === 'page' ? ['definition'].concat(ui, [n.unit === 'action' ? 'actions' : 'steps', 'design', 'rules'])
-      : ['definition', 'input', 'steps', 'output', 'rules'];
+      : ['definition', 'input', 'steps', 'output', 'contract', 'rules'];
   }
 
 
@@ -538,7 +575,7 @@ body.review #comments { display: inline-flex; }
     }
     // A project definition shows each section closed, so the page opens short.
     var src = partSource(it, tab);
-    return shot + (src ? renderMd(src, n.type === 'project' ? folds || {} : null) : shot ? '' : '<p class="empty">Nothing here yet.</p>');
+    return shot + (src ? renderMd(src, n.type === 'project' ? folds || {} : null) : shot ? '' : '<p class="empty">' + (tab === 'input' || tab === 'output' ? 'No example.' : 'Nothing here yet.') + '</p>');
   }
 
   // A relative path or an https URL. A click opens the full image.
@@ -590,22 +627,27 @@ body.review #comments { display: inline-flex; }
       (closed ? '' : '<div class="db">' + text + '</div>') + '</section>';
   }
 
-  // A flow or page as a document: its title, a bar of its parts, then each part.
+  // A flow or page as a document: its title, a bar of its parts, then each part. A flow has a bar
+  // of tabs instead, and shows the parts of one tab.
   // group: the group name of the flow, shown in the path above the title.
-  // shut(key): true for each closed part.
-  function flowHtml(n, group, shut) {
-    var b = badgeOf(n), parts = rowTabs(n), pid = n.key.split('/')[0];
+  // shut(key): true for each closed part. ftab: the id of the open tab of a flow.
+  function flowHtml(n, group, shut, ftab) {
+    var b = badgeOf(n), parts = rowTabs(n), pid = n.key.split('/')[0], tabs = flowTabs(n);
     var kind = n.type === 'page' ? 'page' : (n.item.trigger || 'flow') + ' flow';
+    var cur = tabs && (tabs.filter(function (t) { return t.id === ftab; })[0] || tabs[0]);
+    var rest = tabs ? '<nav class="toc ftabs" role="tablist" aria-label="Views">' + tabs.map(function (t) {
+      return '<button type="button" role="tab" data-ftab="' + t.id + '" aria-selected="' + (t === cur) + '">' + t.label +
+        (tabChanged(n, t) ? markHtml('changed', 'Has changes') : '') + '</button>';
+    }).join('') + '</nav>' + cur.parts.map(function (t) { return partHtml(n, t, null, shut); }).join('')
+      : '<nav class="toc" aria-label="Parts">' + parts.slice(1).map(function (t) {
+        return '<button type="button" data-part="' + t + '">' + partLabel(t) + '</button>';
+      }).join('') + '</nav>' + parts.slice(1).map(function (t) { return partHtml(n, t, null, shut); }).join('');
     return '<article class="doc' + statusClass(n) + '" data-row="' + esc(n.key) + '">' +
       '<div class="crumb"><button type="button" data-go="' + esc(pid) + '">' + esc(pid) + '</button>' +
       (group ? '<span aria-hidden="true">/</span><span>' + esc(group) + '</span>' : '') + '</div>' +
       '<div class="dtitle"><span class="badge">' + esc(b.badge) + '</span><h2>' + esc(b.path) + '</h2>' + chipHtml(n) + '</div>' +
       '<div class="dname">' + esc(n.label) + ' · ' + esc(kind) + '</div>' +
-      partHtml(n, 'definition') +
-      '<nav class="toc" aria-label="Parts">' + parts.slice(1).map(function (t) {
-        return '<button type="button" data-part="' + t + '">' + partLabel(t) + '</button>';
-      }).join('') + '</nav>' +
-      parts.slice(1).map(function (t) { return partHtml(n, t, null, shut); }).join('') + '</article>';
+      partHtml(n, 'definition') + rest + '</article>';
   }
 
   // A flow or page as a card in a project overview. A click opens it. flows: all flows of the project.
@@ -682,14 +724,15 @@ body.review #comments { display: inline-flex; }
   }
 
   globalThis.MirrorViewer = { esc: esc, renderMd: renderMd, summary: summary, model: model, groups: groups, matches: matches, hasChanges: hasChanges,
-    diffHtml: diffHtml, actionDetails: actionDetails, badgeOf: badgeOf, flowHtml: flowHtml, projectHtml: projectHtml, treeHtml: treeHtml,
+    diffHtml: diffHtml, actionDetails: actionDetails, badgeOf: badgeOf, flowHtml: flowHtml, flowTabs: flowTabs, projectHtml: projectHtml, treeHtml: treeHtml,
     commentsText: commentsText };
   if (typeof document === 'undefined') return;
 
   // ---- Browser only below ----
 
   // sel: the key of the open project or flow. hits: the search matches in all projects.
-  var state = { sel: '', models: [], q: '', hits: [], hit: -1, changedOnly: false, folds: {}, shut: {}, comments: {}, ckeys: [], editing: null, draft: '', zoom: 1, sideWidth: 290, read: {}, readFilter: 'all' };
+  // ftab: the open tab of the open flow.
+  var state = { sel: '', ftab: 'flow', models: [], q: '', hits: [], hit: -1, changedOnly: false, folds: {}, shut: {}, comments: {}, ckeys: [], editing: null, draft: '', zoom: 1, sideWidth: 290, read: {}, readFilter: 'all' };
 
   function $(id) { return document.getElementById(id); }
   function sel(attr, value) { return '[' + attr + '="' + String(value).replace(/["\\]/g, '\\$&') + '"]'; }
@@ -904,7 +947,7 @@ body.review #comments { display: inline-flex; }
     }
     var f = flowByKey(state.sel), group = f ? String(f.item.group || '').trim() : '';
     var closed = function (k) { return !!state.shut[k]; };
-    $('view').innerHTML = f ? flowHtml(f, group, closed) : projectHtml(m, state.folds[m.project.key], state.models.indexOf(m), closed);
+    $('view').innerHTML = f ? flowHtml(f, group, closed, state.ftab) : projectHtml(m, state.folds[m.project.key], state.models.indexOf(m), closed);
     // Mark the matching steps of this flow.
     state.hits.forEach(function (h, i) {
       if (h.type !== 'step' || h.parentKey !== state.sel) return;
@@ -931,7 +974,7 @@ body.review #comments { display: inline-flex; }
       else history.replaceState(null, '', '#' + key);
     } catch (e) { /* file:// in some browsers */ }
     var same = key === state.sel;
-    if (!same) showGroup(key);
+    if (!same) { showGroup(key); state.ftab = 'flow'; }
     state.sel = key;
     state.editing = null;
     document.body.classList.remove('nav');
@@ -944,18 +987,33 @@ body.review #comments { display: inline-flex; }
 
   // Scroll to a step or action of the open flow. Its part opens first when it is closed.
   function revealStep(key) {
-    var fk = key.split('#')[0];
+    var fk = key.split('#')[0], redraw = state.ftab !== 'flow';
+    state.ftab = 'flow';
     if (state.shut[fk + '#steps'] || state.shut[fk + '#actions']) {
       setShut(fk + '#steps', false); setShut(fk + '#actions', false);
-      drawView();
+      redraw = true;
     }
+    if (redraw) drawView();
     reveal($('view').querySelector('.db ' + sel('data-key', key)));
   }
 
+  // Scroll to a part of the open flow or page. A flow first opens the tab that holds the part.
   function showPart(tab) {
-    if (state.shut[state.sel + '#' + tab]) { setShut(state.sel + '#' + tab, false); drawView(); }
+    var f = flowByKey(state.sel), tabs = f && flowTabs(f), redraw = false;
+    (tabs || []).forEach(function (t) { if (t.parts.indexOf(tab) >= 0 && state.ftab !== t.id) { state.ftab = t.id; redraw = true; } });
+    if (state.shut[state.sel + '#' + tab]) { setShut(state.sel + '#' + tab, false); redraw = true; }
+    if (redraw) drawView();
     var e = $('view').querySelector('.part' + sel('data-part', tab));
     if (e) e.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }
+
+  // Open a tab of the open flow, and keep the focus on its button.
+  function showTab(id) {
+    state.ftab = id;
+    state.editing = null;
+    drawView();
+    var b = $('view').querySelector('.ftabs ' + sel('data-ftab', id));
+    if (b) b.focus();
   }
 
   // ---- Page demos ----
@@ -1120,7 +1178,7 @@ body.review #comments { display: inline-flex; }
   }
 
   // The lines of a part that take a comment: each step or action, and each line of the
-  // other parts (rules, definition, boundary, design), also in a diff.
+  // other parts (rules, definition, input, output, contract, design), also in a diff.
   function commentTargets(part, f, tab) {
     var db = part.querySelector('.db');
     if (!db) return [];
@@ -1135,10 +1193,10 @@ body.review #comments { display: inline-flex; }
     return [].filter.call(db.querySelectorAll(sels), function (el) { return el.textContent.trim(); }).map(function (el) {
       var t = el.tagName === 'TR' ? [].map.call(el.cells, function (c) { return c.textContent.trim(); }).join(' | ') : el.textContent.replace(/\s+/g, ' ').trim();
       var sec = section(el);
-      // The input and output parts are the two halves of `boundary.md`.
+      // The input and output parts are the two ends of `flow.md`.
       var io = tab === 'input' || tab === 'output';
       return { el: el, quote: (el.tagName === 'INS' ? 'new: ' : el.tagName === 'DEL' ? 'old: ' : '') + t,
-        where: (io ? 'boundary' : tab) + (sec || io ? ', ' + (sec || partLabel(tab)) : '') };
+        where: (io ? 'flow' : tab) + (sec || io ? ', ' + (sec || partLabel(tab)) : '') };
     });
   }
 
@@ -1327,6 +1385,7 @@ body.review #comments { display: inline-flex; }
       else if (b.hasAttribute('data-act')) followDemo(b.getAttribute('data-act'));
       else if (b.hasAttribute('data-go')) open(b.getAttribute('data-go'), { push: true });
       else if (b.hasAttribute('data-goto')) open(b.getAttribute('data-goto'), { push: true });
+      else if (b.hasAttribute('data-ftab')) showTab(b.getAttribute('data-ftab'));
       else if (b.closest('.toc')) showPart(b.getAttribute('data-part'));
       else if (b.hasAttribute('data-fold-sec')) toggleSection(b.getAttribute('data-fold-sec'));
       else if (b.hasAttribute('data-cmt')) editComment(Number(b.getAttribute('data-cmt')));

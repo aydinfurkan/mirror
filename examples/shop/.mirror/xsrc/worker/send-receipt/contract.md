@@ -8,12 +8,6 @@ Topic `order.events`, event `order.paid`:
 | `orderId` | string | yes | not empty |
 | `email` | string | yes | valid email |
 
-Example:
-
-```json
-{ "eventId": "evt_1", "type": "order.paid", "orderId": "o1", "email": "ada@example.com" }
-```
-
 ## Output
 
 | Result | When |

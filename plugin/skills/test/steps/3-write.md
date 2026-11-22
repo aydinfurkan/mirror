@@ -10,7 +10,7 @@
    - Put the test next to the other tests of the same flow or page. If there are none, follow
      the place of the other tests of the project.
    - Add the tag of the rule. See "Tags" in `SKILL.md`.
-   - Use the `Example` blocks of `boundary.md` as the input and the expected output.
+   - Use the `Example` blocks of `flow.md` as the input and the expected output.
    - Test what the rule says, not how the code does it.
 5. Run the new tests and each test with a tag of the scope.
    - A test fails: the code does not do what the mirror says. Do not change the code or the

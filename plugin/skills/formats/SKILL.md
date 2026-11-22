@@ -20,8 +20,8 @@ other files of the repository.
 | ----------------------------------------- | --------------------------- | ------------------------------------------------------------------------ |
 | `xsrc/<project>/definition.md`            | `project/definition.md`     | `examples/project/definition.md`                                         |
 | `xsrc/<project>/<flow>/definition.md`     | `flow/definition.md`        | `examples/flow/definition.md`                                            |
-| `xsrc/<project>/<flow>/steps.md`          | `flow/steps.md`             | `examples/flow/steps.md`                                                 |
-| `xsrc/<project>/<flow>/boundary.md`       | `flow/boundary.md`          | `examples/flow/boundary-rest.md`, `examples/flow/boundary-consumer.md`   |
+| `xsrc/<project>/<flow>/flow.md`           | `flow/flow.md`              | `examples/flow/flow-rest.md`, `examples/flow/flow-consumer.md`           |
+| `xsrc/<project>/<flow>/contract.md`       | `flow/contract.md`          | `examples/flow/contract-rest.md`, `examples/flow/contract-consumer.md`   |
 | `xsrc/<project>/<flow>/business-rules.md` | `flow/business-rules.md`    | `examples/flow/business-rules.md`                                        |
 | `xsrc/<project>/<page>/definition.md`     | `page/definition.md`        | `examples/page/definition.md`                                            |
 | `xsrc/<project>/<page>/actions.md`        | `page/actions.md`           | `examples/page/actions.md`                                               |

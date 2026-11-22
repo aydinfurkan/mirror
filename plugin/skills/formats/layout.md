@@ -12,7 +12,11 @@
 ## Flows and pages
 
 - A flow belongs to a `backend`, `worker` or `consumer` project. It has `definition.md`,
-  `steps.md`, `boundary.md` and `business-rules.md`.
+  `flow.md`, `contract.md` and `business-rules.md`.
+- An older flow has `steps.md` and `boundary.md` instead of `flow.md` and `contract.md`. When
+  you change such a flow, move it to the new files: the steps and the `Example` blocks of
+  `boundary.md` go to `flow.md`, and the rest of `boundary.md` goes to `contract.md`. Then
+  delete `steps.md` and `boundary.md`.
 - A page belongs to a `frontend`, `mobile` or `desktop` project. It has `definition.md`,
   `actions.md`, `design.md`, `design.svg` (a wireframe) and `business-rules.md`.
 
