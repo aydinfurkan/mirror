@@ -7,6 +7,11 @@ Path: `.mirror/xsrc/<project>/<flow>/boundary.md`. The contract of the flow.
 - `## Input`: the trigger line (endpoint, queue or script), then one table row per input
   field: path, query, body or message field. Put the shape limits (type, required, length,
   format) in the Validation column. Then one example of the input.
+- `## Auth`: one bullet: who can start the flow, then `: ` and how the code checks it. For
+  example ``- Signed-in user: `requireAuth` reads the session cookie.`` Write `- Public: ` when
+  anyone can start it. Write `- None: ` and the reason when the flow has no check, for example
+  a consumer that trusts its topic. Rules about who owns the data stay in `## Constraints` of
+  `business-rules.md`.
 - `## Output`: one table row per result: each status code, event or effect, with each error.
   Then one example of the success result and one example of an error.
 - `## Dependencies`: one bullet per link to another flow, project or external system. Write

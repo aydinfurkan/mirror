@@ -13,6 +13,10 @@ Example:
 { "userId": "u1", "email": "ada@example.com" }
 ```
 
+## Auth
+
+- None: the flow trusts each message on the topic.
+
 ## Output
 
 | Result | When |

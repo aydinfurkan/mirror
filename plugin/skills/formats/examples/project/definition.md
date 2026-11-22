@@ -8,3 +8,7 @@ The `api` project is an HTTP API for users.
 ## Technical decisions
 
 - Parse the shape of each request body with zod at the route.
+
+## Glossary
+
+- Member: `User`

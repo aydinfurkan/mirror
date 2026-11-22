@@ -8,6 +8,9 @@ Path: `.mirror/xsrc/<project>/definition.md`.
 - `## Stack`: the language, the framework, the main libraries, and how to start it.
 - `## Technical decisions`: the choices that apply to many flows or pages: storage,
   validation, error mapping, auth.
+- `## Glossary`: one bullet per business word that has another name in the code. Write the
+  business word, then `: ` and the code name in backticks: ``- Listing: `Post` ``. Write
+  `- None.` when each business word is also the code name.
 
 ## Example
 

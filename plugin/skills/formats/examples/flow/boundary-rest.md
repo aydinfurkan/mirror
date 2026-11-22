@@ -12,6 +12,10 @@ Example:
 { "email": "ada@example.com" }
 ```
 
+## Auth
+
+- Public: anyone can sign up.
+
 ## Output
 
 | Status | Body | When |
