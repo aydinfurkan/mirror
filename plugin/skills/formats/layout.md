@@ -18,7 +18,8 @@
   `boundary.md` go to `flow.md`, and the rest of `boundary.md` goes to `contract.md`. Then
   delete `steps.md` and `boundary.md`.
 - A page belongs to a `frontend`, `mobile` or `desktop` project. It has `definition.md`,
-  `actions.md`, `design.md`, `design.svg` (a wireframe) and `business-rules.md`.
+  `actions.md`, `design.md`, `design.svg` (a wireframe) and `business-rules.md`. It can have
+  one `design-<variant>.svg` for each view of another user or status.
 
 ## config.json
 

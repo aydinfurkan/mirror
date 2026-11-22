@@ -238,6 +238,11 @@ body.resizing #view { pointer-events: none; }
 .dwires path { fill: none; stroke: var(--flow); stroke-width: 1.5; opacity: .45; }
 .dwires circle { fill: var(--flow); opacity: .7; }
 .dwires .hot { opacity: 1; stroke-width: 2.5; }
+.uivs { display: inline-flex; flex-wrap: wrap; gap: 3px; margin: 0 0 10px; padding: 3px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
+.uivs button { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border: 0; border-radius: 7px; background: none; color: var(--muted); font: 500 13.5px var(--font); cursor: pointer; }
+.uivs button[aria-selected="true"] { color: var(--flow); font-weight: 600; background: color-mix(in srgb, var(--flow) 13%, transparent); }
+.uvnote { margin: -2px 0 12px; color: var(--muted); font-size: 14px; }
+.uvnote b { color: var(--text); font-weight: 600; }
 .dver { display: flex; align-items: center; gap: 4px; margin: 4px 0 12px; }
 .dver button { padding: 4px 12px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--muted); font: inherit; font-size: 13.5px; cursor: pointer; }
 .dver button.on { border-color: var(--changed); color: var(--text); background: color-mix(in srgb, var(--changed) 16%, transparent); }
@@ -610,11 +615,36 @@ body.review #comments { display: inline-flex; }
       { id: 'design', label: 'Design', parts: ['design'] }, rules]);
   }
 
+  // The wireframes of a page: the main view (name '') from `design.svg`, then each variant from
+  // `design-<name>.svg`.
+  var UIV = '';
+  function uiViews(it) { return [{ name: '', svg: it.designSvg }].concat(it.designVariants || []); }
+  function viewSvg(it, name) {
+    if (!it) return undefined;
+    if (!name) return it.designSvg;
+    var v = (it.designVariants || []).filter(function (x) { return x.name === name; })[0];
+    return v ? v.svg : undefined;
+  }
+  function viewLabel(name) { return name ? name.charAt(0).toUpperCase() + name.slice(1).replace(/-/g, ' ') : 'Main'; }
+  // When a variant shows: its bullet in `## Variants` of design.md, like ``- `guest`: the user is not signed in.``
+  function variantNote(it, name) {
+    if (!name) return '';
+    var m = new RegExp('^\\s*[-*]\\s+`' + name.replace(/[^a-z0-9_-]/gi, '') + '`:\\s*(.+)$', 'mi').exec(it.design || '');
+    return m ? m[1].trim() : '';
+  }
+  // True when a view of the page changed on a review page.
+  function viewChanged(it, name) {
+    if (!it.old) return false;
+    if (!name) return it.old.designSvg !== undefined && it.old.designSvg !== it.designSvg;
+    return it.old.designVariants !== undefined && viewSvg(it.old, name) !== viewSvg(it, name);
+  }
+
   // True when a part of a tab changed on a review page.
   function tabChanged(n, t) {
     var it = n.item;
     return t.parts.some(function (p) {
-      if (p === 'ui') return !!it.old && it.old.designSvg !== undefined && it.old.designSvg !== it.designSvg;
+      if (p === 'ui') return uiViews(it).some(function (v) { return viewChanged(it, v.name); }) ||
+        (!!it.old && it.old.designVariants !== undefined && (it.old.designVariants || []).some(function (v) { return viewSvg(it, v.name) === undefined; }));
       if (p === 'steps' || p === 'actions') return (n.steps || []).some(function (s) { return !!STATUS[s.status]; });
       return !!it.old && tabText(Object.assign({}, it, it.old), p) !== tabText(it, p);
     });
@@ -650,15 +680,23 @@ body.review #comments { display: inline-flex; }
       }).join('') + '</' + tag + '>' : '<p class="empty">' + (act ? 'No actions.' : 'No steps.') + '</p>';
     }
     // The UI part shows the design picture. An SVG shows its actions beside it, with a line from
-    // each control to its action.
-    var shot = tab !== 'ui' ? '' : it.designSvg ? '<div class="dlink"><div class="shot demo" data-demo="' + esc(n.key) + '"></div>' +
+    // each control to its action. A page with variants shows a bar of its views above it.
+    var vname = viewSvg(it, UIV) !== undefined ? UIV : '', svg = viewSvg(it, vname), views = uiViews(it);
+    var shot = tab !== 'ui' ? '' : svg ? '<div class="dlink"><div class="shot demo" data-demo="' + esc(n.key) + '" data-view="' + esc(vname) + '"></div>' +
       '<ul class="dacts" aria-label="Actions"></ul><svg class="dwires" aria-hidden="true"></svg></div>' +
       '<p class="hint">Each line links a part of the page to its action. Click either one to follow it. A call opens the backend flow.</p>' : designImageHtml(it.designImage);
     // A changed design on a review page: a switch between the new design and the old one.
-    if (shot && it.designSvg && it.old && it.old.designSvg !== undefined && it.old.designSvg !== it.designSvg) {
+    if (shot && svg && viewChanged(it, vname) && viewSvg(it.old, vname) !== undefined) {
       shot = '<div class="dver" role="group" aria-label="Design version"><button type="button" class="on" data-dver="after" aria-pressed="true">After</button>' +
         '<button type="button" data-dver="before" aria-pressed="false">Before</button><span>The design changed.</span></div>' +
-        '<div class="dwas" hidden><div class="shot demo was" data-demo-old="' + esc(n.key) + '"></div></div><div class="dnow">' + shot + '</div>';
+        '<div class="dwas" hidden><div class="shot demo was" data-demo-old="' + esc(n.key) + '" data-view="' + esc(vname) + '"></div></div><div class="dnow">' + shot + '</div>';
+    }
+    if (tab === 'ui' && svg && views.length > 1) {
+      var note = variantNote(it, vname);
+      shot = '<div class="uivs" role="tablist" aria-label="Views of the page">' + views.map(function (v) {
+        return '<button type="button" role="tab" data-uiv="' + esc(v.name) + '" aria-selected="' + (v.name === vname) + '">' +
+          esc(viewLabel(v.name)) + (viewChanged(it, v.name) ? markHtml('changed', 'Changed') : '') + '</button>';
+      }).join('') + '</div>' + (note ? '<p class="uvnote"><b>' + esc(viewLabel(vname)) + ':</b> ' + inline(note) + '</p>' : '') + shot;
     }
     // A changed item keeps its old values in `old`: show the changed lines of this tab.
     if (it.old) {
@@ -722,7 +760,8 @@ body.review #comments { display: inline-flex; }
   // the open tab. Each tab shows one file.
   // group: the group name of the flow, shown in the path above the title.
   // ftab: the id of the open tab. shut is not used: the parts do not fold.
-  function flowHtml(n, group, shut, ftab) {
+  function flowHtml(n, group, shut, ftab, uiv) {
+    UIV = uiv || '';
     var b = badgeOf(n), parts = rowTabs(n), pid = n.key.split('/')[0], tabs = flowTabs(n);
     var kind = n.type === 'page' ? 'page' : (n.item.trigger || 'flow') + ' flow';
     var cur = tabs && (tabs.filter(function (t) { return t.id === ftab; })[0] || tabs[0]);
@@ -822,8 +861,9 @@ body.review #comments { display: inline-flex; }
   // ---- Browser only below ----
 
   // sel: the key of the open project or flow. hits: the search matches in all projects.
-  // ftab: the open tab of the open flow or page. '' opens its first tab.
-  var state = { sel: '', ftab: '', models: [], q: '', hits: [], hit: -1, changedOnly: false, folds: {}, shut: {}, comments: {}, ckeys: [], editing: null, draft: '', zoom: 1, sideWidth: 290, read: {}, readFilter: 'all' };
+  // ftab: the open tab of the open flow or page. '' opens its first tab. uiv: the open view of
+  // the UI tab of a page, '' for the main view.
+  var state = { sel: '', ftab: '', uiv: '', models: [], q: '', hits: [], hit: -1, changedOnly: false, folds: {}, shut: {}, comments: {}, ckeys: [], editing: null, draft: '', zoom: 1, sideWidth: 290, read: {}, readFilter: 'all' };
 
   function $(id) { return document.getElementById(id); }
   function sel(attr, value) { return '[' + attr + '="' + String(value).replace(/["\\]/g, '\\$&') + '"]'; }
@@ -1038,7 +1078,7 @@ body.review #comments { display: inline-flex; }
     }
     var f = flowByKey(state.sel), group = f ? String(f.item.group || '').trim() : '';
     var closed = function (k) { return !!state.shut[k]; };
-    $('view').innerHTML = f ? flowHtml(f, group, closed, state.ftab) : projectHtml(m, state.folds[m.project.key], state.models.indexOf(m), closed);
+    $('view').innerHTML = f ? flowHtml(f, group, closed, state.ftab, state.uiv) : projectHtml(m, state.folds[m.project.key], state.models.indexOf(m), closed);
     // Mark the matching steps of this flow.
     state.hits.forEach(function (h, i) {
       if (h.type !== 'step' || h.parentKey !== state.sel) return;
@@ -1065,7 +1105,7 @@ body.review #comments { display: inline-flex; }
       else history.replaceState(null, '', '#' + key);
     } catch (e) { /* file:// in some browsers */ }
     var same = key === state.sel;
-    if (!same) { showGroup(key); state.ftab = ''; }
+    if (!same) { showGroup(key); state.ftab = ''; state.uiv = ''; }
     state.sel = key;
     state.editing = null;
     document.body.classList.remove('nav');
@@ -1094,6 +1134,14 @@ body.review #comments { display: inline-flex; }
     if (redraw) drawView();
     var e = $('view').querySelector('.part' + sel('data-part', tab));
     if (e) e.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }
+
+  // Open a view of the UI tab of the open page, and keep the focus on its button.
+  function showView(name) {
+    state.uiv = name;
+    drawView();
+    var b = $('view').querySelector('.uivs ' + sel('data-uiv', name));
+    if (b) b.focus();
   }
 
   // Open a tab of the open flow, and keep the focus on its button.
@@ -1126,14 +1174,14 @@ body.review #comments { display: inline-flex; }
   // Put the SVG of the open page in its Design part. Each part with data-action is a control.
   function fillDemos() {
     [].forEach.call($('view').querySelectorAll('[data-demo-old]'), function (box) {
-      var f = flowByKey(box.getAttribute('data-demo-old')), svg = f && f.item.old && cleanSvg(f.item.old.designSvg);
+      var f = flowByKey(box.getAttribute('data-demo-old')), svg = f && f.item.old && cleanSvg(viewSvg(f.item.old, box.getAttribute('data-view') || ''));
       if (!svg) return;
       [].forEach.call(svg.querySelectorAll('[data-action]'), function (el) { el.removeAttribute('data-action'); });
       box.appendChild(svg);
       box.style.maxWidth = svg.style.maxWidth;
     });
     [].forEach.call($('view').querySelectorAll('[data-demo]'), function (box) {
-      var f = flowByKey(box.getAttribute('data-demo')), svg = f && cleanSvg(f.item.designSvg);
+      var f = flowByKey(box.getAttribute('data-demo')), svg = f && cleanSvg(viewSvg(f.item, box.getAttribute('data-view') || ''));
       if (!svg) return;
       [].forEach.call(svg.querySelectorAll('[data-action]'), function (el) {
         var t = demoTarget(f, el.getAttribute('data-action'));
@@ -1180,21 +1228,70 @@ body.review #comments { display: inline-flex; }
     if (window.ResizeObserver) new ResizeObserver(function () { drawWires(link); }).observe(link);
   }
 
-  // A line from the right side of each control to the edge of the design, then a curve to its action.
+  // A line from the right side of each control, out of the design, along its own lane in the gap,
+  // then into its action. Each action has one lane, so two lines never run on top of each other.
+  // Controls of one action share the lane, like a bus. Corners are round.
   function drawWires(link) {
-    var base = link.getBoundingClientRect(), demo = link.querySelector('.demo'), wires = link.querySelector('.dwires'), out = '';
+    var base = link.getBoundingClientRect(), demo = link.querySelector('.demo'), wires = link.querySelector('.dwires');
     if (!base.width || !demo || !wires) return;
     // The pane can be zoomed: the boxes are in screen pixels, the lines are in page pixels.
     var k = base.width / (link.offsetWidth || base.width), edge = (demo.getBoundingClientRect().right - base.left) / k;
+    var items = [].slice.call(link.querySelectorAll('.dact')), gap = items.length ? (items[0].getBoundingClientRect().left - base.left) / k - edge : 0;
+    var groups = {}, list = [];
     [].forEach.call(link.querySelectorAll('.demo [data-action]'), function (el) {
       var name = actionName(el.getAttribute('data-action'));
-      var item = [].filter.call(link.querySelectorAll('.dact'), function (b) { return actionName(b.getAttribute('data-act')) === name; })[0];
+      var item = items.filter(function (b) { return actionName(b.getAttribute('data-act')) === name; })[0];
       if (!item) return;
       var r = el.getBoundingClientRect(), q = item.getBoundingClientRect();
-      var x1 = (r.right - base.left) / k, y1 = (r.top + r.height / 2 - base.top) / k, x2 = (q.left - base.left) / k, y2 = (q.top + q.height / 2 - base.top) / k;
-      var xe = Math.max(x1, edge), c = (x2 - xe) / 2, a = ' data-wire="' + esc(name) + '"';
-      out += '<path' + a + ' d="M' + x1 + ' ' + y1 + ' H' + xe + ' C' + (xe + c) + ' ' + y1 + ' ' + (x2 - c) + ' ' + y2 + ' ' + x2 + ' ' + y2 + '"/>' +
-        '<circle' + a + ' cx="' + x1 + '" cy="' + y1 + '" r="3"/><circle' + a + ' cx="' + x2 + '" cy="' + y2 + '" r="3"/>';
+      var g = groups[name] || (groups[name] = { name: name, x2: (q.left - base.left) / k, y2: (q.top + q.height / 2 - base.top) / k, src: [] });
+      if (!g.src.length) list.push(g);
+      g.src.push({ x: (r.right - base.left) / k, y: (r.top + r.height / 2 - base.top) / k, h: r.height / k });
+    });
+    // Many controls of one action on one row, like the cards of a list: draw one line, from the
+    // control on the right. The line would else run across the other cards.
+    list.forEach(function (g) {
+      g.src = g.src.filter(function (s) {
+        return !g.src.some(function (o) { return o !== s && Math.abs(o.y - s.y) < 4 && o.x > s.x; });
+      });
+    });
+    // Two controls of different actions on one row: move their lines apart, inside each control.
+    var all = [];
+    list.forEach(function (g) { g.src.forEach(function (s) { all.push({ s: s, g: g }); }); });
+    all.sort(function (a, b) { return a.s.y - b.s.y; });
+    for (var i = 1; i < all.length; i++) {
+      var p = all[i - 1], c = all[i];
+      if (c.g !== p.g && Math.abs(c.s.y - p.s.y) < 5) c.s.y = p.s.y + Math.min(6, Math.max(0, c.s.h / 2 - 3));
+    }
+    // One lane per action. An action whose span (from its top line to its bottom line) does not
+    // touch another span can share that lane. Spans that touch get lanes from left to right in
+    // the order of their target, so the lines do not cross in the gap.
+    list.forEach(function (g) {
+      var ys = g.src.map(function (s) { return s.y; }).concat(g.y2);
+      g.lo = Math.min.apply(null, ys) - 6; g.hi = Math.max.apply(null, ys) + 6;
+    });
+    var lanes = [];
+    list.slice().sort(function (a, b) { return a.y2 - b.y2; }).forEach(function (g) {
+      for (var l = 0; l < lanes.length; l++) {
+        if (lanes[l].every(function (o) { return o.hi < g.lo || o.lo > g.hi; })) break;
+      }
+      (lanes[l] = lanes[l] || []).push(g);
+      g.lane = l;
+    });
+    var n = Math.max(lanes.length, 1), room = Math.max(gap - 16, 8), step = Math.min(10, room / n);
+    var R = 6, out = '';
+    function round(x1, y1, lx, y2, x2) {
+      // From (x1, y1) right to the lane lx, down or up to y2, right to x2, with round corners.
+      if (Math.abs(y2 - y1) < 1) return 'M' + x1 + ' ' + y1 + ' H' + x2;
+      var d = y2 > y1 ? 1 : -1, r = Math.min(R, Math.abs(y2 - y1) / 2, lx - x1, x2 - lx);
+      return 'M' + x1 + ' ' + y1 + ' H' + (lx - r) + ' Q' + lx + ' ' + y1 + ' ' + lx + ' ' + (y1 + d * r) +
+        ' V' + (y2 - d * r) + ' Q' + lx + ' ' + y2 + ' ' + (lx + r) + ' ' + y2 + ' H' + x2;
+    }
+    list.forEach(function (g) {
+      var lx = edge + 8 + (g.lane + 0.5) * step, a = ' data-wire="' + esc(g.name) + '"';
+      g.src.forEach(function (s) {
+        out += '<path' + a + ' d="' + round(s.x, s.y, Math.max(lx, s.x + 4), g.y2, g.x2) + '"/><circle' + a + ' cx="' + s.x + '" cy="' + s.y + '" r="3"/>';
+      });
+      out += '<circle' + a + ' cx="' + g.x2 + '" cy="' + g.y2 + '" r="3"/>';
     });
     wires.innerHTML = out;
   }
@@ -1480,6 +1577,7 @@ body.review #comments { display: inline-flex; }
       else if (b.hasAttribute('data-go')) open(b.getAttribute('data-go'), { push: true });
       else if (b.hasAttribute('data-goto')) open(b.getAttribute('data-goto'), { push: true });
       else if (b.hasAttribute('data-ftab')) showTab(b.getAttribute('data-ftab'));
+      else if (b.hasAttribute('data-uiv')) showView(b.getAttribute('data-uiv'));
       else if (b.closest('.toc')) showPart(b.getAttribute('data-part'));
       else if (b.hasAttribute('data-fold-sec')) toggleSection(b.getAttribute('data-fold-sec'));
       else if (b.hasAttribute('data-cmt')) editComment(Number(b.getAttribute('data-cmt')));

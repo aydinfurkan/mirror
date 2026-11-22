@@ -18,6 +18,11 @@
 - Not found: the text "Order not found." and a link to `/`.
 - Cancel error: an alert with "This order can no longer be cancelled."
 
+## Variants
+
+- `waiting`: the payment is not done yet. The badge is gray with a spinner, and there is no "Cancel order" button.
+- `cancelled`: the order is cancelled. The badge is red, and the footer says when the money comes back.
+
 ## Responsive
 
 - None.

@@ -35,6 +35,9 @@ Each sub-folder is a flow or a page. Read its `definition.md` first.
   `actions.md`.
 - For a page only: `designSvg`, the full text of `design.svg`. Leave it out when the file does
   not exist.
+- For a page only: `designVariants`, one `{ "name", "svg" }` per `design-<name>.svg`: the name
+  and the full text of the file. Use the order of the `## Variants` bullets of `design.md`,
+  then the other files by name. Leave it out when there is no such file.
 - `status`: `null`.
 - `steps`: see "Steps".
 

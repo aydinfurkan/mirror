@@ -27,4 +27,5 @@ other files of the repository.
 | `xsrc/<project>/<page>/actions.md`        | `page/actions.md`           | `examples/page/actions.md`                                               |
 | `xsrc/<project>/<page>/design.md`         | `page/design.md`            | `examples/page/design.md`                                                |
 | `xsrc/<project>/<page>/design.svg`        | `page/design-svg.md`        | `examples/page/design.svg.md`, `examples/page/design-mobile.svg.md`      |
+| `xsrc/<project>/<page>/design-<variant>.svg` | `page/design-svg.md` ("Variants") | `examples/page/design.svg.md`                                          |
 | `xsrc/<project>/<page>/business-rules.md` | `page/business-rules.md`    | `examples/page/business-rules.md`                                        |
