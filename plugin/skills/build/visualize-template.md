@@ -481,9 +481,19 @@ body.review #comments { display: inline-flex; }
     return { cls: '', html: inline(s) };
   }
 
+  // The text of a part. A flow shows its boundary as two parts: `input` holds the text before the
+  // `## Output` heading, and `output` holds the rest. Each part drops its own heading.
+  function partSource(it, tab) {
+    if (tab !== 'input' && tab !== 'output') return it[tab];
+    var b = it.boundary || '', m = /^##[ \t]+Output\b.*$/m.exec(b);
+    var t = tab === 'input' ? (m ? b.slice(0, m.index) : b) : (m ? b.slice(m.index) : '');
+    var head = tab === 'input' ? /^\s*##[ \t]+Input\b.*(\r?\n|$)/ : /^\s*##[ \t]+Output\b.*(\r?\n|$)/;
+    return t.replace(head, '').trim();
+  }
+
   // The text of a row tab, as the diff compares it. The definition tab also holds the frontmatter.
   function tabText(it, tab) {
-    if (tab !== 'definition' || it.trigger === undefined) return it[tab] || '';
+    if (tab !== 'definition' || it.trigger === undefined) return partSource(it, tab) || '';
     return ['trigger: ' + (it.trigger || ''), 'entry: ' + (it.entry || ''), 'group: ' + (it.group || ''), '', it.definition || ''].join('\n');
   }
 
@@ -491,7 +501,7 @@ body.review #comments { display: inline-flex; }
     // A page with a design picture shows it first, as its UI.
     var ui = n.item && (n.item.designSvg || n.item.designImage) ? ['ui'] : [];
     return n.type === 'project' ? ['definition'] : n.type === 'page' ? ['definition'].concat(ui, [n.unit === 'action' ? 'actions' : 'steps', 'design', 'rules'])
-      : ['definition', 'steps', 'boundary', 'rules'];
+      : ['definition', 'input', 'steps', 'output', 'rules'];
   }
 
 
@@ -527,7 +537,8 @@ body.review #comments { display: inline-flex; }
       if (before !== after) return shot + diffHtml(before, after);
     }
     // A project definition shows each section closed, so the page opens short.
-    return shot + (it[tab] ? renderMd(it[tab], n.type === 'project' ? folds || {} : null) : shot ? '' : '<p class="empty">Nothing here yet.</p>');
+    var src = partSource(it, tab);
+    return shot + (src ? renderMd(src, n.type === 'project' ? folds || {} : null) : shot ? '' : '<p class="empty">Nothing here yet.</p>');
   }
 
   // A relative path or an https URL. A click opens the full image.
@@ -1124,7 +1135,10 @@ body.review #comments { display: inline-flex; }
     return [].filter.call(db.querySelectorAll(sels), function (el) { return el.textContent.trim(); }).map(function (el) {
       var t = el.tagName === 'TR' ? [].map.call(el.cells, function (c) { return c.textContent.trim(); }).join(' | ') : el.textContent.replace(/\s+/g, ' ').trim();
       var sec = section(el);
-      return { el: el, quote: (el.tagName === 'INS' ? 'new: ' : el.tagName === 'DEL' ? 'old: ' : '') + t, where: tab + (sec ? ', ' + sec : '') };
+      // The input and output parts are the two halves of `boundary.md`.
+      var io = tab === 'input' || tab === 'output';
+      return { el: el, quote: (el.tagName === 'INS' ? 'new: ' : el.tagName === 'DEL' ? 'old: ' : '') + t,
+        where: (io ? 'boundary' : tab) + (sec || io ? ', ' + (sec || partLabel(tab)) : '') };
     });
   }
 
