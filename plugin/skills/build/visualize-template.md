@@ -143,6 +143,9 @@ body.resizing #view { pointer-events: none; }
 .toc button { padding: 6px 14px; border: 0; border-radius: 10px; background: color-mix(in srgb, var(--text) 5%, transparent); color: var(--muted); font-weight: 500; cursor: pointer; }
 .toc button:hover { color: var(--flow); background: color-mix(in srgb, var(--flow) 12%, transparent); }
 .toc small { margin-left: 4px; font-size: 12px; }
+.ftabs { gap: 4px; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+.ftabs button { display: inline-flex; align-items: center; gap: 6px; margin-bottom: -1px; border-radius: 10px 10px 0 0; border-bottom: 2px solid transparent; background: none; }
+.ftabs button[aria-selected="true"] { color: var(--flow); font-weight: 600; border-bottom-color: var(--flow); background: color-mix(in srgb, var(--flow) 8%, transparent); }
 .part { margin-top: 30px; scroll-margin-top: 64px; }
 .part > h3 { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .part > h3::after { content: ""; flex: 1; height: 1px; background: var(--border); }
@@ -152,6 +155,7 @@ body.resizing #view { pointer-events: none; }
 .fhead:hover { color: var(--text); }
 .part.shut > h3 { margin-bottom: 0; }
 .part.lead { margin-top: 14px; }
+.part.bare { margin-top: 22px; }
 .part.lead .db { font-size: 17px; color: color-mix(in srgb, var(--text) 85%, var(--muted)); }
 .doc.proj .part.lead .db > p { max-width: 72ch; font-size: 18px; color: var(--text); }
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 10px; }
@@ -170,7 +174,28 @@ body.resizing #view { pointer-events: none; }
 /* Text of a part */
 .db { font-size: 16px; line-height: 1.6; }
 .db > :first-child { margin-top: 0; }
-.db h4, .db h5, .db h6, .fold > summary { margin: 18px 0 6px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.fold > summary { margin: 18px 0 6px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+/* Text parts read as a document: clear headings, callouts for the key sections. */
+.db h4, .db h5, .db h6 { margin: 24px 0 8px; font-size: 17px; font-weight: 700; letter-spacing: -.01em; color: var(--text); }
+.db > h4:first-child, .db > h5:first-child, .db > h6:first-child, .db > .mchips + h4, .db > .mchips + h5 { margin-top: 0; }
+.db h5.h-q::before { content: "\26A0\FE0E  "; color: var(--changed); }
+.db > ul, .db .callout > ul { display: grid; gap: 5px; margin: 0; }
+.db .bk { font-weight: 600; }
+.db .callout { padding: 10px 14px; border-radius: 8px; border-left: 3px solid var(--c); background: color-mix(in srgb, var(--c) 9%, transparent); }
+.db .callout > p { margin: 0; }
+.db .callout > p + p, .db .callout > p + ul { margin-top: 6px; }
+.db .c-goal { --c: var(--flow); }
+.db .c-non { --c: var(--muted); }
+.db .c-q { --c: var(--changed); }
+.db ul.checks, .db ul.nums { list-style: none; padding: 0; }
+.db ul.checks > li, .db ul.nums > li { display: flex; gap: 10px; }
+.db ul.checks > li::before { content: ""; flex: none; width: 14px; height: 14px; margin-top: 5px; border: 1.5px solid var(--muted); border-radius: 4px; }
+.db ul.nums { counter-reset: n; }
+.db ul.nums > li { counter-increment: n; }
+.db ul.nums > li::before { content: counter(n); flex: none; width: 20px; height: 20px; margin-top: 2px; border-radius: 50%; display: grid; place-items: center; font: 600 11px var(--mono); color: var(--flow); background: color-mix(in srgb, var(--flow) 13%, transparent); }
+.db .mchips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 18px; }
+.db .mchip { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; padding: 3px 10px; border-radius: 999px; font-size: 13px; color: var(--muted); background: color-mix(in srgb, var(--text) 6%, transparent); }
+.db .mchip b { color: var(--text); font-weight: 600; }
 .fold { border-top: 1px solid var(--border); }
 .fold:last-of-type { border-bottom: 1px solid var(--border); }
 .fold > summary { margin: 0; padding: 11px 0; list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px; }
@@ -181,7 +206,20 @@ body.resizing #view { pointer-events: none; }
 .fold > div { padding-bottom: 10px; }
 .db code { font: .9em var(--mono); padding: 1px 5px; border: 1px solid var(--border); border-radius: 5px; background: var(--surface); }
 .db pre { padding: 12px; overflow: auto; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
-.db pre code { padding: 0; border: 0; }
+.db pre code { padding: 0; border: 0; background: none; font-size: 13px; line-height: 1.6; }
+.db pre { position: relative; }
+/* Thin scrollbars that show only the thumb, in the sidebar, the pane and code blocks. */
+* { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--muted) 35%, transparent) transparent; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { border-radius: 3px; background: color-mix(in srgb, var(--muted) 35%, transparent); }
+::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--muted) 60%, transparent); }
+.db pre[data-lang]::after { content: attr(data-lang); position: absolute; top: 6px; right: 10px; font: 600 11px var(--mono); letter-spacing: .04em; text-transform: uppercase; color: var(--muted); opacity: .7; }
+.db .exl { margin: 14px 0 6px; font: 600 12px var(--mono); color: var(--muted); }
+.db .jk { color: var(--tab-1); }
+.db .js { color: var(--tab-3); }
+.db .jn { color: var(--tab-5); }
+.db .jl { color: var(--tab-2); }
 .db ul, .db ol { padding-left: 20px; }
 .db .list { padding: 0; }
 .db a { color: var(--flow); }
@@ -200,6 +238,11 @@ body.resizing #view { pointer-events: none; }
 .dwires path { fill: none; stroke: var(--flow); stroke-width: 1.5; opacity: .45; }
 .dwires circle { fill: var(--flow); opacity: .7; }
 .dwires .hot { opacity: 1; stroke-width: 2.5; }
+.uivs { display: inline-flex; flex-wrap: wrap; gap: 3px; margin: 0 0 10px; padding: 3px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
+.uivs button { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border: 0; border-radius: 7px; background: none; color: var(--muted); font: 500 13.5px var(--font); cursor: pointer; }
+.uivs button[aria-selected="true"] { color: var(--flow); font-weight: 600; background: color-mix(in srgb, var(--flow) 13%, transparent); }
+.uvnote { margin: -2px 0 12px; color: var(--muted); font-size: 14px; }
+.uvnote b { color: var(--text); font-weight: 600; }
 .dver { display: flex; align-items: center; gap: 4px; margin: 4px 0 12px; }
 .dver button { padding: 4px 12px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--muted); font: inherit; font-size: 13.5px; cursor: pointer; }
 .dver button.on { border-color: var(--changed); color: var(--text); background: color-mix(in srgb, var(--changed) 16%, transparent); }
@@ -318,14 +361,56 @@ body.review #comments { display: inline-flex; }
       });
   }
 
+  // A code block. A `json` block that parses is indented with two spaces and colored: keys,
+  // strings, numbers, and true, false and null. Other blocks show as they are.
+  function codeHtml(src, lang) {
+    var cls = lang ? ' data-lang="' + esc(lang) + '"' : '';
+    if (lang !== 'json') return '<pre' + cls + '><code>' + esc(src) + '</code></pre>';
+    var pretty;
+    try { pretty = JSON.stringify(JSON.parse(src), null, 2); } catch (e) { return '<pre' + cls + '><code>' + esc(src) + '</code></pre>'; }
+    var re = /("(?:\\.|[^"\\])*")(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/g, html = '', at = 0, m;
+    while ((m = re.exec(pretty))) {
+      html += esc(pretty.slice(at, m.index));
+      var k = m[1] ? (m[2] ? 'jk' : 'js') : m[3] ? 'jl' : 'jn';
+      html += '<span class="' + k + '">' + esc(m[1] || m[0]) + '</span>' + (m[2] ? esc(m[2]) : '');
+      at = re.lastIndex;
+    }
+    return '<pre' + cls + '><code>' + html + esc(pretty.slice(at)) + '</code></pre>';
+  }
+
+  // The sections that show as a callout box, and the lists with their own markers.
+  var CALLOUT = { 'context': 'goal', 'goal': 'goal', 'non-goal': 'non', 'open questions': 'q' };
+  var LISTS = { 'acceptance criteria': 'checks', 'constraints': 'nums' };
+
+  // A bullet as HTML. A short name before `: ` shows in bold, like `Header: the shop name`.
+  function bulletHtml(s) {
+    var m = /^([^:`*[\]]{1,28}):\s+(.*)$/.exec(s);
+    return m ? '<strong class="bk">' + inline(m[1]) + ':</strong> ' + inline(m[2]) : inline(s);
+  }
+
+  // A header line like `**Relates to:** `api/get-order``, as a chip. Each flow or page in it
+  // is a button that opens it.
+  function chipLine(name, value) {
+    var v = inline(value).replace(/<code>([a-z0-9_-]+\/[a-z0-9_.-]+)<\/code>/gi, '<button type="button" class="call" data-goto="$1" title="Open $1">$1</button>');
+    return '<span class="mchip"><b>' + inline(name) + '</b> ' + v + '</span>';
+  }
+
   // Headings, bullet and numbered lists, tables, code fences, paragraphs. Input is escaped first.
+  // Context, Goal, Non-goal and Open questions show in a callout box. Acceptance criteria show
+  // as checkboxes, and Constraints as numbers. Header lines like `**Relates to:** …` are chips.
   // folds: when given, each `#` or `##` section becomes a closed <details>; folds[i] true opens section i.
   function renderMd(text, folds) {
-    var out = [], list = null, code = null, sec = -1;
+    var out = [], list = null, code = null, lang = '', sec = -1, box = false, lcls = '';
     function closeList() {
-      if (list) { out.push(list === 'table' ? '</tbody></table>' : '</' + list + '>'); list = null; }
+      if (list) { out.push(list === 'table' ? '</tbody></table>' : list === 'chips' ? '</div>' : '</' + list + '>'); list = null; }
     }
-    function openList(tag) { if (list !== tag) { closeList(); list = tag; out.push('<' + tag + '>'); } }
+    function openList(tag) {
+      if (list === tag) return;
+      closeList();
+      list = tag;
+      out.push(tag === 'chips' ? '<div class="mchips">' : '<' + tag + (tag === 'ul' && lcls ? ' class="' + lcls + '"' : '') + '>');
+    }
+    function closeBox() { if (box) { closeList(); out.push('</div>'); box = false; } }
     function cells(line, tag) {
       return '<tr>' + line.trim().replace(/^\||\|$/g, '').split('|').map(function (c) {
         return '<' + tag + '>' + inline(c.trim()) + '</' + tag + '>';
@@ -334,7 +419,7 @@ body.review #comments { display: inline-flex; }
     String(text || '').split(/\r?\n/).forEach(function (line) {
       var m;
       if (code !== null) {
-        if (/^```/.test(line)) { out.push('<pre><code>' + esc(code.join('\n')) + '</code></pre>'); code = null; }
+        if (/^```/.test(line)) { out.push(codeHtml(code.join('\n'), lang)); code = null; }
         else code.push(line);
         return;
       }
@@ -346,26 +431,33 @@ body.review #comments { display: inline-flex; }
         out.push('<table><thead>' + cells(line, 'th') + '</thead><tbody>');
         return;
       }
-      if (/^```/.test(line)) { closeList(); code = []; return; }
+      if (/^```/.test(line)) { closeList(); code = []; lang = line.replace(/^```/, '').trim().toLowerCase(); return; }
+      if ((m = /^\*\*([^*]+?):\*\*\s*(.*)$/.exec(line))) { openList('chips'); out.push(chipLine(m[1], m[2])); return; }
       if ((m = /^(#{1,6})\s+(.*)$/.exec(line))) {
         closeList();
+        closeBox();
         if (folds && m[1].length <= 2) {
           if (sec >= 0) out.push('</div></details>');
           sec++;
           out.push('<details class="fold" data-fold="' + sec + '"' + (folds[sec] ? ' open' : '') + '><summary>' + inline(m[2]) + '</summary><div>');
           return;
         }
-        var lv = Math.min(m[1].length + 3, 6);
-        out.push('<h' + lv + '>' + inline(m[2]) + '</h' + lv + '>');
+        var lv = Math.min(m[1].length + 3, 6), t = m[2].trim().toLowerCase(), kind = CALLOUT[t];
+        lcls = LISTS[t] || '';
+        out.push('<h' + lv + (kind ? ' class="h-' + kind + '"' : '') + '>' + inline(m[2]) + '</h' + lv + '>');
+        if (kind) { out.push('<div class="callout c-' + kind + '">'); box = true; }
         return;
       }
-      if ((m = /^\s*[-*]\s+(.*)$/.exec(line))) { openList('ul'); out.push('<li>' + inline(m[1]) + '</li>'); return; }
+      if ((m = /^\s*[-*]\s+(.*)$/.exec(line))) { openList('ul'); out.push('<li>' + bulletHtml(m[1]) + '</li>'); return; }
       if ((m = /^\s*\d+\.\s+(.*)$/.exec(line))) { openList('ol'); out.push('<li>' + inline(m[1]) + '</li>'); return; }
       closeList();
+      // The label line of an example block, like `Example (201):`.
+      if (/^Example\b.*:$/.test(line.trim())) { out.push('<p class="exl">' + inline(line.trim().replace(/:$/, '')) + '</p>'); return; }
       if (line.trim()) out.push('<p>' + inline(line) + '</p>');
     });
     closeList();
-    if (code !== null) out.push('<pre><code>' + esc(code.join('\n')) + '</code></pre>');
+    if (code !== null) out.push(codeHtml(code.join('\n'), lang));
+    closeBox();
     if (sec >= 0) out.push('</div></details>');
     return out.join('');
   }
@@ -481,9 +573,86 @@ body.review #comments { display: inline-flex; }
     return { cls: '', html: inline(s) };
   }
 
+  // The text of a part. `input` and `output` come from `flow.md`. Older data has no `input`,
+  // `output` or `contract`, only `boundary`: the contract is the boundary, and `input` and
+  // `output` are its example blocks before and after the `## Output` heading.
+  function partSource(it, tab) {
+    if (tab === 'contract') return it.contract !== undefined ? it.contract : it.boundary;
+    if (tab !== 'input' && tab !== 'output') return it[tab];
+    if (it[tab] !== undefined) return it[tab];
+    var b = (it.contract !== undefined ? it.contract : it.boundary) || '', m = /^##[ \t]+Output\b.*$/m.exec(b);
+    return examples(tab === 'input' ? (m ? b.slice(0, m.index) : b) : (m ? b.slice(m.index) : ''));
+  }
+
+  // Each fenced block of a markdown text, with its `Example …:` label line when it has one.
+  function examples(md) {
+    var lines = String(md || '').split(/\r?\n/), out = [], label = null;
+    for (var i = 0; i < lines.length; i++) {
+      var l = lines[i];
+      if (/^Example\b.*:$/.test(l.trim())) { label = l.trim(); continue; }
+      if (/^\s*```/.test(l)) {
+        var j = i + 1;
+        while (j < lines.length && !/^\s*```\s*$/.test(lines[j])) j++;
+        out.push((label ? label + '\n\n' : '') + lines.slice(i, j + 1).join('\n'));
+        label = null;
+        i = j;
+      } else if (l.trim()) label = null;
+    }
+    return out.join('\n\n');
+  }
+
+  // The tabs of a flow or a page, one per file. A flow: the flow itself (its input, steps and
+  // output), its full contract, and its rules. A page: its UI when it has a design picture, its
+  // actions, its design, and its rules. A project has no tabs.
+  function flowTabs(n) {
+    var rules = { id: 'rules', label: 'Rules', parts: ['rules'] };
+    if (n.type === 'flow') {
+      return [{ id: 'flow', label: 'Flow', parts: ['input', 'steps', 'output'] }, { id: 'contract', label: 'Contract', parts: ['contract'] }, rules];
+    }
+    if (n.type !== 'page') return null;
+    var ui = n.item.designSvg || n.item.designImage ? [{ id: 'ui', label: 'UI', parts: ['ui'] }] : [];
+    return ui.concat([{ id: 'actions', label: 'Actions', parts: [n.unit === 'action' ? 'actions' : 'steps'] },
+      { id: 'design', label: 'Design', parts: ['design'] }, rules]);
+  }
+
+  // The wireframes of a page: the main view (name '') from `design.svg`, then each variant from
+  // `design-<name>.svg`.
+  var UIV = '';
+  function uiViews(it) { return [{ name: '', svg: it.designSvg }].concat(it.designVariants || []); }
+  function viewSvg(it, name) {
+    if (!it) return undefined;
+    if (!name) return it.designSvg;
+    var v = (it.designVariants || []).filter(function (x) { return x.name === name; })[0];
+    return v ? v.svg : undefined;
+  }
+  function viewLabel(name) { return name ? name.charAt(0).toUpperCase() + name.slice(1).replace(/-/g, ' ') : 'Main'; }
+  // When a variant shows: its bullet in `## Variants` of design.md, like ``- `guest`: the user is not signed in.``
+  function variantNote(it, name) {
+    if (!name) return '';
+    var m = new RegExp('^\\s*[-*]\\s+`' + name.replace(/[^a-z0-9_-]/gi, '') + '`:\\s*(.+)$', 'mi').exec(it.design || '');
+    return m ? m[1].trim() : '';
+  }
+  // True when a view of the page changed on a review page.
+  function viewChanged(it, name) {
+    if (!it.old) return false;
+    if (!name) return it.old.designSvg !== undefined && it.old.designSvg !== it.designSvg;
+    return it.old.designVariants !== undefined && viewSvg(it.old, name) !== viewSvg(it, name);
+  }
+
+  // True when a part of a tab changed on a review page.
+  function tabChanged(n, t) {
+    var it = n.item;
+    return t.parts.some(function (p) {
+      if (p === 'ui') return uiViews(it).some(function (v) { return viewChanged(it, v.name); }) ||
+        (!!it.old && it.old.designVariants !== undefined && (it.old.designVariants || []).some(function (v) { return viewSvg(it, v.name) === undefined; }));
+      if (p === 'steps' || p === 'actions') return (n.steps || []).some(function (s) { return !!STATUS[s.status]; });
+      return !!it.old && tabText(Object.assign({}, it, it.old), p) !== tabText(it, p);
+    });
+  }
+
   // The text of a row tab, as the diff compares it. The definition tab also holds the frontmatter.
   function tabText(it, tab) {
-    if (tab !== 'definition' || it.trigger === undefined) return it[tab] || '';
+    if (tab !== 'definition' || it.trigger === undefined) return partSource(it, tab) || '';
     return ['trigger: ' + (it.trigger || ''), 'entry: ' + (it.entry || ''), 'group: ' + (it.group || ''), '', it.definition || ''].join('\n');
   }
 
@@ -491,7 +660,7 @@ body.review #comments { display: inline-flex; }
     // A page with a design picture shows it first, as its UI.
     var ui = n.item && (n.item.designSvg || n.item.designImage) ? ['ui'] : [];
     return n.type === 'project' ? ['definition'] : n.type === 'page' ? ['definition'].concat(ui, [n.unit === 'action' ? 'actions' : 'steps', 'design', 'rules'])
-      : ['definition', 'steps', 'boundary', 'rules'];
+      : ['definition', 'input', 'steps', 'output', 'contract', 'rules'];
   }
 
 
@@ -511,23 +680,31 @@ body.review #comments { display: inline-flex; }
       }).join('') + '</' + tag + '>' : '<p class="empty">' + (act ? 'No actions.' : 'No steps.') + '</p>';
     }
     // The UI part shows the design picture. An SVG shows its actions beside it, with a line from
-    // each control to its action.
-    var shot = tab !== 'ui' ? '' : it.designSvg ? '<div class="dlink"><div class="shot demo" data-demo="' + esc(n.key) + '"></div>' +
+    // each control to its action. A page with variants shows a bar of its views above it.
+    var vname = viewSvg(it, UIV) !== undefined ? UIV : '', svg = viewSvg(it, vname), views = uiViews(it);
+    var shot = tab !== 'ui' ? '' : svg ? '<div class="dlink"><div class="shot demo" data-demo="' + esc(n.key) + '" data-view="' + esc(vname) + '"></div>' +
       '<ul class="dacts" aria-label="Actions"></ul><svg class="dwires" aria-hidden="true"></svg></div>' +
       '<p class="hint">Each line links a part of the page to its action. Click either one to follow it. A call opens the backend flow.</p>' : designImageHtml(it.designImage);
     // A changed design on a review page: a switch between the new design and the old one.
-    if (shot && it.designSvg && it.old && it.old.designSvg !== undefined && it.old.designSvg !== it.designSvg) {
+    if (shot && svg && viewChanged(it, vname) && viewSvg(it.old, vname) !== undefined) {
       shot = '<div class="dver" role="group" aria-label="Design version"><button type="button" class="on" data-dver="after" aria-pressed="true">After</button>' +
         '<button type="button" data-dver="before" aria-pressed="false">Before</button><span>The design changed.</span></div>' +
-        '<div class="dwas" hidden><div class="shot demo was" data-demo-old="' + esc(n.key) + '"></div></div><div class="dnow">' + shot + '</div>';
+        '<div class="dwas" hidden><div class="shot demo was" data-demo-old="' + esc(n.key) + '" data-view="' + esc(vname) + '"></div></div><div class="dnow">' + shot + '</div>';
+    }
+    if (tab === 'ui' && svg && views.length > 1) {
+      var note = variantNote(it, vname);
+      shot = '<div class="uivs" role="tablist" aria-label="Views of the page">' + views.map(function (v) {
+        return '<button type="button" role="tab" data-uiv="' + esc(v.name) + '" aria-selected="' + (v.name === vname) + '">' +
+          esc(viewLabel(v.name)) + (viewChanged(it, v.name) ? markHtml('changed', 'Changed') : '') + '</button>';
+      }).join('') + '</div>' + (note ? '<p class="uvnote"><b>' + esc(viewLabel(vname)) + ':</b> ' + inline(note) + '</p>' : '') + shot;
     }
     // A changed item keeps its old values in `old`: show the changed lines of this tab.
     if (it.old) {
       var before = tabText(Object.assign({}, it, it.old), tab), after = tabText(it, tab);
       if (before !== after) return shot + diffHtml(before, after);
     }
-    // A project definition shows each section closed, so the page opens short.
-    return shot + (it[tab] ? renderMd(it[tab], n.type === 'project' ? folds || {} : null) : shot ? '' : '<p class="empty">Nothing here yet.</p>');
+    var src = partSource(it, tab);
+    return shot + (src ? renderMd(src, null) : shot ? '' : '<p class="empty">' + (tab === 'input' || tab === 'output' ? 'No example.' : 'Nothing here yet.') + '</p>');
   }
 
   // A relative path or an https URL. A click opens the full image.
@@ -570,31 +747,37 @@ body.review #comments { display: inline-flex; }
   function partLabel(tab) { return tab === 'ui' ? 'UI' : tab.charAt(0).toUpperCase() + tab.slice(1); }
 
   // One part of a flow or page: a heading and its text. The definition is the lead, with no heading.
-  // shut(key): true for each closed part. A part's key is the key of its flow, `#`, and the part.
-  function partHtml(n, tab, folds, shut) {
+  // A part is always open: its heading is a label, not a fold button.
+  // bare: true for the only part of a tab. The tab names it, so it has no heading.
+  function partHtml(n, tab, folds, bare) {
     var text = body(n, tab, folds), lead = tab === 'definition' && text.indexOf('class="diff"') < 0, count = (tab === 'steps' || tab === 'actions') ? (n.item.steps || []).length : 0;
-    var key = n.key + '#' + tab, closed = !lead && !!shut && shut(key);
-    return '<section class="part' + (lead ? ' lead' : '') + (closed ? ' shut' : '') + '" data-part="' + tab + '">' +
-      (lead ? '' : '<h3>' + foldHead(key, !closed, partLabel(tab) + (count ? ' <small>' + count + '</small>' : '')) + '</h3>') +
-      (closed ? '' : '<div class="db">' + text + '</div>') + '</section>';
+    return '<section class="part' + (lead ? ' lead' : '') + (bare ? ' bare' : '') + '" data-part="' + tab + '">' +
+      (lead || bare ? '' : '<h3>' + partLabel(tab) + (count ? ' <small>' + count + '</small>' : '') + '</h3>') +
+      '<div class="db">' + text + '</div></section>';
   }
 
-  // A flow or page as a document: its title, a bar of its parts, then each part.
+  // A flow or page as a document: its title, its definition, a bar of tabs, then the parts of
+  // the open tab. Each tab shows one file.
   // group: the group name of the flow, shown in the path above the title.
-  // shut(key): true for each closed part.
-  function flowHtml(n, group, shut) {
-    var b = badgeOf(n), parts = rowTabs(n), pid = n.key.split('/')[0];
+  // ftab: the id of the open tab. shut is not used: the parts do not fold.
+  function flowHtml(n, group, shut, ftab, uiv) {
+    UIV = uiv || '';
+    var b = badgeOf(n), parts = rowTabs(n), pid = n.key.split('/')[0], tabs = flowTabs(n);
     var kind = n.type === 'page' ? 'page' : (n.item.trigger || 'flow') + ' flow';
+    var cur = tabs && (tabs.filter(function (t) { return t.id === ftab; })[0] || tabs[0]);
+    var rest = tabs ? '<nav class="toc ftabs" role="tablist" aria-label="Views">' + tabs.map(function (t) {
+      return '<button type="button" role="tab" data-ftab="' + t.id + '" aria-selected="' + (t === cur) + '">' + t.label +
+        (tabChanged(n, t) ? markHtml('changed', 'Has changes') : '') + '</button>';
+    }).join('') + '</nav>' + cur.parts.map(function (t) { return partHtml(n, t, null, cur.parts.length === 1); }).join('')
+      : '<nav class="toc" aria-label="Parts">' + parts.slice(1).map(function (t) {
+        return '<button type="button" data-part="' + t + '">' + partLabel(t) + '</button>';
+      }).join('') + '</nav>' + parts.slice(1).map(function (t) { return partHtml(n, t); }).join('');
     return '<article class="doc' + statusClass(n) + '" data-row="' + esc(n.key) + '">' +
       '<div class="crumb"><button type="button" data-go="' + esc(pid) + '">' + esc(pid) + '</button>' +
       (group ? '<span aria-hidden="true">/</span><span>' + esc(group) + '</span>' : '') + '</div>' +
       '<div class="dtitle"><span class="badge">' + esc(b.badge) + '</span><h2>' + esc(b.path) + '</h2>' + chipHtml(n) + '</div>' +
       '<div class="dname">' + esc(n.label) + ' · ' + esc(kind) + '</div>' +
-      partHtml(n, 'definition') +
-      '<nav class="toc" aria-label="Parts">' + parts.slice(1).map(function (t) {
-        return '<button type="button" data-part="' + t + '">' + partLabel(t) + '</button>';
-      }).join('') + '</nav>' +
-      parts.slice(1).map(function (t) { return partHtml(n, t, null, shut); }).join('') + '</article>';
+      partHtml(n, 'definition') + rest + '</article>';
   }
 
   // A flow or page as a card in a project overview. A click opens it. flows: all flows of the project.
@@ -671,14 +854,16 @@ body.review #comments { display: inline-flex; }
   }
 
   globalThis.MirrorViewer = { esc: esc, renderMd: renderMd, summary: summary, model: model, groups: groups, matches: matches, hasChanges: hasChanges,
-    diffHtml: diffHtml, actionDetails: actionDetails, badgeOf: badgeOf, flowHtml: flowHtml, projectHtml: projectHtml, treeHtml: treeHtml,
+    diffHtml: diffHtml, actionDetails: actionDetails, badgeOf: badgeOf, flowHtml: flowHtml, flowTabs: flowTabs, projectHtml: projectHtml, treeHtml: treeHtml,
     commentsText: commentsText };
   if (typeof document === 'undefined') return;
 
   // ---- Browser only below ----
 
   // sel: the key of the open project or flow. hits: the search matches in all projects.
-  var state = { sel: '', models: [], q: '', hits: [], hit: -1, changedOnly: false, folds: {}, shut: {}, comments: {}, ckeys: [], editing: null, draft: '', zoom: 1, sideWidth: 290, read: {}, readFilter: 'all' };
+  // ftab: the open tab of the open flow or page. '' opens its first tab. uiv: the open view of
+  // the UI tab of a page, '' for the main view.
+  var state = { sel: '', ftab: '', uiv: '', models: [], q: '', hits: [], hit: -1, changedOnly: false, folds: {}, shut: {}, comments: {}, ckeys: [], editing: null, draft: '', zoom: 1, sideWidth: 290, read: {}, readFilter: 'all' };
 
   function $(id) { return document.getElementById(id); }
   function sel(attr, value) { return '[' + attr + '="' + String(value).replace(/["\\]/g, '\\$&') + '"]'; }
@@ -893,7 +1078,7 @@ body.review #comments { display: inline-flex; }
     }
     var f = flowByKey(state.sel), group = f ? String(f.item.group || '').trim() : '';
     var closed = function (k) { return !!state.shut[k]; };
-    $('view').innerHTML = f ? flowHtml(f, group, closed) : projectHtml(m, state.folds[m.project.key], state.models.indexOf(m), closed);
+    $('view').innerHTML = f ? flowHtml(f, group, closed, state.ftab, state.uiv) : projectHtml(m, state.folds[m.project.key], state.models.indexOf(m), closed);
     // Mark the matching steps of this flow.
     state.hits.forEach(function (h, i) {
       if (h.type !== 'step' || h.parentKey !== state.sel) return;
@@ -920,7 +1105,7 @@ body.review #comments { display: inline-flex; }
       else history.replaceState(null, '', '#' + key);
     } catch (e) { /* file:// in some browsers */ }
     var same = key === state.sel;
-    if (!same) showGroup(key);
+    if (!same) { showGroup(key); state.ftab = ''; state.uiv = ''; }
     state.sel = key;
     state.editing = null;
     document.body.classList.remove('nav');
@@ -931,20 +1116,41 @@ body.review #comments { display: inline-flex; }
     else if (o.part) showPart(o.part);
   }
 
-  // Scroll to a step or action of the open flow. Its part opens first when it is closed.
+  // Scroll to a step or action of the open flow or page.
   function revealStep(key) {
-    var fk = key.split('#')[0];
-    if (state.shut[fk + '#steps'] || state.shut[fk + '#actions']) {
-      setShut(fk + '#steps', false); setShut(fk + '#actions', false);
-      drawView();
-    }
+    // Open the tab that holds the steps or the actions.
+    var fk = key.split('#')[0], f = flowByKey(fk), redraw = false;
+    ((f && flowTabs(f)) || []).forEach(function (t) {
+      if ((t.parts.indexOf('steps') >= 0 || t.parts.indexOf('actions') >= 0) && state.ftab !== t.id) { state.ftab = t.id; redraw = true; }
+    });
+    if (redraw) drawView();
     reveal($('view').querySelector('.db ' + sel('data-key', key)));
   }
 
+  // Scroll to a part of the open flow or page. It first opens the tab that holds the part.
   function showPart(tab) {
-    if (state.shut[state.sel + '#' + tab]) { setShut(state.sel + '#' + tab, false); drawView(); }
+    var f = flowByKey(state.sel), tabs = f && flowTabs(f), redraw = false;
+    (tabs || []).forEach(function (t) { if (t.parts.indexOf(tab) >= 0 && state.ftab !== t.id) { state.ftab = t.id; redraw = true; } });
+    if (redraw) drawView();
     var e = $('view').querySelector('.part' + sel('data-part', tab));
     if (e) e.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }
+
+  // Open a view of the UI tab of the open page, and keep the focus on its button.
+  function showView(name) {
+    state.uiv = name;
+    drawView();
+    var b = $('view').querySelector('.uivs ' + sel('data-uiv', name));
+    if (b) b.focus();
+  }
+
+  // Open a tab of the open flow, and keep the focus on its button.
+  function showTab(id) {
+    state.ftab = id;
+    state.editing = null;
+    drawView();
+    var b = $('view').querySelector('.ftabs ' + sel('data-ftab', id));
+    if (b) b.focus();
   }
 
   // ---- Page demos ----
@@ -968,14 +1174,14 @@ body.review #comments { display: inline-flex; }
   // Put the SVG of the open page in its Design part. Each part with data-action is a control.
   function fillDemos() {
     [].forEach.call($('view').querySelectorAll('[data-demo-old]'), function (box) {
-      var f = flowByKey(box.getAttribute('data-demo-old')), svg = f && f.item.old && cleanSvg(f.item.old.designSvg);
+      var f = flowByKey(box.getAttribute('data-demo-old')), svg = f && f.item.old && cleanSvg(viewSvg(f.item.old, box.getAttribute('data-view') || ''));
       if (!svg) return;
       [].forEach.call(svg.querySelectorAll('[data-action]'), function (el) { el.removeAttribute('data-action'); });
       box.appendChild(svg);
       box.style.maxWidth = svg.style.maxWidth;
     });
     [].forEach.call($('view').querySelectorAll('[data-demo]'), function (box) {
-      var f = flowByKey(box.getAttribute('data-demo')), svg = f && cleanSvg(f.item.designSvg);
+      var f = flowByKey(box.getAttribute('data-demo')), svg = f && cleanSvg(viewSvg(f.item, box.getAttribute('data-view') || ''));
       if (!svg) return;
       [].forEach.call(svg.querySelectorAll('[data-action]'), function (el) {
         var t = demoTarget(f, el.getAttribute('data-action'));
@@ -1022,21 +1228,70 @@ body.review #comments { display: inline-flex; }
     if (window.ResizeObserver) new ResizeObserver(function () { drawWires(link); }).observe(link);
   }
 
-  // A line from the right side of each control to the edge of the design, then a curve to its action.
+  // A line from the right side of each control, out of the design, along its own lane in the gap,
+  // then into its action. Each action has one lane, so two lines never run on top of each other.
+  // Controls of one action share the lane, like a bus. Corners are round.
   function drawWires(link) {
-    var base = link.getBoundingClientRect(), demo = link.querySelector('.demo'), wires = link.querySelector('.dwires'), out = '';
+    var base = link.getBoundingClientRect(), demo = link.querySelector('.demo'), wires = link.querySelector('.dwires');
     if (!base.width || !demo || !wires) return;
     // The pane can be zoomed: the boxes are in screen pixels, the lines are in page pixels.
     var k = base.width / (link.offsetWidth || base.width), edge = (demo.getBoundingClientRect().right - base.left) / k;
+    var items = [].slice.call(link.querySelectorAll('.dact')), gap = items.length ? (items[0].getBoundingClientRect().left - base.left) / k - edge : 0;
+    var groups = {}, list = [];
     [].forEach.call(link.querySelectorAll('.demo [data-action]'), function (el) {
       var name = actionName(el.getAttribute('data-action'));
-      var item = [].filter.call(link.querySelectorAll('.dact'), function (b) { return actionName(b.getAttribute('data-act')) === name; })[0];
+      var item = items.filter(function (b) { return actionName(b.getAttribute('data-act')) === name; })[0];
       if (!item) return;
       var r = el.getBoundingClientRect(), q = item.getBoundingClientRect();
-      var x1 = (r.right - base.left) / k, y1 = (r.top + r.height / 2 - base.top) / k, x2 = (q.left - base.left) / k, y2 = (q.top + q.height / 2 - base.top) / k;
-      var xe = Math.max(x1, edge), c = (x2 - xe) / 2, a = ' data-wire="' + esc(name) + '"';
-      out += '<path' + a + ' d="M' + x1 + ' ' + y1 + ' H' + xe + ' C' + (xe + c) + ' ' + y1 + ' ' + (x2 - c) + ' ' + y2 + ' ' + x2 + ' ' + y2 + '"/>' +
-        '<circle' + a + ' cx="' + x1 + '" cy="' + y1 + '" r="3"/><circle' + a + ' cx="' + x2 + '" cy="' + y2 + '" r="3"/>';
+      var g = groups[name] || (groups[name] = { name: name, x2: (q.left - base.left) / k, y2: (q.top + q.height / 2 - base.top) / k, src: [] });
+      if (!g.src.length) list.push(g);
+      g.src.push({ x: (r.right - base.left) / k, y: (r.top + r.height / 2 - base.top) / k, h: r.height / k });
+    });
+    // Many controls of one action on one row, like the cards of a list: draw one line, from the
+    // control on the right. The line would else run across the other cards.
+    list.forEach(function (g) {
+      g.src = g.src.filter(function (s) {
+        return !g.src.some(function (o) { return o !== s && Math.abs(o.y - s.y) < 4 && o.x > s.x; });
+      });
+    });
+    // Two controls of different actions on one row: move their lines apart, inside each control.
+    var all = [];
+    list.forEach(function (g) { g.src.forEach(function (s) { all.push({ s: s, g: g }); }); });
+    all.sort(function (a, b) { return a.s.y - b.s.y; });
+    for (var i = 1; i < all.length; i++) {
+      var p = all[i - 1], c = all[i];
+      if (c.g !== p.g && Math.abs(c.s.y - p.s.y) < 5) c.s.y = p.s.y + Math.min(6, Math.max(0, c.s.h / 2 - 3));
+    }
+    // One lane per action. An action whose span (from its top line to its bottom line) does not
+    // touch another span can share that lane. Spans that touch get lanes from left to right in
+    // the order of their target, so the lines do not cross in the gap.
+    list.forEach(function (g) {
+      var ys = g.src.map(function (s) { return s.y; }).concat(g.y2);
+      g.lo = Math.min.apply(null, ys) - 6; g.hi = Math.max.apply(null, ys) + 6;
+    });
+    var lanes = [];
+    list.slice().sort(function (a, b) { return a.y2 - b.y2; }).forEach(function (g) {
+      for (var l = 0; l < lanes.length; l++) {
+        if (lanes[l].every(function (o) { return o.hi < g.lo || o.lo > g.hi; })) break;
+      }
+      (lanes[l] = lanes[l] || []).push(g);
+      g.lane = l;
+    });
+    var n = Math.max(lanes.length, 1), room = Math.max(gap - 16, 8), step = Math.min(10, room / n);
+    var R = 6, out = '';
+    function round(x1, y1, lx, y2, x2) {
+      // From (x1, y1) right to the lane lx, down or up to y2, right to x2, with round corners.
+      if (Math.abs(y2 - y1) < 1) return 'M' + x1 + ' ' + y1 + ' H' + x2;
+      var d = y2 > y1 ? 1 : -1, r = Math.min(R, Math.abs(y2 - y1) / 2, lx - x1, x2 - lx);
+      return 'M' + x1 + ' ' + y1 + ' H' + (lx - r) + ' Q' + lx + ' ' + y1 + ' ' + lx + ' ' + (y1 + d * r) +
+        ' V' + (y2 - d * r) + ' Q' + lx + ' ' + y2 + ' ' + (lx + r) + ' ' + y2 + ' H' + x2;
+    }
+    list.forEach(function (g) {
+      var lx = edge + 8 + (g.lane + 0.5) * step, a = ' data-wire="' + esc(g.name) + '"';
+      g.src.forEach(function (s) {
+        out += '<path' + a + ' d="' + round(s.x, s.y, Math.max(lx, s.x + 4), g.y2, g.x2) + '"/><circle' + a + ' cx="' + s.x + '" cy="' + s.y + '" r="3"/>';
+      });
+      out += '<circle' + a + ' cx="' + g.x2 + '" cy="' + g.y2 + '" r="3"/>';
     });
     wires.innerHTML = out;
   }
@@ -1109,7 +1364,7 @@ body.review #comments { display: inline-flex; }
   }
 
   // The lines of a part that take a comment: each step or action, and each line of the
-  // other parts (rules, definition, boundary, design), also in a diff.
+  // other parts (rules, definition, input, output, contract, design), also in a diff.
   function commentTargets(part, f, tab) {
     var db = part.querySelector('.db');
     if (!db) return [];
@@ -1120,19 +1375,27 @@ body.review #comments { display: inline-flex; }
           where: tab === 'actions' ? 'action "' + String(s.title || s.text).replace(/\.$/, '') + '"' : 'step ' + s.n };
       });
     }
-    var sels = ':scope > p, :scope > ul > li, :scope > ol > li, :scope > table > tbody > tr, :scope > pre, .diff > span:not(.dh), .diff > ins, .diff > del';
+    var sels = ':scope > p, :scope > ul > li, :scope > ol > li, :scope > table > tbody > tr, :scope > pre, :scope > .callout > p, :scope > .callout > ul > li, ' +
+      ':scope > .callout > ol > li, :scope > .mchips > .mchip, .diff > span:not(.dh), .diff > ins, .diff > del';
     return [].filter.call(db.querySelectorAll(sels), function (el) { return el.textContent.trim(); }).map(function (el) {
       var t = el.tagName === 'TR' ? [].map.call(el.cells, function (c) { return c.textContent.trim(); }).join(' | ') : el.textContent.replace(/\s+/g, ' ').trim();
       var sec = section(el);
-      return { el: el, quote: (el.tagName === 'INS' ? 'new: ' : el.tagName === 'DEL' ? 'old: ' : '') + t, where: tab + (sec ? ', ' + sec : '') };
+      // The input and output parts are the two ends of `flow.md`.
+      var io = tab === 'input' || tab === 'output';
+      return { el: el, quote: (el.tagName === 'INS' ? 'new: ' : el.tagName === 'DEL' ? 'old: ' : '') + t,
+        where: (io ? 'flow' : tab) + (sec || io ? ', ' + (sec || partLabel(tab)) : '') };
     });
   }
 
-  // The heading above a line in a part: a markdown heading, or a heading line of a diff.
+  // The heading above a line in a part: a markdown heading, or a heading line of a diff. A line in
+  // a callout box looks above the box.
   function section(el) {
     var e = /^(LI|TR)$/.test(el.tagName) ? el.closest('ul, ol, table') : el;
-    while ((e = e && e.previousElementSibling)) {
-      if (/^H[1-6]$/.test(e.tagName) || e.classList.contains('dh')) return e.textContent.trim();
+    while (e) {
+      var prev = e.previousElementSibling;
+      if (!prev && e.parentElement && e.parentElement.classList.contains('callout')) { e = e.parentElement; continue; }
+      e = prev;
+      if (e && (/^H[1-6]$/.test(e.tagName) || e.classList.contains('dh'))) return e.textContent.trim();
     }
     return '';
   }
@@ -1313,6 +1576,8 @@ body.review #comments { display: inline-flex; }
       else if (b.hasAttribute('data-act')) followDemo(b.getAttribute('data-act'));
       else if (b.hasAttribute('data-go')) open(b.getAttribute('data-go'), { push: true });
       else if (b.hasAttribute('data-goto')) open(b.getAttribute('data-goto'), { push: true });
+      else if (b.hasAttribute('data-ftab')) showTab(b.getAttribute('data-ftab'));
+      else if (b.hasAttribute('data-uiv')) showView(b.getAttribute('data-uiv'));
       else if (b.closest('.toc')) showPart(b.getAttribute('data-part'));
       else if (b.hasAttribute('data-fold-sec')) toggleSection(b.getAttribute('data-fold-sec'));
       else if (b.hasAttribute('data-cmt')) editComment(Number(b.getAttribute('data-cmt')));

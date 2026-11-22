@@ -7,11 +7,9 @@ Topic `user.created`:
 | `userId` | string | yes | not empty |
 | `email` | string | yes | valid email |
 
-Example:
+## Auth
 
-```json
-{ "userId": "u1", "email": "ada@example.com" }
-```
+- None: the flow trusts each message on the topic.
 
 ## Output
 
@@ -19,12 +17,6 @@ Example:
 | --- | --- |
 | Publish `welcome-email.requested` | The message is valid. |
 | Send the message to the dead-letter queue | The message is not valid. |
-
-Example (published):
-
-```json
-{ "userId": "u1", "template": "welcome" }
-```
 
 ## Dependencies
 

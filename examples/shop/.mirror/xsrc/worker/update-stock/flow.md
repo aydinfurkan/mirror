@@ -1,3 +1,11 @@
+## Input
+
+Example:
+
+```json
+{ "eventId": "evt_1", "type": "order.paid", "orderId": "o1", "items": [{ "productId": "p1", "quantity": 2 }] }
+```
+
 ## 1. Skip each event that is not `order.paid` or `order.cancelled`
 
 ## 2. Take the quantity of each item out of the stock, in one transaction
@@ -9,3 +17,7 @@
 - Do it only for `order.cancelled`.
 - Skip the event when its id is already in `stock_events`.
 - Record the event id in `stock_events`.
+
+## Output
+
+- None.

@@ -20,7 +20,7 @@ The pasted text starts with `# Mirror review comments`. Each comment is a `## N.
 header, the quoted line of the page (`> …`), then the comment of the user.
 
 - `<where>` is `<project>/<flow>, step N`, `<project>/<flow>, action "<name>"`, or
-  `<project>/<flow>, <tab>, <section>`. The tab is `definition`, `rules`, `boundary` or
+  `<project>/<flow>, <tab>, <section>`. The tab is `definition`, `rules`, `flow`, `contract` or
   `design`. A quote that starts with `old:` or `new:` is a line of a diff.
 - Find the quoted line in the files of that flow or page under `.mirror/xsrc/`. Each comment
   is a change request on that line. A comment that is a question: answer it, and change

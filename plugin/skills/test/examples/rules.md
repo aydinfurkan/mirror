@@ -16,7 +16,7 @@ The list from step 1, for the flow `api/cancel-order` of the shop example.
 | `api/cancel-order O3` | Output | 409: the order is not `paid`, or it is older than 24 hours. |
 | `api/cancel-order O4` | Output | 502: Stripe does not answer. |
 
-Test data from the `Example` blocks of `boundary.md`:
+Test data from the `Example` blocks of `flow.md`:
 
 - `Example (200)`: `{ "id": "o1", "status": "cancelled" }`
 - `Example (409)`: `{ "error": { "code": "conflict", "message": "Only a paid order of the last 24 hours can be cancelled." } }`

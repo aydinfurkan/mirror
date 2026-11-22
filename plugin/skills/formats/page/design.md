@@ -17,6 +17,9 @@ In this order. Each section is a bullet list.
   `: ` and what it shows. Name each variant: for example primary and secondary buttons.
 - `## States`: one bullet per visual state that is not the normal view: loading, empty, error,
   disabled. Write the state, then `: ` and what the page shows.
+- `## Variants`: one bullet per `design-<variant>.svg`. Write the variant name in backticks,
+  then `: ` and when the page shows it: ``- `guest`: the user is not signed in. No "Cancel" button.``
+  Skip the section when the page has no variant. See "Variants" in `design-svg.md`.
 - `## Responsive`: what changes on a small screen. Write `- None.` when nothing changes.
 
 ## Style

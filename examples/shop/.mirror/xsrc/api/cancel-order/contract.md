@@ -15,18 +15,6 @@
 | 409 | `{ error: { code: "conflict", message } }` | The order is not `paid`, or it is older than 24 hours. |
 | 502 | `{ error: { code: "payment", message } }` | Stripe does not answer. |
 
-Example (200):
-
-```json
-{ "id": "o1", "status": "cancelled" }
-```
-
-Example (409):
-
-```json
-{ "error": { "code": "conflict", "message": "Only a paid order of the last 24 hours can be cancelled." } }
-```
-
 ## Dependencies
 
 - reads `shop-db`: the order, its status and its payment id.
