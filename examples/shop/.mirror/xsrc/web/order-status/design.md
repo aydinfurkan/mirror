@@ -8,7 +8,7 @@
 ## Components
 
 - `StatusBadge`: green for "Paid", gray for "Waiting for the payment…", red for "Cancelled".
-- `Button`: secondary for "Cancel order".
+- `Button`: secondary for "Cancel order". Default, hover, and loading with "Cancelling…".
 - `ConfirmDialog`: "Cancel this order?" with "Keep order" and "Cancel order".
 
 ## States

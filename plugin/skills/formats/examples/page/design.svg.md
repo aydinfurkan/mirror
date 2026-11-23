@@ -1,4 +1,4 @@
-# Example: `design.svg` of a `frontend` page
+# Example: `ui/main/design.svg` of a `frontend` page
 
 ```svg
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 420" font-family="ui-sans-serif, system-ui, sans-serif">

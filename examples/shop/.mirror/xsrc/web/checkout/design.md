@@ -8,8 +8,11 @@
 ## Components
 
 - `SummaryRow`: the product name, the quantity and the line price.
-- `TextField`: a label, an input and an error line below the input in the danger color.
-- `Button`: primary for "Pay".
+- `TextField`: a label, an input and an error line below the input in the danger color. Empty,
+  filled, focus and error.
+- `Button`: primary for "Pay". Default, hover, disabled while the email is empty, and loading
+  with "Paying…".
+- `Alert`: an error box with an icon, for "Payment is not available."
 
 ## States
 

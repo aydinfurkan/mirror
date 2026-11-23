@@ -11,8 +11,8 @@ backend flow it calls.
 
 | Project | Kind | What it does |
 | --- | --- | --- |
-| `web` | frontend | The shop pages. Each page has `actions.md`, `design.md` and a `design.svg` wireframe of a web page. |
-| `app` | mobile | The shop app for phones. Each page has a `design.svg` wireframe of a phone screen. |
+| `web` | frontend | The shop pages. Each page has `actions.md`, `design.md` and a `ui/main/design.svg` wireframe of a web page. `checkout` and `order-status` have `variations.svg` sheets, and `order-status` has the `waiting` and `cancelled` views. |
+| `app` | mobile | The shop app for phones. Each page has a `ui/main/design.svg` wireframe of a phone screen. |
 | `api` | backend | The HTTP API. |
 | `worker` | consumer | Handles the events of the Kafka topic `order.events`. |
 

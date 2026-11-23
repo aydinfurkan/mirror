@@ -78,8 +78,6 @@ body.resizing #view { pointer-events: none; }
 .zoom #zoom-reset { min-width: 58px; padding: 0 8px; font-size: 13px; }
 .zoom .btn:disabled { opacity: .4; cursor: default; }
 .rbar { margin: 2px 4px 12px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); font-size: 13px; }
-.rbar strong { font-size: 14px; }
-.rbar .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 6px 0 8px; color: var(--muted); }
 .rbar .btn { width: 100%; height: 30px; font-size: 13px; }
 .rbar .btn[aria-pressed="true"] { color: var(--flow); background: color-mix(in srgb, var(--flow) 14%, var(--surface)); }
 .mark { flex: none; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
@@ -118,9 +116,6 @@ body.resizing #view { pointer-events: none; }
 .tcheck:hover { background: color-mix(in srgb, var(--text) 6%, transparent); }
 .tcheck:hover::before { border-color: var(--added); }
 .tcheck[aria-pressed="true"]::before { border-color: var(--added); background-color: var(--added); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m2 5.2 2 2 4-4.4'/%3E%3C/svg%3E"); }
-.rbar .rprog { display: flex; align-items: center; gap: 8px; margin: 10px 0 6px; color: var(--muted); }
-.rbar .rprog i { flex: 1; height: 4px; border-radius: 4px; background: color-mix(in srgb, var(--text) 8%, transparent); overflow: hidden; }
-.rbar .rprog i::before { content: ""; display: block; width: var(--p); height: 100%; background: var(--added); transition: width .2s; }
 .rfilter { display: flex; gap: 2px; margin-bottom: 6px; padding: 2px; border-radius: 10px; background: color-mix(in srgb, var(--text) 5%, transparent); }
 .rfilter button { flex: 1; height: 26px; padding: 0 6px; border: 0; border-radius: 8px; background: none; color: var(--muted); font-size: 12.5px; font-weight: 500; cursor: pointer; white-space: nowrap; }
 .rfilter button:hover { color: var(--text); }
@@ -243,6 +238,24 @@ body.resizing #view { pointer-events: none; }
 .uivs button[aria-selected="true"] { color: var(--flow); font-weight: 600; background: color-mix(in srgb, var(--flow) 13%, transparent); }
 .uvnote { margin: -2px 0 12px; color: var(--muted); font-size: 14px; }
 .uvnote b { color: var(--text); font-weight: 600; }
+/* The variations of the components of a view, under its demo: a box per component, with a colored
+   stripe on its left, and a row of cards in it */
+.vars { margin: 8px 0 18px; }
+.db .vhead { display: flex; align-items: center; gap: 6px; margin: 18px 0 10px; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.vcomp { margin: 0 0 12px; padding: 14px 16px 16px 18px; border: 1px solid var(--border); border-left: 4px solid var(--c, var(--tab-1)); border-radius: 14px; background: var(--surface); }
+.vcomp:nth-child(5n+2) { --c: var(--tab-2); }
+.vcomp:nth-child(5n+3) { --c: var(--tab-3); }
+.vcomp:nth-child(5n+4) { --c: var(--tab-4); }
+.vcomp:nth-child(5n+5) { --c: var(--tab-5); }
+.vcomp > p { margin: 0 0 10px; color: var(--muted); font-size: 14px; }
+.vcomp > p code { color: var(--text); font-weight: 600; }
+.vrow { display: flex; flex-wrap: wrap; gap: 10px; }
+.vcard { display: flex; flex-direction: column; margin: 0; border: 1px solid var(--border); border-radius: 12px; background: color-mix(in srgb, var(--text) 4%, var(--surface)); overflow: hidden; }
+.vcard .vpic { display: grid; place-items: center; min-width: 120px; min-height: 64px; padding: 12px 16px; background: #ffffff; border-bottom: 1px solid var(--border); }
+.vcard .vpic svg { display: block; width: 100%; height: auto; }
+.vcard figcaption { padding: 6px 12px 7px; color: var(--muted); font-size: 13px; text-align: center; }
+.vcard.st-changed { outline: 2px solid var(--changed); outline-offset: -1px; }
+.vsheet { position: absolute; left: -10000px; top: 0; visibility: hidden; }
 .dver { display: flex; align-items: center; gap: 4px; margin: 4px 0 12px; }
 .dver button { padding: 4px 12px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--muted); font: inherit; font-size: 13.5px; cursor: pointer; }
 .dver button.on { border-color: var(--changed); color: var(--text); background: color-mix(in srgb, var(--changed) 16%, transparent); }
@@ -632,6 +645,21 @@ body.review #comments { display: inline-flex; }
     var m = new RegExp('^\\s*[-*]\\s+`' + name.replace(/[^a-z0-9_-]/gi, '') + '`:\\s*(.+)$', 'mi').exec(it.design || '');
     return m ? m[1].trim() : '';
   }
+  // The variations sheet of a view: `variations.svg` for the main view, `variations-<variant>.svg`
+  // for a variant. Each `<g data-variation="<Component>: <variation>">` in it becomes a card.
+  function varSvg(it, name) {
+    var v = it && (it.designVariations || []).filter(function (x) { return x.name === (name || ''); })[0];
+    return v ? v.svg : undefined;
+  }
+  function varChanged(it, name) {
+    return !!it.old && it.old.designVariations !== undefined && varSvg(it.old, name) !== varSvg(it, name);
+  }
+  // The text of a component in `## Components` of design.md, like ``- `Button`: primary for "Pay".``
+  function componentNote(it, comp) {
+    var m = new RegExp('^\\s*[-*]\\s+`' + comp.replace(/[^a-z0-9_-]/gi, '') + '`:\\s*(.+)$', 'mi').exec(it.design || '');
+    return m ? m[1].trim() : '';
+  }
+
   // True when a view of the page changed on a review page.
   function viewChanged(it, name) {
     if (!it.old) return false;
@@ -643,7 +671,8 @@ body.review #comments { display: inline-flex; }
   function tabChanged(n, t) {
     var it = n.item;
     return t.parts.some(function (p) {
-      if (p === 'ui') return uiViews(it).some(function (v) { return viewChanged(it, v.name); }) ||
+      if (p === 'ui') return uiViews(it).some(function (v) { return viewChanged(it, v.name) || varChanged(it, v.name); }) ||
+        (!!it.old && it.old.designVariations !== undefined && (it.old.designVariations || []).some(function (v) { return varSvg(it, v.name) === undefined; })) ||
         (!!it.old && it.old.designVariants !== undefined && (it.old.designVariants || []).some(function (v) { return viewSvg(it, v.name) === undefined; }));
       if (p === 'steps' || p === 'actions') return (n.steps || []).some(function (s) { return !!STATUS[s.status]; });
       return !!it.old && tabText(Object.assign({}, it, it.old), p) !== tabText(it, p);
@@ -691,11 +720,15 @@ body.review #comments { display: inline-flex; }
         '<button type="button" data-dver="before" aria-pressed="false">Before</button><span>The design changed.</span></div>' +
         '<div class="dwas" hidden><div class="shot demo was" data-demo-old="' + esc(n.key) + '" data-view="' + esc(vname) + '"></div></div><div class="dnow">' + shot + '</div>';
     }
+    if (shot && svg && varSvg(it, vname) !== undefined) {
+      shot += '<h4 class="vhead">Variations' + (varChanged(it, vname) ? markHtml('changed', 'Changed') : '') + '</h4>' +
+        '<div class="vars" data-vars="' + esc(n.key) + '" data-view="' + esc(vname) + '"></div>';
+    }
     if (tab === 'ui' && svg && views.length > 1) {
       var note = variantNote(it, vname);
       shot = '<div class="uivs" role="tablist" aria-label="Views of the page">' + views.map(function (v) {
         return '<button type="button" role="tab" data-uiv="' + esc(v.name) + '" aria-selected="' + (v.name === vname) + '">' +
-          esc(viewLabel(v.name)) + (viewChanged(it, v.name) ? markHtml('changed', 'Changed') : '') + '</button>';
+          esc(viewLabel(v.name)) + (viewChanged(it, v.name) || varChanged(it, v.name) ? markHtml('changed', 'Changed') : '') + '</button>';
       }).join('') + '</div>' + (note ? '<p class="uvnote"><b>' + esc(viewLabel(vname)) + ':</b> ' + inline(note) + '</p>' : '') + shot;
     }
     // A changed item keeps its old values in `old`: show the changed lines of this tab.
@@ -1046,22 +1079,14 @@ body.review #comments { display: inline-flex; }
     var all = 0, done = 0;
     state.models.forEach(function (m) { m.flows.forEach(function (f) { if (!flowChanged(f)) return; all++; if (state.read[f.key]) done++; }); });
     var pick = function (v, label) { return '<button type="button" data-read-filter="' + v + '" aria-pressed="' + (state.readFilter === v) + '">' + label + '</button>'; };
-    return '<div class="rprog"><span>' + done + ' of ' + all + (all === 1 ? ' change' : ' changes') + ' reviewed</span><i style="--p: ' + (all ? Math.round(done / all * 100) : 0) + '%"></i></div>' +
-      '<div class="rfilter" role="group" aria-label="Show">' + pick('all', 'All') + pick('unread', 'Unread ' + (all - done)) + pick('read', 'Read ' + done) + '</div>';
+    return '<div class="rfilter" role="group" aria-label="Show">' + pick('all', 'All') + pick('unread', 'Unread ' + (all - done)) + pick('read', 'Read ' + done) + '</div>';
   }
 
   function drawSide() {
     var review = document.body.classList.contains('review'), html = '';
     if (review) {
-      var n = { added: 0, changed: 0, removed: 0 };
-      state.models.forEach(function (m) {
-        if (STATUS[m.project.status]) n[m.project.status]++;
-        m.flows.forEach(function (f) { if (STATUS[f.status]) n[f.status]++; else if (flowChanged(f)) n.changed++; });
-      });
-      var total = n.added + n.changed + n.removed;
-      html += '<div class="rbar"><strong>' + total + ' change' + (total === 1 ? '' : 's') + '</strong> in this review' +
-        '<div class="legend">' + Object.keys(n).map(function (k) { return '<span>' + markHtml(k) + ' ' + n[k] + ' ' + k + '</span>'; }).join('') + '</div>' +
-        readHtml() +
+      // The read filter and the changes-only switch. The buttons hold the counts.
+      html += '<div class="rbar">' + readHtml() +
         '<button type="button" class="btn" id="changed-only" aria-pressed="' + state.changedOnly + '">Show changes only</button></div>';
     }
     var tree = treeHtml(state.models, state.sel, keep, shut, review ? function (f) { return flowChanged(f) ? !!state.read[f.key] : null; } : null);
@@ -1171,8 +1196,51 @@ body.review #comments { display: inline-flex; }
     return svg;
   }
 
+  // Cut a variations sheet into one small picture per `data-variation` group, grouped by component.
+  // A card is changed when its group is not in the old sheet, as the same markup.
+  function fillVariations(box) {
+    var f = flowByKey(box.getAttribute('data-vars')), view = box.getAttribute('data-view') || '';
+    var svg = f && cleanSvg(varSvg(f.item, view));
+    if (!svg) return;
+    var old = f.item.old && f.item.old.designVariations !== undefined ? cleanSvg(varSvg(f.item.old, view)) : null, was = {};
+    if (old) [].forEach.call(old.querySelectorAll('[data-variation]'), function (g) { was[g.getAttribute('data-variation')] = g.outerHTML; });
+    var host = document.createElement('div');
+    host.className = 'vsheet';
+    host.appendChild(svg);
+    document.body.appendChild(host);
+    var comps = [], byComp = {};
+    [].forEach.call(svg.querySelectorAll('[data-variation]'), function (g) {
+      var label = g.getAttribute('data-variation'), i = label.indexOf(':');
+      var comp = (i < 0 ? label : label.slice(0, i)).trim(), name = i < 0 ? 'default' : label.slice(i + 1).trim();
+      var bb; try { bb = g.getBBox(); } catch (e) { return; }
+      if (!bb || !bb.width) return;
+      var pad = 6, pic = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      pic.setAttribute('viewBox', [bb.x - pad, bb.y - pad, bb.width + 2 * pad, bb.height + 2 * pad].join(' '));
+      pic.setAttribute('font-family', svg.getAttribute('font-family') || 'ui-sans-serif, system-ui, sans-serif');
+      pic.style.maxWidth = Math.round((bb.width + 2 * pad) * 0.75) + 'px';
+      var c = g.cloneNode(true);
+      c.removeAttribute('data-variation');
+      [].forEach.call(c.querySelectorAll('[data-action]'), function (el) { el.removeAttribute('data-action'); });
+      pic.appendChild(c);
+      if (!byComp[comp]) { byComp[comp] = []; comps.push(comp); }
+      byComp[comp].push({ name: name, pic: pic, changed: !!old && was[label] !== g.outerHTML });
+    });
+    host.remove();
+    box.innerHTML = comps.map(function (comp, ci) {
+      var note = componentNote(f.item, comp.split(/\s/)[0].replace(/`/g, ''));
+      return '<div class="vcomp"><p><code>' + esc(comp) + '</code>' + (note ? ' ' + inline(note) : '') + '</p><div class="vrow">' +
+        byComp[comp].map(function (v, vi) {
+          return '<figure class="vcard' + (v.changed ? ' st-changed' : '') + '"><div class="vpic" data-vc="' + ci + '-' + vi + '"></div><figcaption>' + esc(v.name) + '</figcaption></figure>';
+        }).join('') + '</div></div>';
+    }).join('');
+    comps.forEach(function (comp, ci) {
+      byComp[comp].forEach(function (v, vi) { var p = box.querySelector('[data-vc="' + ci + '-' + vi + '"]'); if (p) p.appendChild(v.pic); });
+    });
+  }
+
   // Put the SVG of the open page in its Design part. Each part with data-action is a control.
   function fillDemos() {
+    [].forEach.call($('view').querySelectorAll('[data-vars]'), fillVariations);
     [].forEach.call($('view').querySelectorAll('[data-demo-old]'), function (box) {
       var f = flowByKey(box.getAttribute('data-demo-old')), svg = f && f.item.old && cleanSvg(viewSvg(f.item.old, box.getAttribute('data-view') || ''));
       if (!svg) return;
@@ -1216,10 +1284,21 @@ body.review #comments { display: inline-flex; }
 
   // The actions beside a design, each with where it goes. A grey action has no control in the design.
   function fillActions(link, f) {
-    var used = {};
+    var used = {}, any = {};
     [].forEach.call(link.querySelectorAll('.demo [data-action]'), function (el) { used[actionName(el.getAttribute('data-action'))] = 1; });
+    // The controls of all the views of the page. An action with a control in another view, but
+    // not in this one, is not beside this view: the view does not use it.
+    uiViews(f.item).forEach(function (v) {
+      String(v.svg || '').replace(/data-action="([^"]*)"/g, function (m, x) {
+        any[actionName(x.replace(/&quot;/g, '"').replace(/&amp;/g, '&'))] = 1;
+        return m;
+      });
+    });
     // A removed action has no control: it is not beside the design.
-    link.querySelector('.dacts').innerHTML = (f.item.steps || []).filter(function (s) { return s.status !== 'removed'; }).map(function (s) {
+    link.querySelector('.dacts').innerHTML = (f.item.steps || []).filter(function (s) {
+      var name = actionName(String(s.title || s.text || '').replace(/\.$/, ''));
+      return s.status !== 'removed' && (used[name] || !any[name]);
+    }).map(function (s) {
       var name = String(s.title || s.text || '').replace(/\.$/, ''), t = demoTarget(f, name);
       return '<li><button type="button" class="dact' + (used[actionName(name)] ? '' : ' free') + '" data-act="' + esc(name) + '">' + esc(name) +
         (t.key ? '<small>\u2192 ' + esc(t.key) + '</small>' : '') + '</button></li>';

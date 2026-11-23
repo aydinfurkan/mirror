@@ -18,8 +18,13 @@
   `boundary.md` go to `flow.md`, and the rest of `boundary.md` goes to `contract.md`. Then
   delete `steps.md` and `boundary.md`.
 - A page belongs to a `frontend`, `mobile` or `desktop` project. It has `definition.md`,
-  `actions.md`, `design.md`, `design.svg` (a wireframe) and `business-rules.md`. It can have
-  one `design-<variant>.svg` for each view of another user or status.
+  `actions.md`, `design.md`, `business-rules.md` and a `ui/` folder. `ui/` has one folder per
+  view: `ui/main/` for the main view and `ui/<variant>/` for each view of another user or
+  status. Each view folder has `design.svg` (a wireframe) and can have `variations.svg` (its
+  components in each variation).
+- An older page has `design.svg` and `design-<variant>.svg` next to `design.md`. When you change
+  such a page, move them: `design.svg` to `ui/main/design.svg`, and `design-<variant>.svg` to
+  `ui/<variant>/design.svg`.
 
 ## config.json
 

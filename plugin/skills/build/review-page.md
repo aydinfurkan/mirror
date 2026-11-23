@@ -20,10 +20,10 @@ Match a project by `id`, a flow by project `id` and flow `id`, and a step by `te
   `removed` too.
 - A flow in both: set `status` to `changed` when its `trigger`, `entry`, `group`,
   `definition`, `input`, `output`, `contract`, `design`, `designSvg`, `designVariants`,
-  `rules`, `actions` or step list is different.
+  `designVariations`, `rules`, `actions` or step list is different.
 - A project in both: set `status` to `changed` when its `definition` is different. Else keep
   `status` `null`, also when its flows changed.
 - For each `changed` project or flow, add `old`: an object with the old value of each of
   these fields that is different: `trigger`, `entry`, `group`, `definition`, `input`,
-  `output`, `contract`, `design`, `designSvg`, `designVariants`, `rules` and `actions`. For
-  `designVariants`, write the whole old list.
+  `output`, `contract`, `design`, `designSvg`, `designVariants`, `designVariations`, `rules`
+  and `actions`. For `designVariants` and `designVariations`, write the whole old list.

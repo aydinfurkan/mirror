@@ -33,11 +33,17 @@ Each sub-folder is a flow or a page. Read its `definition.md` first.
   `boundary.md`. Leave out `input` and `output`. The viewer takes them from the contract.
 - For a page only: `design`, the full text of `design.md`, and `actions`, the full text of
   `actions.md`.
-- For a page only: `designSvg`, the full text of `design.svg`. Leave it out when the file does
-  not exist.
-- For a page only: `designVariants`, one `{ "name", "svg" }` per `design-<name>.svg`: the name
-  and the full text of the file. Use the order of the `## Variants` bullets of `design.md`,
-  then the other files by name. Leave it out when there is no such file.
+- For a page only: `designSvg`, the full text of `ui/main/design.svg`. Leave it out when the
+  file does not exist.
+- For a page only: `designVariants`, one `{ "name", "svg" }` per other folder `ui/<name>/` with
+  a `design.svg`: the name and the full text of the file. Use the order of the `## Variants`
+  bullets of `design.md`, then the other folders by name. Leave it out when there is none.
+- For a page only: `designVariations`, one `{ "name", "svg" }` per `ui/<view>/variations.svg`:
+  `""` for `main`, else the name of the variant, and the full text of the file. Main first,
+  then the order of `designVariants`. Leave it out when there is none.
+- An older page has `design.svg` and `design-<name>.svg` next to `design.md`, and no `ui/`
+  folder. Read `design.svg` as `ui/main/design.svg` and `design-<name>.svg` as
+  `ui/<name>/design.svg`.
 - `status`: `null`.
 - `steps`: see "Steps".
 

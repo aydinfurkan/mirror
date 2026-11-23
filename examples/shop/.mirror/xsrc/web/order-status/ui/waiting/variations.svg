@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" font-family="ui-sans-serif, system-ui, sans-serif">
+<title>Order status waiting: variations</title>
+<rect width="320" height="80" fill="#ffffff"/>
+<g data-variation="StatusBadge: waiting"><rect x="20" y="20" width="270" height="36" rx="18" fill="#f4f4f5" stroke="#e4e4e7"/><text x="155.0" y="44" font-size="16" font-weight="700" fill="#52525b" text-anchor="middle"><tspan dx="12">Waiting for the payment…</tspan></text><circle cx="44" cy="38" r="8" fill="none" stroke="#71717a" stroke-opacity=".35" stroke-width="2.5"/><path d="M44 30 a8 8 0 0 1 8 8" fill="none" stroke="#71717a" stroke-width="2.5" stroke-linecap="round"/></g>
+</svg>
