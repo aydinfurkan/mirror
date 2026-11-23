@@ -243,14 +243,19 @@ body.resizing #view { pointer-events: none; }
 .uivs button[aria-selected="true"] { color: var(--flow); font-weight: 600; background: color-mix(in srgb, var(--flow) 13%, transparent); }
 .uvnote { margin: -2px 0 12px; color: var(--muted); font-size: 14px; }
 .uvnote b { color: var(--text); font-weight: 600; }
-/* The variations of the components of a view, under its demo: a row of cards per component */
+/* The variations of the components of a view, under its demo: a box per component, with a colored
+   stripe on its left, and a row of cards in it */
 .vars { margin: 8px 0 18px; }
 .db .vhead { display: flex; align-items: center; gap: 6px; margin: 18px 0 10px; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
-.vcomp { margin: 0 0 12px; padding: 14px 16px 16px; border-radius: 14px; background: color-mix(in srgb, var(--flow) 5%, color-mix(in srgb, var(--text) 3%, var(--bg))); }
+.vcomp { margin: 0 0 12px; padding: 14px 16px 16px 18px; border: 1px solid var(--border); border-left: 4px solid var(--c, var(--tab-1)); border-radius: 14px; background: var(--surface); }
+.vcomp:nth-child(5n+2) { --c: var(--tab-2); }
+.vcomp:nth-child(5n+3) { --c: var(--tab-3); }
+.vcomp:nth-child(5n+4) { --c: var(--tab-4); }
+.vcomp:nth-child(5n+5) { --c: var(--tab-5); }
 .vcomp > p { margin: 0 0 10px; color: var(--muted); font-size: 14px; }
 .vcomp > p code { color: var(--text); font-weight: 600; }
 .vrow { display: flex; flex-wrap: wrap; gap: 10px; }
-.vcard { display: flex; flex-direction: column; margin: 0; border-radius: 12px; background: var(--surface); box-shadow: 0 1px 3px rgb(0 0 0 / .06); overflow: hidden; }
+.vcard { display: flex; flex-direction: column; margin: 0; border: 1px solid var(--border); border-radius: 12px; background: color-mix(in srgb, var(--text) 4%, var(--surface)); overflow: hidden; }
 .vcard .vpic { display: grid; place-items: center; min-width: 120px; min-height: 64px; padding: 12px 16px; background: #ffffff; border-bottom: 1px solid var(--border); }
 .vcard .vpic svg { display: block; width: 100%; height: auto; }
 .vcard figcaption { padding: 6px 12px 7px; color: var(--muted); font-size: 13px; text-align: center; }
