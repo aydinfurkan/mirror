@@ -78,8 +78,6 @@ body.resizing #view { pointer-events: none; }
 .zoom #zoom-reset { min-width: 58px; padding: 0 8px; font-size: 13px; }
 .zoom .btn:disabled { opacity: .4; cursor: default; }
 .rbar { margin: 2px 4px 12px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); font-size: 13px; }
-.rbar strong { font-size: 14px; }
-.rbar .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 6px 0 8px; color: var(--muted); }
 .rbar .btn { width: 100%; height: 30px; font-size: 13px; }
 .rbar .btn[aria-pressed="true"] { color: var(--flow); background: color-mix(in srgb, var(--flow) 14%, var(--surface)); }
 .mark { flex: none; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
@@ -118,9 +116,6 @@ body.resizing #view { pointer-events: none; }
 .tcheck:hover { background: color-mix(in srgb, var(--text) 6%, transparent); }
 .tcheck:hover::before { border-color: var(--added); }
 .tcheck[aria-pressed="true"]::before { border-color: var(--added); background-color: var(--added); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m2 5.2 2 2 4-4.4'/%3E%3C/svg%3E"); }
-.rbar .rprog { display: flex; align-items: center; gap: 8px; margin: 10px 0 6px; color: var(--muted); }
-.rbar .rprog i { flex: 1; height: 4px; border-radius: 4px; background: color-mix(in srgb, var(--text) 8%, transparent); overflow: hidden; }
-.rbar .rprog i::before { content: ""; display: block; width: var(--p); height: 100%; background: var(--added); transition: width .2s; }
 .rfilter { display: flex; gap: 2px; margin-bottom: 6px; padding: 2px; border-radius: 10px; background: color-mix(in srgb, var(--text) 5%, transparent); }
 .rfilter button { flex: 1; height: 26px; padding: 0 6px; border: 0; border-radius: 8px; background: none; color: var(--muted); font-size: 12.5px; font-weight: 500; cursor: pointer; white-space: nowrap; }
 .rfilter button:hover { color: var(--text); }
@@ -1084,22 +1079,14 @@ body.review #comments { display: inline-flex; }
     var all = 0, done = 0;
     state.models.forEach(function (m) { m.flows.forEach(function (f) { if (!flowChanged(f)) return; all++; if (state.read[f.key]) done++; }); });
     var pick = function (v, label) { return '<button type="button" data-read-filter="' + v + '" aria-pressed="' + (state.readFilter === v) + '">' + label + '</button>'; };
-    return '<div class="rprog"><span>' + done + ' of ' + all + (all === 1 ? ' change' : ' changes') + ' reviewed</span><i style="--p: ' + (all ? Math.round(done / all * 100) : 0) + '%"></i></div>' +
-      '<div class="rfilter" role="group" aria-label="Show">' + pick('all', 'All') + pick('unread', 'Unread ' + (all - done)) + pick('read', 'Read ' + done) + '</div>';
+    return '<div class="rfilter" role="group" aria-label="Show">' + pick('all', 'All') + pick('unread', 'Unread ' + (all - done)) + pick('read', 'Read ' + done) + '</div>';
   }
 
   function drawSide() {
     var review = document.body.classList.contains('review'), html = '';
     if (review) {
-      var n = { added: 0, changed: 0, removed: 0 };
-      state.models.forEach(function (m) {
-        if (STATUS[m.project.status]) n[m.project.status]++;
-        m.flows.forEach(function (f) { if (STATUS[f.status]) n[f.status]++; else if (flowChanged(f)) n.changed++; });
-      });
-      var total = n.added + n.changed + n.removed;
-      html += '<div class="rbar"><strong>' + total + ' change' + (total === 1 ? '' : 's') + '</strong> in this review' +
-        '<div class="legend">' + Object.keys(n).map(function (k) { return '<span>' + markHtml(k) + ' ' + n[k] + ' ' + k + '</span>'; }).join('') + '</div>' +
-        readHtml() +
+      // The read filter and the changes-only switch. The buttons hold the counts.
+      html += '<div class="rbar">' + readHtml() +
         '<button type="button" class="btn" id="changed-only" aria-pressed="' + state.changedOnly + '">Show changes only</button></div>';
     }
     var tree = treeHtml(state.models, state.sel, keep, shut, review ? function (f) { return flowChanged(f) ? !!state.read[f.key] : null; } : null);
