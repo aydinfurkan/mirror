@@ -6,8 +6,9 @@ to write and how. To find the content, trace the code from the entry point:
 - A flow: read the request schemas and validators for the input, and the error mapping for the
   output.
 - A page: find the actions from the load effect, the event handlers and the form submits. Read
-  the components, the styles and the design links for the design. Then draw `design.svg` from
-  the design and the actions.
+  the components, the styles and the design links for the design. Then draw
+  `ui/main/design.svg` (and `ui/<variant>/design.svg` for each variant) from the design and the
+  actions, and `ui/<view>/variations.svg` from the variations of the components.
 - A call to an API: link to the backend flow with the same method and path.
 - Read the tests to find the constraints and the acceptance criteria. Ask the user for the
   context, the goal and the non-goal when the code does not show them.

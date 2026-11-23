@@ -1,4 +1,4 @@
-# Example: `design.svg` of a `mobile` page
+# Example: `ui/main/design.svg` of a `mobile` page
 
 ```svg
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 760" font-family="ui-sans-serif, system-ui, sans-serif">

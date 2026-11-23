@@ -1,25 +1,31 @@
 # Rule: page `design.svg`
 
-Path: `.mirror/xsrc/<project>/<page>/design.svg`. A wireframe of the page. The viewer shows it
+Path: `.mirror/xsrc/<project>/<page>/ui/<view>/design.svg`. A wireframe of one view of the page. The viewer shows it
 as a clickable demo.
 
 ## When to write it
 
 - Write it for each page. Draw it from `design.md` and `actions.md`.
-- When you change `design.md` or the headers of `actions.md`, change `design.svg` to match.
+- When you change `design.md` or the headers of `actions.md`, change each `design.svg` to match.
 
 ## Variants
 
 A page can look different for another user or status: a guest and a signed-in user, an admin,
 a cancelled order. Draw each of these views as a variant.
 
-- `design.svg` is the main view. Draw each variant in `design-<variant>.svg` next to it.
-  `<variant>` is kebab-case, for example `guest`, `admin` or `cancelled`.
+- `ui/main/design.svg` is the main view. Draw each variant in `ui/<variant>/design.svg`.
+  `<variant>` is kebab-case, for example `guest`, `admin` or `cancelled`. Do not name a
+  variant `main`.
 - Write each variant in `## Variants` of `design.md`. See `design.md`.
 - A variant follows each rule of this file. Mark its controls with `data-action` too.
 - Draw a variant only when the layout changes: a region, a control or a component is added or
-  removed. Write loading, empty and error states in `## States` of `design.md`. Do not draw them.
-- The viewer shows the main view and each variant as sub-tabs of the UI tab.
+  removed. Write loading, empty and error states in `## States` of `design.md`. Do not draw them
+  as views. Draw the look of a component in each state in `variations.svg` of the view. See
+  `variations-svg.md`.
+- The viewer shows the main view and each variant as sub-tabs of the UI tab. Beside each view it
+  lists only the actions that the view uses: an action with a control in another view, but not
+  in this one, is hidden. An action with no control in any view, like `Open the page`, shows
+  beside each view.
 
 ## Frame
 
