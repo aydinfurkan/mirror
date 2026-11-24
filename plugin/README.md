@@ -62,12 +62,10 @@ reaches each repo at once.
   `mirror:change` changes your code after your OK on the review page, `mirror:test` writes
   tests, and `mirror:github` writes `.github/workflows/mirror.yml` and
   `.github/mirror/review-page.mjs`.
-- **Network on your machine.** The skills make no network calls. When you open an HTML page of
-  Mirror, it loads the Inter and JetBrains Mono fonts from Google Fonts
-  (`fonts.googleapis.com`, `fonts.gstatic.com`), so Google sees your IP address and browser.
-  Offline, the page uses the system fonts. The page sends nothing else. Your comments, read
-  checks, theme, zoom and sidebar width stay in the local storage of your browser. Comments
-  leave it only when you copy them.
+- **Network on your machine.** None. The skills make no network calls, and the HTML pages
+  load nothing from the network: they use Inter and JetBrains Mono when installed, else the
+  system fonts. Your comments, read checks, theme, zoom and sidebar width stay in the local
+  storage of your browser. Comments leave it only when you copy them.
 - **GitHub, only with `mirror:github`.** On each pull request that changes `.mirror/`, the
   workflow runs in GitHub Actions with the `GITHUB_TOKEN` of the run, with `contents: read`
   and `pull-requests: write`. It attaches the newest review page to the run, and creates or

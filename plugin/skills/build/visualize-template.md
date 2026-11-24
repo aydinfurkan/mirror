@@ -9,9 +9,6 @@ The HTML template of the viewer page: the text between the ```` ```html ```` lin
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mirror</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&family=JetBrains+Mono:wght@400..700&display=swap">
 <style>
 /* MIRROR:TOKENS:START */
 /* Colors and fonts. Edit a value here. A rebuild keeps this block. Keep the variable names.
@@ -21,7 +18,7 @@ The HTML template of the viewer page: the text between the ```` ```html ```` lin
    --project, --flow: the logo, and the badge and selection color of flows and pages.
    --tab-1 ... --tab-5: color of each project, in order. The 6th project uses --tab-1 again.
    --added, --changed, --removed: marks and line colors on a feature review page.
-   --font, --mono: text font, code font. Inter and JetBrains Mono load from Google Fonts; offline, the system font is used. */
+   --font, --mono: text font, code font. Inter and JetBrains Mono when installed, else the system fonts. Nothing loads from the network. */
 :root {
   --bg: #fafafa;  --surface: #ffffff;  --panel: #ffffff;  --border: #e4e4e7;
   --text: #09090b;  --muted: #52525b;  --accent: #09090b;
