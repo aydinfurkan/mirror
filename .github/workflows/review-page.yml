@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - action/**
+      - plugin/skills/github/**
       - .github/workflows/review-page.yml
 
 permissions:

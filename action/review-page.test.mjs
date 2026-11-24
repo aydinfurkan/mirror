@@ -36,3 +36,12 @@ test('renders the comment', () => {
   assert.match(body, /For abcdef1\. The page is a file of the Actions run/);
   assert.match(render({ url: '' }), /adds no review page/);
 });
+
+test('the mirror:github skill ships the same script', async () => {
+  const { readFileSync } = await import('node:fs');
+  const here = new URL('.', import.meta.url);
+  const action = readFileSync(new URL('review-page.mjs', here), 'utf8').split('\n').slice(1).join('\n');
+  const md = readFileSync(new URL('../plugin/skills/github/review-page-script.md', here), 'utf8');
+  const copy = md.slice(md.indexOf('\n```js\n') + 7, md.lastIndexOf('```\n'));
+  assert.equal(copy, action);
+});

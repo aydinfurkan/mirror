@@ -15,8 +15,12 @@ has more than one review page, the link goes to the newest one.
 
 ## Use
 
-Ask Claude to run `mirror:github`, or say yes when `mirror:init` offers it. Or add
-`.github/workflows/mirror.yml` to your repository yourself:
+Ask Claude to run `mirror:github`, or say yes when `mirror:init` offers it. The skill does not
+use this action: it copies the same script into your repository, as
+`.github/mirror/review-page.mjs`, and a workflow that runs it. Keep the copy in
+`plugin/skills/github/review-page-script.md` in line with `review-page.mjs` here.
+
+Or add `.github/workflows/mirror.yml` to your repository yourself, with this action:
 
 ```yaml
 name: Mirror

@@ -9,9 +9,42 @@ permissions:
   contents: read
   pull-requests: write
 
+env:
+  # The path of the .mirror/ folder, relative to the repository root.
+  MIRROR_DIR: .mirror
+
 jobs:
   review-page:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: aydinfurkan/mirror/action@main
+      - name: Fetch the base revision
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if ! git cat-file -e "$BASE^{tree}" 2>/dev/null; then
+            git fetch --no-tags --quiet --depth=1 origin "$BASE"
+          fi
+      - name: Find the review page
+        id: prepare
+        env:
+          MIRROR_BASE: ${{ github.event.pull_request.base.sha }}
+          MIRROR_HEAD: HEAD
+        run: node .github/mirror/review-page.mjs prepare
+      # Unzipped, so that the link opens the page in the browser.
+      - name: Attach the review page to the run
+        id: upload
+        if: steps.prepare.outputs.file != ''
+        uses: actions/upload-artifact@v7
+        with:
+          path: ${{ steps.prepare.outputs.file }}
+          archive: false
+          overwrite: true
+      - name: Comment on the pull request
+        env:
+          MIRROR_TOKEN: ${{ github.token }}
+          MIRROR_NAME: ${{ steps.prepare.outputs.name }}
+          MIRROR_URL: ${{ steps.upload.outputs.artifact-url }}
+          MIRROR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          MIRROR_PR: ${{ github.event.pull_request.number }}
+        run: node .github/mirror/review-page.mjs comment
