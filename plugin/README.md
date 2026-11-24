@@ -52,12 +52,27 @@ reaches each repo at once.
 
 ### What it runs, reads and sends
 
-- **No hooks.** The plugin runs no commands of its own. Claude picks each skill from its
-  description, in a repo with a `.mirror/` folder.
-- **Files.** Reads your code. Writes only to the `.mirror/` folder, except for the tests
-  that `mirror:test` writes and the workflow that `mirror:github` writes.
-- **Network.** No network calls. The HTML pages use the system fonts. Review comments stay in
-  your browser until you copy them.
+- **No hooks.** The plugin has no hooks and nothing that runs on its own. Claude picks each
+  skill from its description, in a repo with a `.mirror/` folder.
+- **Commands.** The skills ask Claude to run a few shell commands, with your usual permission
+  prompts: `git log`, `git diff` and `git ls-files` (`mirror:sync`) to find what changed, and
+  `sed` (`mirror:build`, `mirror:github`) to copy a template out of the plugin.
+  `mirror:change` and `mirror:test` also run your project's own test commands.
+- **Files.** Reads your code. Writes the `.mirror/` folder. It also changes files outside it:
+  `mirror:change` changes your code after your OK on the review page, `mirror:test` writes
+  tests, and `mirror:github` writes `.github/workflows/mirror.yml` and
+  `.github/mirror/review-page.mjs`.
+- **Network on your machine.** The skills make no network calls. When you open an HTML page of
+  Mirror, it loads the Inter and JetBrains Mono fonts from Google Fonts
+  (`fonts.googleapis.com`, `fonts.gstatic.com`), so Google sees your IP address and browser.
+  Offline, the page uses the system fonts. The page sends nothing else. Your comments, read
+  checks, theme, zoom and sidebar width stay in the local storage of your browser. Comments
+  leave it only when you copy them.
+- **GitHub, only with `mirror:github`.** On each pull request that changes `.mirror/`, the
+  workflow runs in GitHub Actions with the `GITHUB_TOKEN` of the run, with `contents: read`
+  and `pull-requests: write`. It attaches the newest review page to the run, and creates or
+  updates one comment on the pull request through the GitHub API. It sends nothing outside
+  GitHub, and uses no token from your machine.
 
 ## Requirements
 
